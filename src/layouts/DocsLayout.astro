@@ -5,6 +5,7 @@ import DocsSidebar from '../components/DocsSidebar.astro';
 import DocsTableOfContents from '../components/DocsTableOfContents.astro';
 import DocsToolbar from '../components/DocsToolbar.astro';
 import { docsGroups, docsItems } from '../data/docs';
+import { site } from '../data/site';
 import '../styles/docs.css';
 
 interface SourceLink {
@@ -46,6 +47,10 @@ const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
   <DocsToolbar />
   {home ? (
     <article class="docs-home shell" data-pagefind-body>
+      <aside class="docs-source-availability" role="note">
+        <strong>Source access is private during early development.</strong>
+        <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. These guides describe the engine while that release is prepared.</p>
+      </aside>
       <slot />
     </article>
   ) : (
@@ -63,14 +68,18 @@ const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
           {(updated || sourceRevision) && (
             <div class="docs-source-meta">
               {updated && <span>Updated {updated.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</span>}
-              {sourceRevision && <span>Source revision {sourceRevision.slice(0, 7)}</span>}
+              {sourceRevision && <span>{site.engineSourcePublic ? 'Source revision' : 'Private source revision'} {sourceRevision.slice(0, 7)}</span>}
             </div>
           )}
         </header>
+        <aside class="docs-source-availability" role="note">
+          <strong>Source access is private during early development.</strong>
+          <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. The technical detail remains available here in the meantime.</p>
+        </aside>
         <div class="docs-prose">
           <slot />
         </div>
-        {sources.length > 0 && (
+        {site.engineSourcePublic && sources.length > 0 && (
           <section class="docs-sources">
             <h2>Authoritative sources</h2>
             <p>This guide is explanatory. These repository sources carry authority.</p>

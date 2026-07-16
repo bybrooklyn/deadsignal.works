@@ -1,27 +1,33 @@
 ---
 title: Build from source
-description: Clone the public repository, use the pinned toolchain, and run a proportionate first validation.
+description: The planned clone, toolchain, and validation workflow for Meridian's eventual public source release.
 group: build
 order: 1
 updated: 2026-07-16
 sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
 sources:
-  - label: Public Meridian repository
+  - label: Private Meridian repository
     href: https://github.com/bybrooklyn/meridian
   - label: Repository agent policy
     href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/AGENTS.md
 ---
 
-You need Git, Rustup, the repository’s pinned Rust toolchain, and the native build tools expected by your platform.
+Meridian’s source repository is private during early development. The workflow below records what public source users should expect after release; it is not available to anonymous users today.
 
-## Clone the engine
+## Before the source release
+
+The engine, integrated creator application, named subsystem details, current maturity, and architecture remain documented on this site. Cloning, building, and contributing begin when the repository opens under MIT or Apache-2.0.
+
+After release, you will need Git, Rustup, the repository’s pinned Rust toolchain, and the native build tools expected by your platform.
+
+## Planned clone step
 
 ```sh
-git clone https://github.com/bybrooklyn/meridian.git
+git clone <public Meridian repository URL>
 cd meridian
 ```
 
-Project Meridian is not part of this checkout. The ignored `game/` path is a boundary for a separate private repository, not a missing public submodule.
+When source access opens, Project Meridian will not be part of the checkout. The ignored `game/` path is a boundary for a separate private repository, not a missing public submodule.
 
 ## Confirm the workspace
 

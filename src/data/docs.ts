@@ -33,9 +33,9 @@ export const docsGroups: DocsNavGroup[] = [
   {
     id: 'build',
     label: 'Build',
-    description: 'Get the source, find your way around, and make a responsible contribution.',
+    description: 'Understand the planned source workflow, repository map, and contribution rules before release.',
     items: [
-      { id: 'build/from-source', label: 'Build from source', description: 'Clone, validate, and run the public workspace.', href: `${docsRoot}/build/from-source` },
+      { id: 'build/from-source', label: 'Build from source', description: 'Preview the public source workflow planned for release.', href: `${docsRoot}/build/from-source` },
       { id: 'build/repository-tour', label: 'Repository tour', description: 'Find engine crates, creator tools, specifications, and evidence.', href: `${docsRoot}/build/repository-tour` },
       { id: 'build/contributing', label: 'Contributing', description: 'Choose a bounded change and prove exactly what it does.', href: `${docsRoot}/build/contributing` },
     ],

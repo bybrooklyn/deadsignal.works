@@ -2,34 +2,27 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InPageNav from '../components/InPageNav.astro';
 import MotionSubsystemGrid from '../components/MotionSubsystemGrid';
-import { site } from '../data/site';
 import { subsystems } from '../data/subsystems';
 
 const codeSchema = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareSourceCode',
   name: 'Meridian',
-  description: 'An experimental general-purpose game and interactive-application engine written in Rust.',
-  codeRepository: site.engineRepository,
+  description: 'An experimental general-purpose game and interactive-application engine written in Rust and planned for an open-source release.',
   programmingLanguage: 'Rust',
-  license: [
-    'https://github.com/bybrooklyn/meridian/blob/main/LICENSE-MIT',
-    'https://github.com/bybrooklyn/meridian/blob/main/LICENSE-APACHE',
-  ],
 };
 ---
 
-<BaseLayout title="Meridian" description="The open-source Rust engine and integrated creator application behind Project Meridian." currentPath="/meridian" structuredData={codeSchema}>
+<BaseLayout title="Meridian" description="The Rust engine and integrated creator application behind Project Meridian, planned for an open-source release." currentPath="/meridian" structuredData={codeSchema}>
   <section class="meridian-hero" id="overview">
     <div class="shell meridian-hero-grid">
       <div>
-        <p class="kicker"><span>Open source</span> / Rust</p>
+        <p class="kicker"><span>Open-source release planned</span> / Rust</p>
         <h1>Meridian</h1>
         <p class="page-lede">I started Meridian because the game I wanted to make needed an engine I couldn’t buy.</p>
-        <p class="meridian-license-note">Open source under MIT or Apache-2.0.</p>
+        <p class="meridian-license-note">Source is private during early development. Release is planned under MIT or Apache-2.0.</p>
         <div class="inline-actions">
-          <a class="action action-primary" href={site.engineRepository} target="_blank" rel="noreferrer">Open GitHub <span aria-hidden="true">↗</span></a>
-          <a class="action" href="/meridian/docs">Read the docs <span aria-hidden="true">↗</span></a>
+          <a class="action action-primary" href="/meridian/docs">Read the docs <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <figure class="editor-placeholder">
@@ -51,15 +44,15 @@ const codeSchema = {
       <div><p class="section-number">01 / Why it exists</p><h2>The game came first. The engine followed.</h2></div>
       <div class="copy-stack">
         <p class="large-copy">Meridian is an experimental general-purpose engine for games and interactive applications, written in Rust and built around one integrated creator application.</p>
-        <p>Project Meridian is the first proving game. Reusable systems stay in the public engine repository; the game’s creative work stays in its private repository. That keeps the engine useful without turning the game inside out.</p>
+        <p>Project Meridian is the first proving game. Reusable systems are being prepared for the eventual public engine repository; the game’s creative work stays in its private repository. That keeps the engine useful without turning the game inside out.</p>
       </div>
     </section>
 
     <section class="content-section surface-section" id="use">
       <div class="shell">
-        <div class="section-heading meridian-section-heading"><p class="section-number">02 / Use Meridian</p><h2>For people who want to work close to the engine.</h2><p>Meridian is under active development. Today it is best suited to developers comfortable building from source and following the public evidence.</p></div>
+        <div class="section-heading meridian-section-heading"><p class="section-number">02 / Use Meridian</p><h2>Built for people who want to work close to the engine.</h2><p>Meridian is under active development. Its source remains private while the foundations and release boundary are prepared.</p></div>
         <div class="meridian-use-grid">
-          <article><span>01</span><h3>Build with the source open.</h3><p>Study, modify, and ship with the engine under MIT or Apache-2.0.</p></article>
+          <article><span>01</span><h3>Open when it is ready.</h3><p>The source is planned for release under MIT or Apache-2.0 after the early development boundary is ready.</p></article>
           <article><span>02</span><h3>Keep the tools together.</h3><p>The engine and its creator application are one product instead of separate layers with separate rules.</p></article>
           <article><span>03</span><h3>Follow what is real.</h3><p>The repository separates working foundations, evidence, and future direction so experiments do not masquerade as finished features.</p></article>
         </div>
@@ -77,17 +70,16 @@ const codeSchema = {
       <div class="shell prose-split">
         <div><p class="section-number">04 / Direction</p><h2>The broader engine is still under construction.</h2></div>
         <div class="copy-stack">
-          <p class="large-copy">Meridian is under active construction. Working foundations and future systems live side by side in the public repository. I would rather show the difference than make the engine sound larger than it is.</p>
+          <p class="large-copy">Meridian is under active construction. Working foundations and future systems live side by side in private source and are described here without pretending the complete product already exists.</p>
         </div>
       </div>
     </section>
 
     <section class="content-section shell read-more-panel" id="documentation">
-      <div><p class="section-number">05 / Documentation</p><h2>For developers and curious souls.</h2><p>The approachable guide lives here. The normative specifications and evidence stay in the engine repository.</p></div>
+      <div><p class="section-number">05 / Documentation</p><h2>For developers and curious souls.</h2><p>The approachable guide lives here. Normative specifications and evidence remain in the private engine repository until the source release.</p></div>
       <div class="stacked-actions">
         <a class="action action-primary" href="/meridian/docs">Start with the guide <span aria-hidden="true">↗</span></a>
-        <a class="action" href={`${site.engineRepository}/tree/main/specs`} target="_blank" rel="noreferrer">Browse the specifications <span aria-hidden="true">↗</span></a>
-        <a class="action" href={`${site.engineRepository}/blob/main/PLANNING.md`} target="_blank" rel="noreferrer">Read current evidence <span aria-hidden="true">↗</span></a>
+        <button class="action action-unavailable" type="button" disabled>Source repository <small>Private for now</small></button>
       </div>
     </section>
   </div>

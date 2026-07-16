@@ -12,7 +12,7 @@ const drawers = [
   },
   {
     number: '02',
-    kind: 'Open-source engine',
+    kind: 'Engine / source release planned',
     title: 'Meridian',
     copy: 'The Rust engine and integrated creator application being built alongside the game that needs them.',
     href: '/meridian',

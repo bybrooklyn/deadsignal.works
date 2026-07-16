@@ -31,7 +31,10 @@ const organization = {
   name: site.legalName,
   url: site.url,
   description: site.description,
-  sameAs: [site.engineRepository, site.tiktok],
+  sameAs: [
+    ...(site.engineSourcePublic ? [site.engineRepository] : []),
+    site.tiktok,
+  ],
 };
 const jsonLd = structuredData ?? organization;
 const socialImage = new URL('/social-card.svg', site.url).toString();

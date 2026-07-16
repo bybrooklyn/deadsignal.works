@@ -37,6 +37,8 @@ const files = await walk(root.pathname);
 const htmlFiles = files.filter((file) => file.endsWith('.html'));
 const failures = [];
 const sourceFiles = (await walk(sourceRoot.pathname)).filter((file) => /\.(?:astro|css|md|mdx|ts|tsx)$/.test(file));
+const siteData = await readFile(new URL('../src/data/site.ts', import.meta.url), 'utf8');
+const engineSourcePublic = /engineSourcePublic:\s*true/.test(siteData);
 
 for (const file of sourceFiles) {
   const source = await readFile(file, 'utf8');
@@ -93,6 +95,9 @@ for (const file of htmlFiles) {
   if (/\/meridian\/docs\/(?:subsystems|concepts|developers)(?:\/|&quot;|")/.test(html)) failures.push(`${relative}: stale documentation route`);
   if (/href="#"/.test(html)) failures.push(`${relative}: empty fragment link`);
   if (/text-transform:\s*uppercase/i.test(html)) failures.push(`${relative}: forced uppercase styling`);
+  if (!engineSourcePublic && /href="https:\/\/github\.com\/bybrooklyn\/meridian(?:\/|"|#|\?)/i.test(html)) {
+    failures.push(`${relative}: public link exposes the private Meridian source repository`);
+  }
 
   const links = [...html.matchAll(/href="(\/[^"]*)"/g)].map((match) => match[1]);
   for (const href of links) {

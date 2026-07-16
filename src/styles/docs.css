@@ -196,6 +196,29 @@
   font-size: 0.65rem;
 }
 
+.docs-source-availability {
+  margin: -22px 0 42px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--amber);
+  background: var(--surface);
+}
+
+.docs-source-availability strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.docs-source-availability p {
+  margin: 0;
+  color: var(--secondary);
+}
+
+.docs-home > .docs-source-availability {
+  margin: 0 0 28px;
+}
+
 .docs-prose {
   color: var(--secondary);
   font-size: 1.02rem;

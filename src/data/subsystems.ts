@@ -14,7 +14,7 @@ export interface Subsystem {
   directionTitle: string;
   ambition: string[];
   direction: string[];
-  specUrl: string;
+  specPath: string;
 }
 
 export const subsystems: Subsystem[] = [
@@ -43,7 +43,7 @@ export const subsystems: Subsystem[] = [
       'Specular IBL and broader environmental rendering',
       'Native backend work after evidence gates',
     ],
-    specUrl: 'https://github.com/bybrooklyn/meridian/blob/main/specs/RENDERING_AND_GRAPHICS_SPEC.md',
+    specPath: '/blob/main/specs/RENDERING_AND_GRAPHICS_SPEC.md',
   },
   {
     slug: 'cairn',
@@ -70,7 +70,7 @@ export const subsystems: Subsystem[] = [
       'Structural destruction as a flagship workload',
       'Dedicated first-class 2D physics path',
     ],
-    specUrl: 'https://github.com/bybrooklyn/meridian/blob/main/specs/CAIRN_PHYSICS_SPEC.md',
+    specPath: '/blob/main/specs/CAIRN_PHYSICS_SPEC.md',
   },
   {
     slug: 'wavefront',
@@ -97,7 +97,7 @@ export const subsystems: Subsystem[] = [
       'Spatial playback, music timing, and diagnostics',
       'Optional acoustics and voice packs',
     ],
-    specUrl: 'https://github.com/bybrooklyn/meridian/blob/main/specs/AUDIO_MUSIC_AND_ACOUSTICS_SPEC.md',
+    specPath: '/blob/main/specs/AUDIO_MUSIC_AND_ACOUSTICS_SPEC.md',
   },
   {
     slug: 'alluvium',
@@ -124,7 +124,7 @@ export const subsystems: Subsystem[] = [
       'Native visual authoring and runtime-safe recipes',
       'Measured execution expansion where evidence justifies it',
     ],
-    specUrl: 'https://github.com/bybrooklyn/meridian/blob/main/specs/PROCEDURAL_AUTHORING_SPEC.md',
+    specPath: '/blob/main/specs/PROCEDURAL_AUTHORING_SPEC.md',
   },
 ];
 

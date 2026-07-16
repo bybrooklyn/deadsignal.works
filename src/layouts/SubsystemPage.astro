@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import InPageNav from '../components/InPageNav.astro';
 import type { Subsystem } from '../data/subsystems';
+import { site } from '../data/site';
 
 interface Props {
   subsystem: Subsystem;
@@ -71,7 +72,9 @@ const docsUrl = `/meridian/docs/systems/${subsystem.slug}`;
     <div><p class="section-number">04 / Read more</p><h2>The detailed version lives in the docs.</h2></div>
     <div class="stacked-actions">
       <a class="action action-primary" href={docsUrl}>Read the subsystem guide <span aria-hidden="true">↗</span></a>
-      <a class="action" href={subsystem.specUrl} target="_blank" rel="noreferrer">Open the normative specification <span aria-hidden="true">↗</span></a>
+      {site.engineSourcePublic
+        ? <a class="action" href={`${site.engineRepository}${subsystem.specPath}`} target="_blank" rel="noreferrer">Open the normative specification <span aria-hidden="true">↗</span></a>
+        : <button class="action action-unavailable" type="button" disabled>Normative source <small>Private for now</small></button>}
       <a class="action" href="/meridian">Back to Meridian <span aria-hidden="true">↗</span></a>
     </div>
   </section>

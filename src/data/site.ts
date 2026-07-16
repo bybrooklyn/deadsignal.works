@@ -5,6 +5,8 @@ export const site = {
   url: 'https://deadsignal.works',
   description: 'An eccentric solo game and software studio focused on realistic, highly performant games and the technology behind them.',
   engineRepository: 'https://github.com/bybrooklyn/meridian',
+  engineSourcePublic: false,
+  engineReleaseLicense: 'MIT or Apache-2.0',
   discord: 'https://discord.gg/3NckH4Xtrn',
   tiktok: 'https://www.tiktok.com/@deadsignalworks',
   pressEmail: 'press@deadsignal.works',
@@ -14,7 +16,7 @@ export const site = {
 export const footerNavigation = [
   { label: 'Press information', href: '/press', external: false },
   { label: 'Contact', href: '/contact', external: false },
-  { label: 'Engine repository', href: site.engineRepository, external: true },
+  { label: 'Meridian engine', href: '/meridian', external: false },
   { label: 'Discord', href: site.discord, external: true },
   { label: 'TikTok', href: site.tiktok, external: true },
 ] as const;
