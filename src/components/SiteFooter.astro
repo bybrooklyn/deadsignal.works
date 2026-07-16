@@ -1,0 +1,26 @@
+---
+import { footerNavigation, site } from '../data/site';
+---
+
+<footer class="site-footer">
+  <div class="shell footer-callout">
+    <p>Dead Signal Works is a solo game studio responsible for <em>Meridian.</em></p>
+    <a href={`mailto:${site.contactEmail}`}>Say hello <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="shell footer-grid">
+    <div class="footer-identity">
+      <p>{site.legalName}</p>
+      <span>Games, engines, and other projects.</span>
+    </div>
+    <div class="footer-links">
+      {footerNavigation.map((item) => (
+        <a href={item.href} rel={item.external ? 'noreferrer' : undefined} target={item.external ? '_blank' : undefined}>
+          {item.label}{item.external && <span aria-hidden="true"> ↗</span>}
+        </a>
+      ))}
+    </div>
+    <div class="footer-meta">
+      <span>© {new Date().getFullYear()} {site.name}</span>
+    </div>
+  </div>
+</footer>

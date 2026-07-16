@@ -1,0 +1,51 @@
+---
+title: Penumbra
+description: Rendering ownership, frame flow, implemented foundations, and the production Forward+ direction.
+group: systems
+order: 2
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Rendering and graphics specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/RENDERING_AND_GRAPHICS_SPEC.md
+  - label: Penumbra implementation crate
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/engine/meridian_renderer
+---
+
+import ArchitectureFlow from '../../../components/ArchitectureFlow.astro';
+
+<aside className="docs-authority-note">
+  <strong>Non-normative guide.</strong>
+  <p>The rendering specification and typed registries own exact requirements. This page explains revision <code>8fc7ab0</code>.</p>
+</aside>
+
+Penumbra is Meridian’s renderer above the hardware interface. It owns how renderable snapshots become measured frames. It does not own the authoritative world or hand unrestricted backend access to game code.
+
+## Frame flow
+
+<ArchitectureFlow
+  title="From world state to a correlated result"
+  items={[
+    { label: 'World snapshot', detail: 'Extraction selects stable, render-relevant state at an explicit barrier.' },
+    { label: 'Upload', detail: 'Meridian-owned descriptors become bounded GPU resources behind the RHI.' },
+    { label: 'Render graph', detail: 'Pass dependencies, lifetimes, and timing are made explicit.' },
+    { label: 'Penumbra passes', detail: 'The current direct PBR path produces a frame and typed pass evidence.' },
+    { label: 'Surface outcome', detail: 'Presented, offscreen, unavailable, or failed outcomes stay distinguishable.' },
+  ]}
+/>
+
+## Current foundation
+
+The public snapshot contains a `wgpu`-backed RHI behind Meridian contracts, a render graph, direct PBR, cascaded shadows, diffuse irradiance IBL, extraction and upload, typed pass timing, asynchronous capture, and bounded structural and native GPU smokes.
+
+That is real rendering implementation. It is not the complete production renderer, final image quality, or a benchmark claim.
+
+## Production direction
+
+Clustered Forward+ is the adopted production shading path. Shared render graph, GPU scene, material and shader IR, visibility, streaming, lighting, temporal, profiling, and resource systems are meant to remain path-independent.
+
+Specular environment IBL, broader environmental rendering, calibrated quality evidence, and native backend work remain later packages at this revision.
+
+## Boundary to remember
+
+An offscreen capture proves that bytes were produced through a bounded path. It does not prove that a user saw a production-quality frame on every target platform.

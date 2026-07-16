@@ -1,0 +1,27 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const entries = (await getCollection('updates')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<BaseLayout title="Devlog" description="Development notes from Dead Signal Works, Project Meridian, and the Meridian engine." currentPath="/updates">
+  <section class="page-hero updates-hero shell">
+    <p class="kicker"><span>Devlog</span> / one entry so far</p>
+    <h1>Notes from the workbench.</h1>
+    <p class="page-lede">Game development, engine work, and studio updates—written when there is something worth writing down.</p>
+  </section>
+
+  <section class="updates-list shell" aria-label="Updates">
+    {entries.map((entry, index) => (
+      <a href={`/updates/${entry.id}`}>
+        <span class="update-index">0{index + 1}</span>
+        <time datetime={entry.data.pubDate.toISOString()}>{entry.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' })}</time>
+        <div><p>{entry.data.tag}</p><h2>{entry.data.title}</h2><span>{entry.data.description}</span></div>
+        <i aria-hidden="true">↗</i>
+      </a>
+    ))}
+  </section>
+</BaseLayout>

@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found" description="The requested page could not be found." currentPath="/404" noindex>
+  <section class="error-page shell">
+    <p class="kicker"><span>Error 404</span></p>
+    <h1>You found somewhere that doesn’t exist.</h1>
+    <p>There is nothing here. I checked twice.</p>
+    <div class="inline-actions">
+      <a class="action action-primary" href="/">Go home <span aria-hidden="true">↗</span></a>
+      <a class="action" href="/project-meridian">Project Meridian <span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+</BaseLayout>

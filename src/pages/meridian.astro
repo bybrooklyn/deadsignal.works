@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InPageNav from '../components/InPageNav.astro';
+import MotionSubsystemGrid from '../components/MotionSubsystemGrid';
+import { site } from '../data/site';
+import { subsystems } from '../data/subsystems';
+
+const codeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareSourceCode',
+  name: 'Meridian',
+  description: 'An experimental general-purpose game and interactive-application engine written in Rust.',
+  codeRepository: site.engineRepository,
+  programmingLanguage: 'Rust',
+  license: [
+    'https://github.com/bybrooklyn/meridian/blob/main/LICENSE-MIT',
+    'https://github.com/bybrooklyn/meridian/blob/main/LICENSE-APACHE',
+  ],
+};
+---
+
+<BaseLayout title="Meridian" description="The open-source Rust engine and integrated creator application behind Project Meridian." currentPath="/meridian" structuredData={codeSchema}>
+  <section class="meridian-hero" id="overview">
+    <div class="shell meridian-hero-grid">
+      <div>
+        <p class="kicker"><span>Open source</span> / Rust</p>
+        <h1>Meridian</h1>
+        <p class="page-lede">I started Meridian because the game I wanted to make needed an engine I couldn’t buy.</p>
+        <p class="meridian-license-note">Open source under MIT or Apache-2.0.</p>
+        <div class="inline-actions">
+          <a class="action action-primary" href={site.engineRepository} target="_blank" rel="noreferrer">Open GitHub <span aria-hidden="true">↗</span></a>
+          <a class="action" href="/meridian/docs">Read the docs <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <figure class="editor-placeholder">
+        <div aria-hidden="true"><span></span><span></span><span></span><i></i></div>
+        <figcaption><strong>Meridian editor screenshot</strong><span>An approved capture will replace this placeholder.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <InPageNav items={[
+    { label: 'Overview', href: '#overview' },
+    { label: 'Purpose and use', href: '#purpose' },
+    { label: 'Named systems', href: '#subsystems' },
+    { label: 'Current state and docs', href: '#direction' },
+  ]} />
+
+  <div class="meridian-chapter meridian-purpose-chapter">
+    <section class="content-section shell prose-split" id="purpose">
+      <div><p class="section-number">01 / Why it exists</p><h2>The game came first. The engine followed.</h2></div>
+      <div class="copy-stack">
+        <p class="large-copy">Meridian is an experimental general-purpose engine for games and interactive applications, written in Rust and built around one integrated creator application.</p>
+        <p>Project Meridian is the first proving game. Reusable systems stay in the public engine repository; the game’s creative work stays in its private repository. That keeps the engine useful without turning the game inside out.</p>
+      </div>
+    </section>
+
+    <section class="content-section surface-section" id="use">
+      <div class="shell">
+        <div class="section-heading meridian-section-heading"><p class="section-number">02 / Use Meridian</p><h2>For people who want to work close to the engine.</h2><p>Meridian is under active development. Today it is best suited to developers comfortable building from source and following the public evidence.</p></div>
+        <div class="meridian-use-grid">
+          <article><span>01</span><h3>Build with the source open.</h3><p>Study, modify, and ship with the engine under MIT or Apache-2.0.</p></article>
+          <article><span>02</span><h3>Keep the tools together.</h3><p>The engine and its creator application are one product instead of separate layers with separate rules.</p></article>
+          <article><span>03</span><h3>Follow what is real.</h3><p>The repository separates working foundations, evidence, and future direction so experiments do not masquerade as finished features.</p></article>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="content-section shell" id="subsystems">
+    <div class="section-heading meridian-section-heading"><p class="section-number">03 / Named systems</p><h2>Four ambitious parts of the engine.</h2><p>The marketing pages explain what they are trying to become. Their technical guides carry the exact implementation details.</p></div>
+    <MotionSubsystemGrid items={subsystems} client:visible />
+  </section>
+
+  <div class="meridian-chapter meridian-current-chapter">
+    <section class="content-section direction-board" id="direction">
+      <div class="shell prose-split">
+        <div><p class="section-number">04 / Direction</p><h2>The broader engine is still under construction.</h2></div>
+        <div class="copy-stack">
+          <p class="large-copy">Meridian is under active construction. Working foundations and future systems live side by side in the public repository. I would rather show the difference than make the engine sound larger than it is.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section shell read-more-panel" id="documentation">
+      <div><p class="section-number">05 / Documentation</p><h2>For developers and curious souls.</h2><p>The approachable guide lives here. The normative specifications and evidence stay in the engine repository.</p></div>
+      <div class="stacked-actions">
+        <a class="action action-primary" href="/meridian/docs">Start with the guide <span aria-hidden="true">↗</span></a>
+        <a class="action" href={`${site.engineRepository}/tree/main/specs`} target="_blank" rel="noreferrer">Browse the specifications <span aria-hidden="true">↗</span></a>
+        <a class="action" href={`${site.engineRepository}/blob/main/PLANNING.md`} target="_blank" rel="noreferrer">Read current evidence <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

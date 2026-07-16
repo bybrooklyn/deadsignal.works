@@ -1,0 +1,51 @@
+---
+title: Specifications and authority
+description: A question-based map to the repository source that owns architecture, delivery, status, evidence, and subsystem behavior.
+group: reference
+order: 1
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Meridian specification index
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs
+  - label: Architecture decision index
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/docs/architecture/decisions
+---
+
+The website is an explanatory layer. Use this map when you need the source that can actually settle a question.
+
+## What owns the whole architecture?
+
+Start with `specs/MERIDIAN_MASTER_SPEC.md`. It is the architecture index, defines authority order, and points to the subsystem specification that owns each domain.
+
+## What decides implementation order?
+
+Use `specs/DELIVERY_ROADMAP.md` for milestone order. Use `specs/IMPLEMENTATION_PLANNING_SPEC.md` for package readiness, completion, concurrency, replanning, and definitions of done.
+
+## What is being worked on now?
+
+Use `PLANNING.md` for current evidence, the active bounded package, and immediate queue. Read it at a specific revision; it is expected to change more often than the architecture.
+
+## What proves a claim?
+
+Use `specs/TESTING_BENCHMARKS_AND_VALIDATION.md`, typed records under `specs/registry/`, and evidence under `docs/evidence/`. A test name or screenshot without its evidence contract is not enough to broaden a claim.
+
+## Why was an architectural choice made?
+
+Use the adopted records in `docs/architecture/decisions/`. Decisions explain context, constraints, consequences, and replacement conditions that a product page intentionally omits.
+
+## Where do subsystem details live?
+
+| Question | Owning source |
+| --- | --- |
+| Rendering and Penumbra | `specs/RENDERING_AND_GRAPHICS_SPEC.md` |
+| Cairn physics | `specs/CAIRN_PHYSICS_SPEC.md` |
+| Wavefront audio | `specs/AUDIO_MUSIC_AND_ACOUSTICS_SPEC.md` |
+| Alluvium procedural authoring | `specs/PROCEDURAL_AUTHORING_SPEC.md` |
+| Native modeling | `specs/NATIVE_MODELING_AND_DCC_SPEC.md` |
+| Gameplay and optional scripting | `specs/GAMEPLAY_NARRATIVE_AND_SCRIPTING_SPEC.md` |
+| First-class 2D | `specs/TWO_DIMENSIONAL_ENGINE_SPEC.md` |
+
+## What if sources disagree?
+
+Do not resolve the conflict by choosing the friendlier sentence. Follow the repository’s authority order and record the contradiction or migration in the owning source. The narrower, better-evidenced claim wins until the sources are reconciled.

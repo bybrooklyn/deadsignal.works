@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Dead Signal Works</title>
+  <desc id="description">Project Meridian and the open-source Meridian engine.</desc>
+  <rect width="1200" height="630" fill="#090B0B"/>
+  <rect x="0" y="0" width="92" height="630" fill="#A73732"/>
+  <rect x="846" y="405" width="354" height="225" fill="#8D8961"/>
+  <rect x="945" y="64" width="155" height="155" fill="#C0964E"/>
+  <rect x="390" y="90" width="2" height="450" fill="#292D2C"/>
+  <text x="150" y="178" fill="#929790" font-family="Arial, sans-serif" font-size="24" font-weight="700">Dead Signal Works</text>
+  <text x="150" y="333" fill="#E3E1D8" font-family="Arial, sans-serif" font-size="92" font-weight="800" letter-spacing="-5">Project</text>
+  <text x="150" y="419" fill="#E3E1D8" font-family="Arial, sans-serif" font-size="92" font-weight="800" letter-spacing="-5">Meridian.</text>
+  <text x="150" y="514" fill="#929790" font-family="Arial, sans-serif" font-size="28">A game, its engine, and the studio building both.</text>
+</svg>

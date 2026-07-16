@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CopyText from '../components/CopyText.astro';
+import { site } from '../data/site';
+
+const studioFacts = [
+  ['Company', site.legalName],
+  ['Type', 'Independent solo game studio'],
+  ['Focus', 'Games and custom engine technology'],
+  ['Current game', 'Project Meridian — working title'],
+  ['Engine', 'Meridian — open source under MIT or Apache-2.0'],
+];
+---
+
+<BaseLayout title="Press information" description="Facts and contact information for Dead Signal Works, Project Meridian, and Meridian." currentPath="/press">
+  <section class="page-hero press-hero shell">
+    <p class="kicker"><span>Press information</span></p>
+    <h1>The useful facts, minus the boilerplate.</h1>
+    <p class="page-lede">Copy-ready information about Dead Signal Works, Project Meridian, and Meridian. There is no logo pack or screenshot folder hiding behind an impressive button yet.</p>
+    <a class="action action-primary" href={`mailto:${site.pressEmail}`}>Email press <span aria-hidden="true">↗</span></a>
+  </section>
+
+  <section class="content-section surface-section">
+    <div class="shell">
+      <div class="section-heading"><p class="section-number">01 / Studio facts</p><h2>Dead Signal Works</h2></div>
+      <dl class="project-fact-sheet">
+        {studioFacts.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
+      </dl>
+      <div class="press-copy-row"><CopyText value="Dead Signal Works is an independent solo game studio building Project Meridian and the open-source Meridian engine." label="Copy studio description" /></div>
+    </div>
+  </section>
+
+  <section class="content-section shell press-sections">
+    <article>
+      <p class="section-number">02 / Project Meridian</p>
+      <h2>Game summary</h2>
+      <p>Project Meridian is the working title for a single-player, first-person liminal horror game built around exploration across a large continuous world. It is a solo-led commercial game in early development, targeting Windows, Linux, Steam Deck, and macOS. Steam is the primary intended storefront. No release date has been announced.</p>
+      <CopyText value="Project Meridian is the working title for a single-player, first-person liminal horror game built around exploration across a large continuous world. It is a solo-led commercial game in early development. No release date has been announced." label="Copy game summary" />
+      <a class="text-action" href="/project-meridian">Project page <span aria-hidden="true">↗</span></a>
+    </article>
+    <article>
+      <p class="section-number">03 / Meridian</p>
+      <h2>Engine summary</h2>
+      <p>Meridian is an experimental general-purpose game and interactive-application engine written in Rust and built around one integrated creator application. It is open source under MIT or Apache-2.0. Current foundations and future direction are labeled separately.</p>
+      <CopyText value="Meridian is an experimental general-purpose game and interactive-application engine written in Rust and built around one integrated creator application. It is open source under MIT or Apache-2.0." label="Copy engine summary" />
+      <a class="text-action" href="/meridian">Engine page <span aria-hidden="true">↗</span></a>
+    </article>
+    <article>
+      <p class="section-number">04 / Assets</p>
+      <h2>Not available yet.</h2>
+      <p>No public logo pack, screenshots, trailer, key art, or gameplay footage has been approved. The site artwork is site artwork—not an especially abstract gameplay reveal.</p>
+    </article>
+  </section>
+</BaseLayout>

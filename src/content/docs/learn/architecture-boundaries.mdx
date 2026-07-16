@@ -1,0 +1,57 @@
+---
+title: Architecture boundaries
+description: How Meridian uses owned contracts, stable identity, typed commands, immutable snapshots, and explicit adapters.
+group: learn
+order: 2
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Meridian master specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/MERIDIAN_MASTER_SPEC.md
+  - label: Architecture decisions
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/docs/architecture/decisions
+---
+
+import ArchitectureFlow from '../../../components/ArchitectureFlow.astro';
+
+Meridian’s systems have names because their responsibilities need edges. Rendering should not quietly own world state. Procedural authoring should not become the live physics simulation. Third-party libraries should not decide the public API forever.
+
+## Meridian-owned contracts
+
+External libraries stop at adapters. Code above those adapters works with Meridian descriptors, handles, errors, and commands rather than leaking `wgpu`, Rapier, egui, or provider-specific types into stable interfaces.
+
+<ArchitectureFlow
+  title="A dependency enters through a controlled edge"
+  tone="grass"
+  items={[
+    { label: 'External library', detail: 'A replaceable implementation detail with its own types and lifecycle.' },
+    { label: 'Adapter', detail: 'Translation, validation, capability checks, and error mapping happen here.' },
+    { label: 'Meridian contract', detail: 'The rest of the engine sees stable, engine-owned behavior.' },
+  ]}
+/>
+
+## Stable identity and local handles
+
+Persistent IDs cross save, source, package, and network boundaries. Generational handles are fast, process-local references. Confusing the two creates stale references or makes durable data depend on one runtime session.
+
+## Commands and snapshots
+
+Cross-domain mutation travels through typed commands and explicit barriers. Render, audio, and worker systems consume immutable snapshots. This makes ownership visible and gives tools, undo, recovery, and diagnostics something concrete to inspect.
+
+<ArchitectureFlow
+  title="A visible frame without shared mutable ownership"
+  items={[
+    { label: 'Authoritative world', detail: 'Gameplay and tools apply validated commands at defined barriers.' },
+    { label: 'Extraction', detail: 'Relevant state becomes an immutable, versioned snapshot.' },
+    { label: 'Consumer systems', detail: 'Rendering and workers process snapshots without taking world authority.' },
+    { label: 'Correlated result', detail: 'Outcomes and diagnostics return with stable context.' },
+  ]}
+/>
+
+## Optional means absent
+
+When an optional pack is disabled, it should add no tasks, listeners, allocations, GPU resources, panels, package chunks, or dependencies. A disabled feature that still quietly runs is not optional in the way Meridian uses the word.
+
+## Source remains authoritative
+
+Source documents are the durable truth. Compiled chunks, generated artifacts, derived caches, and cooked outputs can be rebuilt. Recovery favors the source and records what had to be regenerated.

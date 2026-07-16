@@ -1,0 +1,41 @@
+---
+title: What Meridian is
+description: The engine, the creator application, its license, and the boundary around Project Meridian.
+group: learn
+order: 1
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Public repository readme
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/README.md
+  - label: Meridian master specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/MERIDIAN_MASTER_SPEC.md
+---
+
+Meridian is an experimental, general-purpose engine for games and interactive applications. It is written in Rust and shaped around one integrated creator application, also named Meridian.
+
+It exists because the game I want to make needs an engine I could not buy. Project Meridian is the first proving game, but the engine is meant to stay useful beyond one project.
+
+## One engine, one creator application
+
+The runtime, rendering, asset pipeline, tools, modeler, profiler, build workflow, and play experience are intended to meet inside one application. Some of those foundations exist now. The complete product does not.
+
+The website uses names such as Penumbra, Cairn, Wavefront, and Alluvium to make ownership clear. A name is not proof that a complete implementation exists; the [current status](/meridian/docs/learn/current-status) page makes that distinction explicit.
+
+## Open source and free to use
+
+Meridian is dual-licensed under **MIT or Apache-2.0**. You may use it, modify it, and ship commercial work with it under either license. There is no engine fee or royalty.
+
+The public repository contains the engine, specifications, tests, examples, and sanitized evidence. It does not contain Project Meridian’s private creative material.
+
+## The game stays separate
+
+Project Meridian is proprietary. Its story, world, art, and future game code live in a separate private repository. The public engine can receive reusable requirements and generated or sanitized fixtures, but it must not become a back door into the game.
+
+That separation is deliberate: the game can remain a game, and Meridian can remain an engine other people can actually use.
+
+## Where to go next
+
+- Read [architecture boundaries](/meridian/docs/learn/architecture-boundaries) to see how ownership is kept explicit.
+- Read [maturity and evidence](/meridian/docs/learn/maturity-and-evidence) before interpreting roadmap language.
+- [Build from source](/meridian/docs/build/from-source) when you want to work with the repository itself.

@@ -1,0 +1,25 @@
+---
+import DocsSearch from './DocsSearch';
+import { docsGroups } from '../data/docs';
+---
+
+<div class="docs-toolbar" data-pagefind-ignore>
+  <div class="shell docs-toolbar-inner">
+    <a class="docs-toolbar-title" href="/meridian/docs">Meridian docs</a>
+    <nav class="docs-category-nav" aria-label="Documentation categories">
+      {docsGroups.map((group) => <a href={group.items[0].href}>{group.label}</a>)}
+    </nav>
+    <DocsSearch client:load />
+    <details class="docs-mobile-menu">
+      <summary>Docs menu <span aria-hidden="true">+</span></summary>
+      <nav aria-label="Mobile documentation navigation">
+        {docsGroups.map((group) => (
+          <section>
+            <p>{group.label}</p>
+            {group.items.map((item) => <a href={item.href}>{item.label}</a>)}
+          </section>
+        ))}
+      </nav>
+    </details>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+---
+title: Alluvium
+description: Procedural recipes, fields, evaluation, generated identity, overrides, provenance, cooking, and the current source foundation.
+group: systems
+order: 5
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Procedural authoring specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/PROCEDURAL_AUTHORING_SPEC.md
+  - label: Alluvium source crate
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/engine/meridian_alluvium
+---
+
+import ArchitectureFlow from '../../../components/ArchitectureFlow.astro';
+
+<aside className="docs-authority-note">
+  <strong>Non-normative guide.</strong>
+  <p>The procedural-authoring specification owns the contracts. This page describes a partial source foundation.</p>
+</aside>
+
+Alluvium is Meridian’s procedural world-authoring and asset-generation system. It is meant to make generated work inspectable: the recipe, inputs, identity, overrides, provenance, derived cost information, and cooked result belong to one traceable pipeline.
+
+## Recipe to result
+
+<ArchitectureFlow
+  title="A procedural source remains explainable"
+  tone="paper"
+  items={[
+    { label: 'Recipe', detail: 'Human-readable source declares typed operations and stable intent.' },
+    { label: 'Fields and inputs', detail: 'Validated scalar or spatial data enters under explicit types and limits.' },
+    { label: 'Evaluation', detail: 'Deterministic substreams produce stable generated identity.' },
+    { label: 'Overrides', detail: 'Authored exceptions attach to identity instead of silently replacing the source.' },
+    { label: 'Cooked result', detail: 'Runtime systems receive rebuildable artifacts while retaining their own live authority.' },
+  ]}
+/>
+
+## Current foundation
+
+At this public revision, Alluvium is partial. Canonical text recipes, typed fields, strict scalar evaluation, stable identity, deterministic substreams, overrides, derived-cache recovery, validation, a CLI, and a basic inspector have bounded implementation work behind them.
+
+The full procedural world system, production terrain and vegetation integrations, native visual authoring, runtime-safe recipe execution, and private Project Meridian recipes are not complete public features.
+
+## Runtime ownership stays elsewhere
+
+Alluvium can author inputs and derived predictions. It does not become the live terrain, physics, weather, rendering, navigation, audio, streaming, or save system. Those systems retain authority over runtime state.
+
+This also preserves baked-only games: if a project ships cooked outputs without the evaluator, disabled Alluvium runtime behavior should impose no hidden cost.

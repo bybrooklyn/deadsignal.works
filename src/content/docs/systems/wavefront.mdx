@@ -1,0 +1,45 @@
+---
+title: Wavefront
+description: Audio devices, streaming, sample timing, immutable DSP graphs, mixing, voice boundaries, and acoustics direction.
+group: systems
+order: 4
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Audio, music, and acoustics specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/AUDIO_MUSIC_AND_ACOUSTICS_SPEC.md
+  - label: Audio scaffold crate
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/engine/meridian_audio
+---
+
+import ArchitectureFlow from '../../../components/ArchitectureFlow.astro';
+
+<aside className="docs-authority-note">
+  <strong>Non-normative guide.</strong>
+  <p>Wavefront is adopted architecture with a scaffold crate. It is not an implemented audio runtime yet.</p>
+</aside>
+
+Wavefront owns audio capture, devices, streaming decode, sample timing, DSP, mixing, music behavior, spatial playback, and optional acoustics. Collective owns optional online-service and voice-session policy; networking owns transport.
+
+## The intended signal path
+
+<ArchitectureFlow
+  title="A sound reaches the player"
+  tone="amber"
+  items={[
+    { label: 'Source and stream', detail: 'Bounded decode and buffering prepare audio without blocking the real-time callback.' },
+    { label: 'Immutable DSP graph', detail: 'Prepared graph state crosses into the audio thread without shared mutable control.' },
+    { label: 'Spatial mix', detail: 'Listener, source, music, and optional acoustics contribute to the output.' },
+    { label: 'Device', detail: 'A recoverable backend feeds the selected hardware under a real-time-safe contract.' },
+  ]}
+/>
+
+## Current foundation
+
+The architecture, ownership boundaries, and a `meridian-audio` scaffold crate exist. A mixer, decoder, device backend, music runtime, voice stack, and acoustic solver do not.
+
+## Why the boundary matters
+
+Audio callbacks cannot wait for the world, allocate without bounds, or inherit arbitrary engine locks. Wavefront’s design prepares work away from the callback and crosses the boundary through bounded, inspectable state.
+
+Optional voice and acoustics packs must also disappear cleanly when disabled. They should not leave tasks, listeners, allocations, or package data behind.

@@ -1,0 +1,49 @@
+---
+title: Cairn
+description: Physics ownership, fixed-step behavior, stable identity, determinism, and the transitional wrapper that exists today.
+group: systems
+order: 3
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Cairn physics specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/CAIRN_PHYSICS_SPEC.md
+  - label: Current physics crate
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/engine/meridian_physics
+---
+
+import ArchitectureFlow from '../../../components/ArchitectureFlow.astro';
+
+<aside className="docs-authority-note">
+  <strong>Non-normative guide.</strong>
+  <p>The Cairn specification owns the future architecture. The current implementation remains transitional.</p>
+</aside>
+
+Cairn is Meridian’s physics family: stable body and shape identity, fixed-step simulation, explicit queries, deterministic modes, structural systems, and dedicated 2D and 3D paths.
+
+## Physical behavior in a frame
+
+<ArchitectureFlow
+  title="The current fixed-step boundary"
+  tone="grass"
+  items={[
+    { label: 'Commands', detail: 'Validated changes enter at a controlled simulation boundary.' },
+    { label: 'Fixed steps', detail: 'Elapsed time is consumed in bounded, repeatable increments.' },
+    { label: 'Physics world', detail: 'The transitional wrapper advances bodies, collision, and controller state.' },
+    { label: 'Results', detail: 'Transforms, contacts, and grounded state return through Meridian-owned types.' },
+  ]}
+/>
+
+## Current foundation
+
+The public code has a Rapier-backed wrapper behind Meridian types, fixed-step world integration, static collision, kinematic character movement, and a grounded-controller foundation with tests.
+
+This proves an integration boundary and useful behavior. It does not mean Meridian-owned Cairn solver internals exist.
+
+## Direction
+
+The adopted direction includes Cairn-native body, shape, query, and solver contracts; provenance-controlled donor work where justified; differential testing; structural destruction as a flagship workload; and a dedicated first-class 2D physics path.
+
+## Boundary to remember
+
+Navigation may ask Cairn about traversability and gameplay may react to contacts, but physics does not own game decisions. Stable persistent identity also remains separate from fast process-local handles.

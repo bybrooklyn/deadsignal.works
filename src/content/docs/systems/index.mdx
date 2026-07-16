@@ -1,0 +1,30 @@
+---
+title: System map
+description: A map of Meridian’s named systems, what each one owns, and where to find the exact current state.
+group: systems
+order: 1
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Meridian master specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/MERIDIAN_MASTER_SPEC.md
+---
+
+These guides are readable maps, not normative specifications. They describe the public source revision shown above and link to the documents that carry authority.
+
+## Core named systems
+
+| System | Owns | At this snapshot |
+| --- | --- | --- |
+| [Penumbra](/meridian/docs/systems/penumbra) | Rendering above the hardware boundary | A bounded direct rendering path exists; the production Forward+ path remains ahead. |
+| [Cairn](/meridian/docs/systems/cairn) | Physics architecture and eventual Meridian-owned solver paths | Meridian currently wraps a third-party solver behind its own contracts. |
+| [Wavefront](/meridian/docs/systems/wavefront) | Audio device, streaming, timing, DSP, mixing, and acoustics | The architecture exists; the audio runtime does not yet. |
+| [Alluvium](/meridian/docs/systems/alluvium) | Procedural recipes, evaluation, identity, overrides, provenance, and cooking | The recipe and evaluation foundation exists; production world integrations remain ahead. |
+
+## Other architecture
+
+Meridian’s adopted architecture also names Collective for optional online services, Isobar for weather and climate state, Basalt for terrain, Torsant for fluid simulation, and Marquee for a deferred post-1.0 promotional export workflow. Their names do not imply complete implementations.
+
+## How systems meet
+
+Ownership passes through typed contracts. Alluvium may author a recipe that produces terrain inputs, but Basalt owns terrain runtime behavior. Cairn owns physics queries, while gameplay decides what those queries mean. Penumbra renders snapshots without taking world authority. Wavefront owns audio behavior while Collective owns online session policy.

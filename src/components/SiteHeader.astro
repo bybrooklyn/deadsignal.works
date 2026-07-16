@@ -1,0 +1,21 @@
+---
+import { site } from '../data/site';
+import SiteNavigation from './SiteNavigation';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+---
+
+<header class="site-header">
+  <div class="shell header-inner">
+    <a class="wordmark" href="/" aria-label={`${site.name} home`}>
+      <span>Dead Signal</span>
+      <span>Works</span>
+    </a>
+
+    <SiteNavigation currentPath={currentPath} client:load />
+  </div>
+</header>

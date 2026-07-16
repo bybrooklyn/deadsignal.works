@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InPageNav from '../components/InPageNav.astro';
+import KineticProjectHero from '../components/KineticProjectHero';
+import { site } from '../data/site';
+
+const gameSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoGame',
+  name: 'Project Meridian',
+  description: 'A single-player, first-person liminal horror game built around exploration across a large continuous world.',
+  gamePlatform: ['Windows', 'Linux', 'Steam Deck', 'macOS'],
+  playMode: 'SinglePlayer',
+  author: { '@type': 'Organization', name: site.legalName, url: site.url },
+  url: `${site.url}/project-meridian`,
+};
+
+const facts = [
+  ['Title', 'Project Meridian — working title'],
+  ['Genre', 'First-person liminal horror'],
+  ['Focus', 'Exploration'],
+  ['Players', 'Single-player'],
+  ['World', 'Large and continuous'],
+  ['Targets', 'Windows, Linux, Steam Deck, macOS'],
+  ['Storefront', 'Steam intended'],
+  ['Business model', 'Commercial release; price not announced'],
+  ['Release', 'No date announced'],
+  ['Developer', 'Dead Signal Works — solo studio'],
+];
+
+const questions = [
+  ['Can I wishlist it?', 'Not yet. The Steam page will be linked here as soon as it exists.'],
+  ['Is Project Meridian the final title?', 'Maybe. It is the working title and remains subject to change.'],
+  ['Is there a release date?', 'No. Development is not being tied to a public date before the work can support one.'],
+  ['Is it multiplayer?', 'No. Project Meridian is designed as a single-player game.'],
+  ['Is the game open source?', 'No. Project Meridian is proprietary. The Meridian engine is the open-source project.'],
+];
+---
+
+<BaseLayout title="Project Meridian" description="A single-player, first-person liminal horror game built around exploration across a large continuous world." currentPath="/project-meridian" structuredData={gameSchema}>
+  <KineticProjectHero mode="project" client:load />
+
+  <InPageNav items={[
+    { label: 'Overview', href: '#overview' },
+    { label: 'Facts', href: '#facts' },
+    { label: 'Development', href: '#development' },
+    { label: 'Technology', href: '#technology' },
+    { label: 'FAQ', href: '#faq' },
+  ]} />
+
+  <section class="content-section shell prose-split" id="overview">
+    <div><p class="section-number">01 / Overview</p><h2>It started with a dream.</h2></div>
+    <div class="copy-stack">
+      <p class="large-copy">Project Meridian is a single-player, first-person liminal horror game built around exploration across a large continuous world.</p>
+      <p>The game came to me in a dream. I am keeping the rest private until there is real game material to show instead of filling the gap with promises.</p>
+    </div>
+  </section>
+
+  <section class="content-section surface-section" id="facts">
+    <div class="shell">
+      <div class="section-heading"><p class="section-number">02 / Project facts</p><h2>What I can say now.</h2></div>
+      <dl class="project-fact-sheet">
+        {facts.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
+      </dl>
+    </div>
+  </section>
+
+  <section class="content-section shell prose-split" id="development">
+    <div><p class="section-number">03 / Development</p><h2>Early development.</h2></div>
+    <div class="copy-stack">
+      <p class="large-copy">The game’s creative and production plans exist. Its engine foundations are being built. A public playable slice does not exist yet.</p>
+      <p>I will post updates when I have work that is useful to show, including the rough parts when they explain something interesting.</p>
+      <a class="text-action" href="/updates">Read development updates <span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  <section class="content-section technology-section" id="technology">
+    <div class="shell feature-grid">
+      <div><p class="section-number">04 / Technology</p><h2>Built on Meridian.</h2></div>
+      <div class="copy-stack">
+        <p class="large-copy">Project Meridian is the first proving game for Meridian, the open-source Rust engine being developed alongside it.</p>
+        <p>The game drives requirements. The reusable engine stays public and free under MIT or Apache-2.0.</p>
+        <a class="action action-primary" href="/meridian">Explore the engine <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section shell" id="faq">
+    <div class="section-heading"><p class="section-number">05 / FAQ</p><h2>Before you ask Discord.</h2></div>
+    <div class="faq-list">
+      {questions.map(([question, answer], index) => (
+        <details open={index === 0}>
+          <summary>{question}<span aria-hidden="true">+</span></summary>
+          <p>{answer}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

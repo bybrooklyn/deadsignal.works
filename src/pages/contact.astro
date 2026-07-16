@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Contact" description="Contact Dead Signal Works for press and general inquiries." currentPath="/contact">
+  <section class="page-hero contact-hero shell">
+    <p class="kicker"><span>Contact</span></p>
+    <h1>Get in touch.</h1>
+    <p class="page-lede">General and press email come directly to me. Discord is the public place to talk and follow the work.</p>
+  </section>
+
+  <section class="contact-grid shell">
+    <a class="contact-primary" href={`mailto:${site.contactEmail}`}>
+      <span>General / best place to start</span>
+      <strong>{site.contactEmail}</strong>
+      <i aria-hidden="true">↗</i>
+    </a>
+    <a href={`mailto:${site.pressEmail}`}>
+      <span>Press</span>
+      <strong>{site.pressEmail}</strong>
+      <i aria-hidden="true">↗</i>
+    </a>
+    <a href={site.discord} target="_blank" rel="noreferrer">
+      <span>Community</span>
+      <strong>Join Discord</strong>
+      <i aria-hidden="true">↗</i>
+    </a>
+  </section>
+</BaseLayout>

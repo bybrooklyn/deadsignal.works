@@ -1,0 +1,51 @@
+---
+title: Build from source
+description: Clone the public repository, use the pinned toolchain, and run a proportionate first validation.
+group: build
+order: 1
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Public Meridian repository
+    href: https://github.com/bybrooklyn/meridian
+  - label: Repository agent policy
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/AGENTS.md
+---
+
+You need Git, Rustup, the repository’s pinned Rust toolchain, and the native build tools expected by your platform.
+
+## Clone the engine
+
+```sh
+git clone https://github.com/bybrooklyn/meridian.git
+cd meridian
+```
+
+Project Meridian is not part of this checkout. The ignored `game/` path is a boundary for a separate private repository, not a missing public submodule.
+
+## Confirm the workspace
+
+```sh
+cargo metadata --locked
+cargo run -p meridian-spec -- check
+```
+
+The metadata command confirms that Cargo can resolve the pinned workspace. The specification check validates governance records and links that code changes are expected to respect.
+
+## Run the core gates
+
+```sh
+cargo fmt --all -- --check
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+These commands can take time. Start with the package you changed, then run broader gates before claiming repository-wide compatibility.
+
+## Try bounded smokes
+
+The repository readme lists current smoke commands. They exercise different boundaries; a headless run, a native window, and an offscreen capture do not prove the same thing. Read the command’s evidence contract before treating a pass as visual or platform qualification.
+
+## If a command fails
+
+Record the exact command, source revision, platform, toolchain, and first real failure. Do not replace an unavailable native surface with a silent skip. Unsupported or unavailable is useful evidence when it is reported precisely.

@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InPageNav from '../components/InPageNav.astro';
+---
+
+<BaseLayout title="Studio" description="Dead Signal Works is a solo game studio building Project Meridian and the Meridian engine." currentPath="/studio">
+  <section class="studio-page-hero">
+    <div class="shell studio-hero-grid">
+      <div>
+        <p class="kicker"><span>Dead Signal Works LLC</span> / solo studio</p>
+        <h1>A little about me and the mission.</h1>
+      </div>
+      <p class="page-lede">Dead Signal Works is one person making games, software, and the technology that holds them together.</p>
+    </div>
+  </section>
+
+  <InPageNav items={[
+    { label: 'About', href: '#about' },
+    { label: 'The mission', href: '#mission' },
+    { label: 'The work', href: '#work' },
+  ]} />
+
+  <section class="content-section shell prose-split" id="about">
+    <div><p class="section-number">01 / About</p><h2>One workbench, a lot of jobs.</h2></div>
+    <div class="copy-stack">
+      <p class="large-copy">I handle the game, engine, tools, design, direction, production, website, and the email you send through it.</p>
+      <p>The studio is deliberately small. It gives the game and its technology room to grow together instead of being negotiated between separate companies.</p>
+    </div>
+  </section>
+
+  <section class="studio-mission" id="mission">
+    <div class="shell studio-mission-grid">
+      <p class="section-number">02 / The mission</p>
+      <blockquote>Make realistic, highly performant games without treating the technology underneath them as somebody else’s fixed limit.</blockquote>
+      <p>Dead Signal Works makes games that push the bounds of what is possible in a game engine. Meridian is how I make that practical.</p>
+    </div>
+  </section>
+
+  <section class="content-section studio-work-board" id="work">
+    <div class="shell studio-current-work">
+      <div><p class="section-number">03 / The work</p><h2>The current pair.</h2><p>Project Meridian is the game. Meridian is the open-source engine being built alongside it. Other games and software can join them later.</p></div>
+      <div class="work-pair">
+        <a href="/project-meridian"><span>Game</span><h3>Project Meridian</h3><p>Exploration-focused liminal horror.</p><i aria-hidden="true">↗</i></a>
+        <a href="/meridian"><span>Engine</span><h3>Meridian</h3><p>Open-source game technology in Rust.</p><i aria-hidden="true">↗</i></a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,44 @@
+---
+title: Maturity and evidence
+description: A practical guide to reading Meridian’s implementation and validation language without turning plans into claims.
+group: learn
+order: 3
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Implementation planning specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/IMPLEMENTATION_PLANNING_SPEC.md
+  - label: Testing and evidence policy
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/TESTING_BENCHMARKS_AND_VALIDATION.md
+---
+
+Meridian tracks documentation maturity, implementation maturity, and evidence status separately. They answer different questions.
+
+## Three questions, not one percentage
+
+| Question | What it tells you |
+| --- | --- |
+| Is the behavior specified? | Whether the architecture and contracts have an adopted owner. |
+| Is it implemented? | Whether code exists at a stated boundary. |
+| What has been proven? | Whether tests, smokes, captures, or qualification runs support the claim. |
+
+There is intentionally no single “engine completion” percentage. A passing test count proves covered behavior, not how much of a ten-year roadmap exists.
+
+## Common labels
+
+**Planned** or **Deferred** means the project has adopted direction, not product code. **Scaffold** means a bounded shell or integration point exists. **Partial** and **Transitional** mean useful implementation exists while the intended architecture remains incomplete or temporarily backed by another system. **Implemented foundation** means a bounded package has code and evidence; it still does not mean the entire subsystem is finished.
+
+## Evidence has scope
+
+A headless smoke can prove lifecycle and data flow without proving visible quality. An offscreen image can prove capture without proving presentation. A local pass does not replace required cross-platform qualification.
+
+Every honest claim should answer:
+
+1. What source checkpoint was tested?
+2. Which behavior was exercised?
+3. On which platform or hardware?
+4. What did the evidence explicitly not prove?
+
+## Reading the site
+
+Product pages summarize. These docs explain. The repository’s specifications, typed registries, planning record, and evidence artifacts remain authoritative. If language on this site looks broader than the source, treat the narrower repository claim as correct and [send a note](mailto:contact@deadsignal.works).

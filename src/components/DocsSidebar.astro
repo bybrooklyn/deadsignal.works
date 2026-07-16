@@ -1,0 +1,22 @@
+---
+import { docsGroups } from '../data/docs';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+---
+
+<aside class="docs-sidebar" data-pagefind-ignore>
+  <nav aria-label="Documentation sections">
+    {docsGroups.map((group) => (
+      <section>
+        <p>{group.label}</p>
+        {group.items.map((item) => (
+          <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
+        ))}
+      </section>
+    ))}
+  </nav>
+</aside>

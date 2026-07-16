@@ -1,0 +1,44 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import { docsGroups } from '../../../data/docs';
+---
+
+<DocsLayout
+  title="Start with Meridian"
+  description="A guided introduction to the engine, the repository, and the systems taking shape inside it."
+  currentPath="/meridian/docs"
+  home
+>
+  <header class="docs-home-hero">
+    <p class="kicker"><span>Meridian documentation</span></p>
+    <h1 data-pagefind-meta="title">Start with Meridian.</h1>
+    <p>Meridian is an open-source Rust engine and one integrated creator application. These guides explain what exists, how the pieces fit together, and where the public repository keeps the exact answer.</p>
+    <div class="inline-actions">
+      <a class="action action-primary" href="/meridian/docs/learn/what-is-meridian">Understand the engine <span aria-hidden="true">↗</span></a>
+      <a class="action" href="/meridian/docs/build/from-source">Build from source <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <section class="docs-introduction">
+    <p class="section-number">Choose a way in</p>
+    <h2>You do not need to read the repository in directory order.</h2>
+    <p>Start with the question you have. The documentation is organized for people learning the architecture, developers working with the source, readers exploring named systems, and anyone looking for the authoritative record.</p>
+  </section>
+
+  <div class="docs-group-grid">
+    {docsGroups.map((group, index) => (
+      <section>
+        <span>{String(index + 1).padStart(2, '0')}</span>
+        <h2>{group.label}</h2>
+        <p>{group.description}</p>
+        <ul>{group.items.map((item) => <li><a href={item.href}>{item.label} <span aria-hidden="true">↗</span></a></li>)}</ul>
+      </section>
+    ))}
+  </div>
+
+  <aside class="docs-authority-note">
+    <strong>The website explains. The repository decides.</strong>
+    <p>Versioned specifications, typed registries, architecture decisions, and current evidence remain authoritative when a guide and the engine repository disagree.</p>
+    <a class="text-action" href="/meridian/docs/reference/specifications">Find the owning source <span aria-hidden="true">↗</span></a>
+  </aside>
+</DocsLayout>

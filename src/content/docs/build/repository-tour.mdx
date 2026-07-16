@@ -1,0 +1,39 @@
+---
+title: Repository tour
+description: A map of the public engine workspace, creator tools, specifications, evidence, and private-game boundary.
+group: build
+order: 2
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Public repository tree
+    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322
+---
+
+## Top-level map
+
+```text
+engine/       reusable runtime and subsystem crates
+editor/       creator products and developer tools
+specs/        normative architecture and delivery contracts
+schemas/      versioned governance and data schemas
+docs/         decisions, evidence, migrations, and engineering records
+shaders/      current shader sources and validation notes
+third_party/  provenance policy and reviewed donor records
+```
+
+## Engine crates
+
+The `engine/` directory contains runtime-facing crates such as core, tasks, world, assets, RHI, render graph, Penumbra’s renderer crate, physics, UI, streaming, package, and save foundations. Named future systems may have a scaffold crate; check the maturity registry before assuming that a directory contains product behavior.
+
+## Creator tools
+
+The `editor/` directory contains the integrated Meridian application and tools for building, importing, inspecting, and validating content. “Editor” is a repository role, not a separate product name: the user-facing creator application is Meridian.
+
+## Specifications and evidence
+
+Start with the master specification for ownership, then use the delivery roadmap for order and the implementation-planning specification for package gates. `PLANNING.md` records current evidence and active bounded work.
+
+## The private boundary
+
+The public repository must not contain Project Meridian’s private routes, narrative, art, assets, logos, or game code. Public fixtures are generated, sanitized, or independently authored to exercise engine behavior without exposing the game.

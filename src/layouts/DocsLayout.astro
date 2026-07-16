@@ -1,0 +1,88 @@
+---
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import DocsSidebar from '../components/DocsSidebar.astro';
+import DocsTableOfContents from '../components/DocsTableOfContents.astro';
+import DocsToolbar from '../components/DocsToolbar.astro';
+import { docsGroups, docsItems } from '../data/docs';
+import '../styles/docs.css';
+
+interface SourceLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  currentPath: string;
+  group?: 'learn' | 'build' | 'systems' | 'reference';
+  headings?: MarkdownHeading[];
+  updated?: Date;
+  sourceRevision?: string;
+  sources?: SourceLink[];
+  home?: boolean;
+}
+
+const {
+  title,
+  description,
+  currentPath,
+  group,
+  headings = [],
+  updated,
+  sourceRevision,
+  sources = [],
+  home = false,
+} = Astro.props;
+
+const currentIndex = docsItems.findIndex((item) => item.href === currentPath);
+const previous = currentIndex > 0 ? docsItems[currentIndex - 1] : undefined;
+const next = currentIndex >= 0 && currentIndex < docsItems.length - 1 ? docsItems[currentIndex + 1] : undefined;
+const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
+---
+
+<BaseLayout title={`${title} — Meridian docs`} description={description} currentPath={currentPath}>
+  <DocsToolbar />
+  {home ? (
+    <article class="docs-home shell" data-pagefind-body>
+      <slot />
+    </article>
+  ) : (
+    <div class="docs-frame shell">
+      <DocsSidebar currentPath={currentPath} />
+      <article class="docs-article" data-pagefind-body>
+        <nav class="docs-breadcrumbs" aria-label="Breadcrumb">
+          <a href="/meridian/docs">Docs</a>
+          {groupLabel && <span>{groupLabel}</span>}
+        </nav>
+        <header class="docs-article-header">
+          {groupLabel && <p>{groupLabel}</p>}
+          <h1 data-pagefind-meta="title">{title}</h1>
+          <p>{description}</p>
+          {(updated || sourceRevision) && (
+            <div class="docs-source-meta">
+              {updated && <span>Updated {updated.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</span>}
+              {sourceRevision && <span>Source revision {sourceRevision.slice(0, 7)}</span>}
+            </div>
+          )}
+        </header>
+        <div class="docs-prose">
+          <slot />
+        </div>
+        {sources.length > 0 && (
+          <section class="docs-sources">
+            <h2>Authoritative sources</h2>
+            <p>This guide is explanatory. These repository sources carry authority.</p>
+            <ul>{sources.map((source) => <li><a href={source.href} target="_blank" rel="noreferrer">{source.label} <span aria-hidden="true">↗</span></a></li>)}</ul>
+          </section>
+        )}
+        <nav class="docs-pagination" aria-label="Documentation pagination">
+          {previous ? <a href={previous.href}><span>Previous</span><strong>{previous.label}</strong></a> : <span />}
+          {next && <a href={next.href}><span>Next</span><strong>{next.label}</strong></a>}
+        </nav>
+      </article>
+      <DocsTableOfContents headings={headings} />
+    </div>
+  )}
+</BaseLayout>

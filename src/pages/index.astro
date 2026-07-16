@@ -1,0 +1,89 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InPageNav from '../components/InPageNav.astro';
+import StudioWorkbench from '../components/StudioWorkbench';
+
+const latest = (await getCollection('updates')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+)[0];
+---
+
+<BaseLayout title="Dead Signal Works" currentPath="/">
+  <section class="home-intro home-workshop shell">
+    <div class="home-welcome">
+      <p class="kicker"><span>Solo studio</span> / games and software</p>
+      <h1>Welcome to Dead Signal Works.</h1>
+      <p class="page-lede">An eccentric game and software studio focused on realistic, highly performant games.</p>
+      <p>Innovative games need innovative solutions. I build both here.</p>
+      <div class="inline-actions">
+        <button class="action action-unavailable" type="button" disabled>Wishlist on Steam <small>Not live yet</small></button>
+        <a class="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <StudioWorkbench client:load />
+  </section>
+
+  <InPageNav items={[
+    { label: 'Project Meridian', href: '#game' },
+    { label: 'Meridian', href: '#engine' },
+    { label: 'The studio', href: '#studio' },
+    { label: 'Devlog', href: '#latest' },
+  ]} />
+
+  <section class="home-project-field" id="game">
+    <div class="shell home-project-grid">
+      <div>
+        <p class="section-number">01 / Current game</p>
+        <h2>Project Meridian.</h2>
+        <p>A single-player, first-person liminal horror game built around exploration across a large continuous world.</p>
+      </div>
+      <div class="home-project-actions">
+        <button class="action action-light action-unavailable" type="button" disabled>Wishlist on Steam <small>Page coming later</small></button>
+        <a class="action action-light" href="/project-meridian">Open the project page <span aria-hidden="true">↗</span></a>
+        <a class="text-action" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section engine-feature" id="engine">
+    <div class="shell feature-grid">
+      <div>
+        <p class="section-number">02 / The engine</p>
+        <h2>Meridian</h2>
+        <p class="page-lede">An open-source Rust engine and integrated creator application, built alongside the game that needs them.</p>
+      </div>
+      <div class="feature-facts">
+        <p><span>License</span> MIT or Apache-2.0</p>
+        <p><span>Language</span> Rust</p>
+        <p><span>Repository</span> Public</p>
+        <div class="stacked-actions">
+          <a class="action action-primary" href="/meridian">Explore Meridian <span aria-hidden="true">↗</span></a>
+          <a class="action" href="/meridian/docs">Read the documentation <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="studio-banner" id="studio">
+    <div class="shell studio-banner-grid">
+      <p class="section-number">03 / The studio</p>
+      <p>Dead Signal Works is one person building the game, the engine, and the studio around them.</p>
+      <a class="action action-light" href="/studio">About the studio <span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  {latest && (
+    <section class="content-section shell update-feature" id="latest">
+      <div>
+        <p class="section-number">04 / Devlog</p>
+        <time datetime={latest.data.pubDate.toISOString()}>{latest.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</time>
+      </div>
+      <div>
+        <h2>{latest.data.title}</h2>
+        <p>{latest.data.description}</p>
+        <a class="text-action" href={`/updates/${latest.id}`}>Read the update <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  )}
+</BaseLayout>

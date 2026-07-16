@@ -1,0 +1,38 @@
+---
+title: Contributing
+description: How to choose a bounded change, preserve architectural ownership, and prove exactly what the work does.
+group: build
+order: 3
+updated: 2026-07-16
+sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+sources:
+  - label: Contributing guide
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/CONTRIBUTING.md
+  - label: Implementation planning specification
+    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/IMPLEMENTATION_PLANNING_SPEC.md
+---
+
+Good Meridian contributions are bounded. They name the behavior being changed, the owner of that behavior, the evidence required, and the things the patch does not claim.
+
+## Before editing
+
+1. Read the nearest `AGENTS.md` and the specification that owns the behavior.
+2. Check `PLANNING.md` and the typed registries for current maturity and active work.
+3. Confirm that your change does not cross the private-game boundary.
+4. Identify the smallest package and test surface that can prove the result.
+
+## Keep dependencies behind adapters
+
+New third-party types should not become stable Meridian APIs. Dependency adoption also needs ownership, license and provenance review, an update strategy, and an exit plan appropriate to its risk.
+
+## Validate proportionately
+
+Run targeted tests first. Then run formatting, workspace tests, warning-denied Clippy, specification validation, relevant smokes, and `git diff --check` as the change requires. Record native surfaces you could not exercise.
+
+## Write the claim last
+
+Describe what passed at a specific source checkpoint. Do not turn a scaffold into a feature, an offscreen capture into a presentation claim, or a package pass into a milestone pass.
+
+## AI-assisted work
+
+AI-assisted contributions are allowed. The contributor remains responsible for correctness, licensing, provenance, privacy, tests, and review. Generated or borrowed material starts untrusted and follows the same policies as other contributions.

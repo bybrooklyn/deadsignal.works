@@ -1,0 +1,27 @@
+---
+interface FlowItem {
+  label: string;
+  detail: string;
+}
+
+interface Props {
+  title: string;
+  items: FlowItem[];
+  tone?: 'red' | 'grass' | 'amber' | 'paper';
+}
+
+const { title, items, tone = 'red' } = Astro.props;
+---
+
+<figure class:list={['architecture-flow', `tone-${tone}`]} style={`--flow-count: ${items.length}`}>
+  <figcaption>{title}</figcaption>
+  <ol>
+    {items.map((item, index) => (
+      <li tabindex="0">
+        <span class="flow-index">{String(index + 1).padStart(2, '0')}</span>
+        <strong>{item.label}</strong>
+        <p>{item.detail}</p>
+      </li>
+    ))}
+  </ol>
+</figure>
