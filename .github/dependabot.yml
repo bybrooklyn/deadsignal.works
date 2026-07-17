@@ -17,6 +17,13 @@ updates:
         dependency-type: development
         patterns:
           - "*"
+    # Astro's checker still requires TypeScript's JavaScript programmatic API.
+    # Keep this package on 6.x until Astro supports the native 7.x compiler;
+    # @typescript/native remains independently updateable.
+    ignore:
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
