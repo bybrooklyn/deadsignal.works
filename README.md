@@ -13,16 +13,24 @@ bun install
 bun run dev
 ```
 
-Run the production checks with:
+Run the production gates with:
 
 ```sh
-bun run check
-bun run build
-bun run check:site
-bun run check:security
-bun run test:e2e
-bun run preview
+bun install --frozen-lockfile --ignore-scripts
+bunx playwright install chromium firefox webkit
+export CHROME_PATH="$(bun -e 'import { chromium } from "@playwright/test"; process.stdout.write(chromium.executablePath())')"
+bun run verify
+bun run audit:lighthouse
+bunx wrangler deploy --dry-run
+git diff --check
 ```
+
+`bun run verify` builds the static site, audits generated routes and bundle
+budgets, checks dependencies, and runs the Chromium, Firefox, and WebKit
+Playwright suites against local Wrangler HTTPS.
+
+On a fresh Linux runner, install the browser system packages at the same time
+with `bunx playwright install --with-deps chromium firefox webkit`.
 
 ## Content
 
