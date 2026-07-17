@@ -9,21 +9,23 @@ const { value, label = 'Copy text' } = Astro.props;
 
 <button class="copy-button" type="button" data-copy-value={value}>{label}</button>
 
-<script>
-  document.addEventListener('click', async (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLButtonElement) || !target.matches('[data-copy-value]')) return;
+<script is:inline>
+  (() => {
+    const button = document.currentScript?.previousElementSibling;
+    if (!(button instanceof HTMLButtonElement) || !button.matches('[data-copy-value]')) return;
 
-    const value = target.dataset.copyValue;
-    if (!value) return;
+    button.addEventListener('click', async () => {
+      const value = button.dataset.copyValue;
+      if (!value) return;
 
-    const original = target.textContent ?? 'Copy text';
-    try {
-      await navigator.clipboard.writeText(value);
-      target.textContent = 'Copied';
-    } catch {
-      target.textContent = 'Copy failed';
-    }
-    window.setTimeout(() => { target.textContent = original; }, 1600);
-  });
+      const original = button.textContent ?? 'Copy text';
+      try {
+        await navigator.clipboard.writeText(value);
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Copy failed';
+      }
+      window.setTimeout(() => { button.textContent = original; }, 1600);
+    });
+  })();
 </script>
