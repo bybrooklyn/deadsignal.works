@@ -55,4 +55,7 @@ jobs:
         run: bun run test:e2e:built
 
       - name: Audit representative routes with Lighthouse
-        run: bun run audit:lighthouse
+        # GitHub-hosted runners do not expose the user namespace needed by
+        # Playwright's bundled Chromium sandbox. Keep this exception scoped to
+        # Lighthouse CI; production and Playwright browser launches are unchanged.
+        run: bun run audit:lighthouse -- --collect.settings.chromeFlags="--no-sandbox --disable-setuid-sandbox"
