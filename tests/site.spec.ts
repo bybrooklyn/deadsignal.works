@@ -75,8 +75,8 @@ function allowExpectedNavigationCancellation(page: Page, targetPath: string): vo
 async function horizontalViewportState(page: Page) {
   return page.evaluate(() => {
     const root = document.documentElement;
-    const viewportWidth = window.innerWidth;
-    const overflow = Math.max(0, root.scrollWidth - viewportWidth);
+    const usableViewportWidth = root.clientWidth;
+    const overflow = Math.max(0, root.scrollWidth - usableViewportWidth);
 
     return {
       fits: overflow <= 1,
@@ -84,7 +84,7 @@ async function horizontalViewportState(page: Page) {
       rootScrollWidth: root.scrollWidth,
       rootClientWidth: root.clientWidth,
       bodyScrollWidth: document.body.scrollWidth,
-      viewportWidth,
+      usableViewportWidth,
     };
   });
 }
