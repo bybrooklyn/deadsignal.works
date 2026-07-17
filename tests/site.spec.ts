@@ -25,8 +25,7 @@ const accessibilityRoutes = [...sitemapRoutes, '/404/'];
 interface BrowserDiagnostics {
   consoleErrors: string[];
   pageErrors: string[];
-  failedRequests: Array<{ request: string; url: string; error: string }>;
-  completedRequests: Set<string>;
+  failedRequests: Array<{ label: string; error: string }>;
 }
 
 const diagnosticsByPage = new WeakMap<Page, BrowserDiagnostics>();
@@ -36,23 +35,17 @@ function monitorPage(page: Page): BrowserDiagnostics {
     consoleErrors: [],
     pageErrors: [],
     failedRequests: [],
-    completedRequests: new Set(),
   };
 
   page.on('console', (message) => {
     if (message.type() === 'error') diagnostics.consoleErrors.push(message.text());
   });
   page.on('pageerror', (error) => diagnostics.pageErrors.push(error.message));
-  page.on('requestfinished', (request) => {
-    const url = new URL(request.url());
-    if (url.origin === localOrigin) diagnostics.completedRequests.add(`${request.method()} ${url.href}`);
-  });
   page.on('requestfailed', (request) => {
     const url = new URL(request.url());
     if (url.origin === localOrigin) {
       diagnostics.failedRequests.push({
-        request: `${request.method()} ${url.pathname}`,
-        url: `${request.method()} ${url.href}`,
+        label: `${request.method()} ${url.pathname}`,
         error: request.failure()?.errorText ?? 'unknown failure',
       });
     }
@@ -62,10 +55,8 @@ function monitorPage(page: Page): BrowserDiagnostics {
 }
 
 function expectCleanDiagnostics(diagnostics: BrowserDiagnostics): void {
-  const browserCancellationErrors = new Set(['net::ERR_ABORTED', 'NS_BINDING_ABORTED']);
   const unexpectedFailedRequests = diagnostics.failedRequests
-    .filter(({ url, error }) => !(browserCancellationErrors.has(error) && diagnostics.completedRequests.has(url)))
-    .map(({ request, error }) => `${request}: ${error}`);
+    .map(({ label, error }) => `${label}: ${error}`);
   expect(diagnostics.consoleErrors, 'unexpected browser console errors').toEqual([]);
   expect(diagnostics.pageErrors, 'unexpected uncaught browser errors').toEqual([]);
   expect(unexpectedFailedRequests, 'unexpected failed first-party requests').toEqual([]);
@@ -75,18 +66,11 @@ async function horizontalViewportState(page: Page) {
   return page.evaluate(() => {
     const root = document.documentElement;
     const viewportWidth = window.innerWidth;
-    const scrollbarGutter = Math.max(0, viewportWidth - root.clientWidth);
-    const measuredOverflow = Math.max(0, root.scrollWidth - viewportWidth);
-    // Firefox can include the reserved root scrollbar gutter in scrollWidth a
-    // second time under concurrent headless runs. Discount only that native
-    // gutter so genuine content overflow still fails the assertion.
-    const effectiveOverflow = Math.max(0, measuredOverflow - scrollbarGutter);
+    const overflow = Math.max(0, root.scrollWidth - viewportWidth);
 
     return {
-      fits: effectiveOverflow <= 1,
-      effectiveOverflow,
-      measuredOverflow,
-      scrollbarGutter,
+      fits: overflow <= 1,
+      overflow,
       rootScrollWidth: root.scrollWidth,
       rootClientWidth: root.clientWidth,
       bodyScrollWidth: document.body.scrollWidth,
