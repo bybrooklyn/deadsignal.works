@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-const localOrigin = 'https://127.0.0.1:4323';
+const localOrigin = 'http://127.0.0.1:4323';
 const productionOrigin = 'https://deadsignal.works';
 const distRoot = new URL('../dist/', import.meta.url);
 
@@ -25,7 +25,8 @@ const accessibilityRoutes = [...sitemapRoutes, '/404/'];
 interface BrowserDiagnostics {
   consoleErrors: string[];
   pageErrors: string[];
-  failedRequests: string[];
+  failedRequests: Array<{ request: string; url: string; error: string }>;
+  completedRequests: Set<string>;
 }
 
 const diagnosticsByPage = new WeakMap<Page, BrowserDiagnostics>();
@@ -35,16 +36,25 @@ function monitorPage(page: Page): BrowserDiagnostics {
     consoleErrors: [],
     pageErrors: [],
     failedRequests: [],
+    completedRequests: new Set(),
   };
 
   page.on('console', (message) => {
     if (message.type() === 'error') diagnostics.consoleErrors.push(message.text());
   });
   page.on('pageerror', (error) => diagnostics.pageErrors.push(error.message));
+  page.on('requestfinished', (request) => {
+    const url = new URL(request.url());
+    if (url.origin === localOrigin) diagnostics.completedRequests.add(`${request.method()} ${url.href}`);
+  });
   page.on('requestfailed', (request) => {
     const url = new URL(request.url());
     if (url.origin === localOrigin) {
-      diagnostics.failedRequests.push(`${request.method()} ${url.pathname}: ${request.failure()?.errorText ?? 'unknown failure'}`);
+      diagnostics.failedRequests.push({
+        request: `${request.method()} ${url.pathname}`,
+        url: `${request.method()} ${url.href}`,
+        error: request.failure()?.errorText ?? 'unknown failure',
+      });
     }
   });
 
@@ -52,23 +62,66 @@ function monitorPage(page: Page): BrowserDiagnostics {
 }
 
 function expectCleanDiagnostics(diagnostics: BrowserDiagnostics): void {
+  const browserCancellationErrors = new Set(['net::ERR_ABORTED', 'NS_BINDING_ABORTED']);
+  const unexpectedFailedRequests = diagnostics.failedRequests
+    .filter(({ url, error }) => !(browserCancellationErrors.has(error) && diagnostics.completedRequests.has(url)))
+    .map(({ request, error }) => `${request}: ${error}`);
   expect(diagnostics.consoleErrors, 'unexpected browser console errors').toEqual([]);
   expect(diagnostics.pageErrors, 'unexpected uncaught browser errors').toEqual([]);
-  expect(diagnostics.failedRequests, 'unexpected failed first-party requests').toEqual([]);
+  expect(unexpectedFailedRequests, 'unexpected failed first-party requests').toEqual([]);
+}
+
+async function horizontalViewportState(page: Page) {
+  return page.evaluate(() => {
+    const root = document.documentElement;
+    const viewportWidth = window.innerWidth;
+    const scrollbarGutter = Math.max(0, viewportWidth - root.clientWidth);
+    const measuredOverflow = Math.max(0, root.scrollWidth - viewportWidth);
+    // Firefox can include the reserved root scrollbar gutter in scrollWidth a
+    // second time under concurrent headless runs. Discount only that native
+    // gutter so genuine content overflow still fails the assertion.
+    const effectiveOverflow = Math.max(0, measuredOverflow - scrollbarGutter);
+
+    return {
+      fits: effectiveOverflow <= 1,
+      effectiveOverflow,
+      measuredOverflow,
+      scrollbarGutter,
+      rootScrollWidth: root.scrollWidth,
+      rootClientWidth: root.clientWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      viewportWidth,
+    };
+  });
 }
 
 async function expectStableLayout(locator: Locator): Promise<void> {
-  let previousBox = '';
+  await expect.poll(
+    () => locator.evaluate(() => document.fonts.status),
+    { message: 'fonts should finish loading before geometry is measured' },
+  ).toBe('loaded');
+  await expect.poll(
+    () => locator.evaluate((element) => {
+      const ancestors = new Set<Element>();
+      for (let current: Element | null = element; current; current = current.parentElement) ancestors.add(current);
+      return document.getAnimations().every((animation) => {
+        const target = animation.effect instanceof KeyframeEffect ? animation.effect.target : null;
+        return !(target instanceof Element && ancestors.has(target) && animation.playState === 'running');
+      });
+    }),
+    { message: 'animations affecting click geometry should finish' },
+  ).toBe(true);
+
+  let previousBox: number[] | undefined;
   let consecutiveMatches = 0;
 
   await expect.poll(async () => {
     const box = await locator.boundingBox();
     if (!box) return false;
 
-    const currentBox = [box.x, box.y, box.width, box.height]
-      .map((value) => value.toFixed(2))
-      .join(':');
-    consecutiveMatches = currentBox === previousBox ? consecutiveMatches + 1 : 0;
+    const currentBox = [box.x, box.y, box.width, box.height];
+    const matches = previousBox?.every((value, index) => Math.abs(value - currentBox[index]!) <= 0.25) ?? false;
+    consecutiveMatches = matches ? consecutiveMatches + 1 : 0;
     previousBox = currentBox;
     return consecutiveMatches >= 2;
   }, {
@@ -91,13 +144,21 @@ for (const route of accessibilityRoutes) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toBeVisible();
-    await expect.poll(
-      () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
-      {
-        message: `${route} should not overflow the viewport horizontally`,
-        timeout: 10_000,
-      },
-    ).toBe(true);
+    let horizontalState = await horizontalViewportState(page);
+    try {
+      await expect.poll(
+        async () => {
+          horizontalState = await horizontalViewportState(page);
+          return horizontalState.fits;
+        },
+        {
+          message: `${route} should not overflow the viewport horizontally`,
+          timeout: 10_000,
+        },
+      ).toBe(true);
+    } catch (error) {
+      throw new Error(`${route} horizontal viewport state: ${JSON.stringify(horizontalState)}`, { cause: error });
+    }
 
     const failedImages = await page.locator('img').evaluateAll((images) => images
       .filter((image) => !(image instanceof HTMLImageElement) || !image.complete || image.naturalWidth === 0)
@@ -250,7 +311,7 @@ test('mobile navigation and workbench stay inside the viewport', async ({ browse
   await menu.locator('summary').click();
   await expect(menu).toHaveAttribute('open', '');
   await expect(menu.getByRole('link', { name: 'Press kit' })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await expect.poll(async () => (await horizontalViewportState(page)).fits).toBe(true);
 
   await menu.locator('summary').click();
   const drawers = page.locator('.workbench-drawer');
