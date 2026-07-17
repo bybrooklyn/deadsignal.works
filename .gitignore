@@ -4,6 +4,7 @@ dist/
 .wrangler/
 playwright-report/
 test-results/
+.lighthouseci/
 .DS_Store
 .env
 .env.*

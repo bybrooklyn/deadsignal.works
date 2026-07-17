@@ -15,11 +15,12 @@ const articleSchema = {
   headline: entry.data.title,
   description: entry.data.description,
   datePublished: entry.data.pubDate.toISOString(),
-  author: { '@type': 'Organization', name: 'Dead Signal Works LLC' },
+  url: `https://deadsignal.works/updates/${entry.id}/`,
+  author: { '@type': 'Organization', name: 'Dead Signal Works LLC', url: 'https://deadsignal.works/' },
 };
 ---
 
-<BaseLayout title={entry.data.title} description={entry.data.description} currentPath={`/updates/${entry.id}`} ogType="article" structuredData={articleSchema}>
+<BaseLayout title={entry.data.title} description={entry.data.description} currentPath={`/updates/${entry.id}/`} ogType="article" structuredData={articleSchema}>
   <article class="update-article shell">
     <header>
       <p class="kicker"><span>{entry.data.tag} / Update</span></p>
@@ -27,6 +28,6 @@ const articleSchema = {
       <time datetime={entry.data.pubDate.toISOString()}>{entry.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</time>
     </header>
     <div class="article-body"><Content /></div>
-    <a class="action" href="/updates">All updates <span aria-hidden="true">↗</span></a>
+    <a class="action" href="/updates/">All updates <span aria-hidden="true">↗</span></a>
   </article>
 </BaseLayout>

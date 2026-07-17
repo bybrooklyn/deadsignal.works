@@ -1,9 +1,3 @@
----
-import { ClientRouter } from 'astro:transitions';
----
-
-<ClientRouter fallback="swap" />
-
 <script>
   const subsystemSlugs = new Set(['penumbra', 'cairn', 'wavefront', 'alluvium']);
   const subsystemPartNames = {
@@ -63,7 +57,7 @@ import { ClientRouter } from 'astro:transitions';
     } else if (
       event.navigationType === 'traverse'
       && event.direction === 'back'
-      && event.to.pathname.replace(/\/$/, '') === '/meridian'
+      && event.to.pathname === '/meridian/'
     ) {
       const hero = document.querySelector<HTMLElement>('[data-subsystem-hero]');
       const heroSlug = hero?.dataset.subsystemHero;

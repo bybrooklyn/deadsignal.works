@@ -83,7 +83,7 @@ export default function DocsSearch() {
         const loaded = await Promise.all(response.results.slice(0, 10).map((result) => result.data()));
         const safeResults = loaded.flatMap((result) => {
           const url = new URL(result.url, window.location.origin);
-          const isDocumentationPath = url.pathname === '/meridian/docs' || url.pathname.startsWith('/meridian/docs/');
+          const isDocumentationPath = url.pathname.startsWith('/meridian/docs/');
           if (url.origin !== window.location.origin || !isDocumentationPath) return [];
           return [{ ...result, url: `${url.pathname}${url.search}${url.hash}` }];
         });

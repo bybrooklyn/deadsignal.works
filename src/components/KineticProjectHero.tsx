@@ -23,7 +23,7 @@ export default function KineticProjectHero({ mode = 'home' }: Props) {
   const reduceMotion = useReducedMotion();
 
   async function shareProject() {
-    const url = new URL('/project-meridian', window.location.origin).toString();
+    const url = new URL('/project-meridian/', window.location.origin).toString();
     const data = {
       title: 'Project Meridian — Dead Signal Works',
       text: 'A single-player liminal horror game built around exploration across a large continuous world.',
@@ -94,7 +94,7 @@ export default function KineticProjectHero({ mode = 'home' }: Props) {
 
               <div className="project-actions">
                 <button className="action action-unavailable" type="button" disabled>Wishlist on Steam <small>Not live yet</small></button>
-                {mode === 'home' && <a className="action action-primary" href="/project-meridian">Open the project page <span aria-hidden="true">↗</span></a>}
+                {mode === 'home' && <a className="action action-primary" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>}
                 <a className="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
                 <button className="action action-button" type="button" onClick={shareProject}>{shareLabel} <span aria-hidden="true">↗</span></button>
               </div>

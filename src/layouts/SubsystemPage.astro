@@ -9,10 +9,10 @@ interface Props {
 }
 
 const { subsystem } = Astro.props;
-const docsUrl = `/meridian/docs/systems/${subsystem.slug}`;
+const docsUrl = `/meridian/docs/systems/${subsystem.slug}/`;
 ---
 
-<BaseLayout title={`${subsystem.name} — Meridian`} description={subsystem.summary} currentPath={`/meridian/${subsystem.slug}`} enableSubsystemTransitions>
+<BaseLayout title={`${subsystem.name} — Meridian`} description={subsystem.summary} currentPath={`/meridian/${subsystem.slug}/`} enableSubsystemTransitions>
   <section class:list={['subsystem-hero', `tone-${subsystem.tone}`]} data-subsystem-hero={subsystem.slug}>
     <span class="subsystem-transition-frame" data-subsystem-frame aria-hidden="true"></span>
     <div class="shell subsystem-hero-grid">
@@ -26,7 +26,7 @@ const docsUrl = `/meridian/docs/systems/${subsystem.slug}`;
         <p class="page-lede" data-subsystem-part="summary">{subsystem.summary}</p>
         <div class="inline-actions">
           <a class="action action-primary" href={docsUrl}>Read the technical guide <span aria-hidden="true">↗</span></a>
-          <a class="action" href="/meridian">Back to Meridian <span aria-hidden="true">↗</span></a>
+          <a class="action" href="/meridian/">Back to Meridian <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <aside class="subsystem-side subsystem-visual" aria-label={`${subsystem.name} visual diagram`}>
@@ -76,7 +76,7 @@ const docsUrl = `/meridian/docs/systems/${subsystem.slug}`;
       {site.engineSourcePublic
         ? <a class="action" href={`${site.engineRepository}${subsystem.specPath}`} target="_blank" rel="noreferrer">Open the normative specification <span aria-hidden="true">↗</span></a>
         : <button class="action action-unavailable" type="button" disabled>Normative source <small>Private for now</small></button>}
-      <a class="action" href="/meridian">Back to Meridian <span aria-hidden="true">↗</span></a>
+      <a class="action" href="/meridian/">Back to Meridian <span aria-hidden="true">↗</span></a>
     </div>
   </section>
 </BaseLayout>

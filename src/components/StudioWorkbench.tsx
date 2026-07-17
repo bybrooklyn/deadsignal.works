@@ -7,7 +7,7 @@ const drawers = [
     kind: 'Current game',
     title: 'Project Meridian',
     copy: 'A single-player, first-person liminal horror game built around exploration across a large continuous world.',
-    href: '/project-meridian',
+    href: '/project-meridian/',
     tone: 'red',
   },
   {
@@ -15,7 +15,7 @@ const drawers = [
     kind: 'Engine / source release planned',
     title: 'Meridian',
     copy: 'The Rust engine and integrated creator application being built alongside the game that needs them.',
-    href: '/meridian',
+    href: '/meridian/',
     tone: 'grass',
   },
   {
@@ -23,7 +23,7 @@ const drawers = [
     kind: 'Other work',
     title: 'Room on the bench',
     copy: 'Future games and software will take this space when they are real enough to introduce.',
-    href: '/studio',
+    href: '/studio/',
     tone: 'amber',
   },
 ] as const;

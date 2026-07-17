@@ -14,9 +14,9 @@ export const site = {
 } as const;
 
 export const footerNavigation = [
-  { label: 'Press information', href: '/press', external: false },
-  { label: 'Contact', href: '/contact', external: false },
-  { label: 'Meridian engine', href: '/meridian', external: false },
+  { label: 'Press information', href: '/press/', external: false },
+  { label: 'Contact', href: '/contact/', external: false },
+  { label: 'Meridian engine', href: '/meridian/', external: false },
   { label: 'Discord', href: site.discord, external: true },
   { label: 'TikTok', href: site.tiktok, external: true },
 ] as const;

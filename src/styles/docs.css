@@ -362,6 +362,7 @@
 .docs-stub-note strong {
   display: block;
   margin-bottom: 5px;
+  color: var(--background);
   font-family: var(--display);
   font-size: 1.08rem;
 }

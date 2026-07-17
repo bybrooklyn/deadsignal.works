@@ -10,6 +10,7 @@
     "typecheck": "bun node_modules/@typescript/native/bin/tsc --noEmit",
     "build": "bun run check && astro build && bun run index:docs",
     "index:docs": "pagefind --site dist --glob 'meridian/docs/**/*.html' --force-language en",
+    "audit:lighthouse": "lhci autorun --config=./lighthouserc.json",
     "check:site": "bun run build && bun scripts/check-site.ts",
     "check:security": "bun audit --audit-level=high",
     "deploy": "bun run build && wrangler deploy",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@axe-core/playwright": "4.12.1",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "1.61.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
@@ -40,5 +42,8 @@
     "pagefind": "^1.5.2",
     "typescript": "^6.0.3",
     "wrangler": "4.111.0"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
   }
 }
