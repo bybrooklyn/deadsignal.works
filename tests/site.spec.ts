@@ -91,7 +91,13 @@ for (const route of accessibilityRoutes) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toBeVisible();
-    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await expect.poll(
+      () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+      {
+        message: `${route} should not overflow the viewport horizontally`,
+        timeout: 10_000,
+      },
+    ).toBe(true);
 
     const failedImages = await page.locator('img').evaluateAll((images) => images
       .filter((image) => !(image instanceof HTMLImageElement) || !image.complete || image.naturalWidth === 0)
@@ -138,8 +144,15 @@ test('ordinary page navigation starts the global view transition', async ({ page
   test.skip(browserName !== 'chromium', 'Native document view transitions are exercised in Chromium.');
 
   await page.addInitScript(() => {
-    const state = globalThis as typeof globalThis & { __viewTransitionStarts?: number };
+    const state = globalThis as typeof globalThis & {
+      __astroPageLoads?: number;
+      __viewTransitionStarts?: number;
+    };
+    state.__astroPageLoads = 0;
     state.__viewTransitionStarts = 0;
+    document.addEventListener('astro:page-load', () => {
+      state.__astroPageLoads = (state.__astroPageLoads ?? 0) + 1;
+    });
     const startViewTransition = document.startViewTransition.bind(document);
     document.startViewTransition = (update) => {
       state.__viewTransitionStarts = (state.__viewTransitionStarts ?? 0) + 1;
@@ -147,11 +160,17 @@ test('ordinary page navigation starts the global view transition', async ({ page
     };
   });
   await page.goto('/');
+  await expect.poll(() => page.evaluate(() => (
+    globalThis as typeof globalThis & { __astroPageLoads?: number }
+  ).__astroPageLoads ?? 0)).toBeGreaterThan(0);
   await page.locator('.home-project-actions a[href="/project-meridian/"]').click();
   await expect(page).toHaveURL(`${localOrigin}/project-meridian/`);
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __viewTransitionStarts?: number }
   ).__viewTransitionStarts ?? 0)).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (
+    globalThis as typeof globalThis & { __astroPageLoads?: number }
+  ).__astroPageLoads ?? 0)).toBeGreaterThan(1);
 });
 
 test('Meridian subsystem navigation retains its specialized transition state', async ({ page }) => {
