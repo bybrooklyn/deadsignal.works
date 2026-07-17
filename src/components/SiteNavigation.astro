@@ -24,63 +24,20 @@ const connectLinks = [
 
 const directLinks = [
   { label: 'Project Meridian', href: '/project-meridian/' },
+  { label: 'Meridian', href: '/meridian/' },
   { label: 'Studio', href: '/studio/' },
   { label: 'Devlog', href: '/updates/' },
+  { label: 'Contact', href: '/contact/' },
 ] as const;
 
 const isCurrent = (href: string) => currentPath === href || currentPath.startsWith(href);
-const meridianCurrent = isCurrent('/meridian/');
-const connectCurrent = currentPath === '/contact/' || currentPath === '/press/';
 ---
 
 <div class="site-navigation" data-site-navigation>
   <nav class="desktop-nav" aria-label="Primary navigation">
-    <a href={directLinks[0].href} aria-current={isCurrent(directLinks[0].href) ? 'page' : undefined}>
-      {directLinks[0].label}
-    </a>
-
-    <details class:list={['nav-cluster', 'nav-cluster-meridian', { 'is-current': meridianCurrent }]} name="desktop-navigation" data-nav-disclosure>
-      <summary>
-        Meridian <span aria-hidden="true">+</span>
-      </summary>
-      <div class="nav-panel-hitbox">
-        <div class="nav-panel">
-          <div class="nav-panel-body nav-panel-body-meridian">
-            <p>Meridian engine</p>
-            <div>
-              {meridianLinks.map((item) => (
-                <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>
-                  <span>{item.label}</span>
-                  {'detail' in item && <small>{item.detail}</small>}
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </details>
-
-    {directLinks.slice(1).map((item) => (
+    {directLinks.map((item) => (
       <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
     ))}
-
-    <details class:list={['nav-cluster', 'nav-cluster-connect', { 'is-current': connectCurrent }]} name="desktop-navigation" data-nav-disclosure>
-      <summary>
-        Connect <span aria-hidden="true">+</span>
-      </summary>
-      <div class="nav-panel-hitbox">
-        <div class="nav-panel">
-          <div class="nav-panel-body nav-panel-body-connect">
-            <p>Find the studio</p>
-            {connectLinks.map((item) => (
-              <a href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined}>
-                {item.label}<span aria-hidden="true">↗</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-    </details>
   </nav>
 
   <details class="mobile-nav" name="mobile-navigation" data-nav-disclosure>
@@ -114,44 +71,25 @@ const connectCurrent = currentPath === '/contact/' || currentPath === '/press/';
   </details>
 </div>
 
-<script>
-  const closeDetails = (details: HTMLDetailsElement) => details.removeAttribute('open');
-  const clearCloseTimer = (details: HTMLDetailsElement) => {
-    const timer = Number(details.dataset.closeTimer);
-    if (Number.isFinite(timer)) window.clearTimeout(timer);
-    delete details.dataset.closeTimer;
-  };
+<script is:inline>
+  (() => {
+    const initializationKey = '__deadSignalSiteNavigationInitialized';
+    if (Reflect.get(globalThis, initializationKey)) return;
+    Reflect.set(globalThis, initializationKey, true);
 
-  document.addEventListener('pointerover', (event) => {
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const details = target.closest<HTMLDetailsElement>('.desktop-nav [data-nav-disclosure]');
-    if (!details) return;
-    clearCloseTimer(details);
-    details.open = true;
-  });
+    const closeDetails = (details) => details.removeAttribute('open');
 
-  document.addEventListener('pointerout', (event) => {
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const details = target.closest<HTMLDetailsElement>('.desktop-nav [data-nav-disclosure]');
-    if (!details || (event.relatedTarget instanceof Node && details.contains(event.relatedTarget))) return;
-    clearCloseTimer(details);
-    details.dataset.closeTimer = String(window.setTimeout(() => closeDetails(details), 140));
-  });
-
-  document.addEventListener('click', (event) => {
-    const target = event.target;
-    if (!(target instanceof Node)) return;
-    document.querySelectorAll<HTMLDetailsElement>('[data-site-navigation] details[open]').forEach((details) => {
-      if (!details.contains(target)) closeDetails(details);
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      document.querySelectorAll('[data-site-navigation] details[open]').forEach((details) => {
+        if (!details.contains(target)) closeDetails(details);
+      });
     });
-  });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') return;
-    document.querySelectorAll<HTMLDetailsElement>('[data-site-navigation] details[open]').forEach(closeDetails);
-  });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      document.querySelectorAll('[data-site-navigation] details[open]').forEach(closeDetails);
+    });
+  })();
 </script>

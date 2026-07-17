@@ -1,102 +1,107 @@
-<script>
-  const subsystemSlugs = new Set(['penumbra', 'cairn', 'wavefront', 'alluvium']);
-  const subsystemPartNames = {
-    role: 'subsystem-role',
-    title: 'subsystem-title',
-    pronunciation: 'subsystem-pronunciation',
-    summary: 'subsystem-summary',
-  } as const;
-  type SubsystemTransition = { slug: string; direction: 'forward' | 'back' };
-  let activeSubsystemTransition: SubsystemTransition | null = null;
+<script is:inline>
+  (() => {
+    const initializationKey = '__deadSignalSubsystemTransitionsInitialized';
+    if (Reflect.get(globalThis, initializationKey)) return;
+    Reflect.set(globalThis, initializationKey, true);
 
-  const clearSubsystemNames = (root: ParentNode) => {
-    root.querySelectorAll<HTMLElement>('[data-transition-active]').forEach((element) => {
-      element.style.removeProperty('view-transition-name');
-      element.removeAttribute('data-transition-active');
-      element.removeAttribute('data-transition-source');
-    });
-  };
+    const subsystemSlugs = new Set(['penumbra', 'cairn', 'wavefront', 'alluvium']);
+    const subsystemPartNames = {
+      role: 'subsystem-role',
+      title: 'subsystem-title',
+      pronunciation: 'subsystem-pronunciation',
+      summary: 'subsystem-summary',
+    };
+    let activeSubsystemTransition = null;
 
-  const nameSubsystemElements = (container: HTMLElement) => {
-    container.dataset.transitionActive = 'true';
-    container.dataset.transitionSource = 'true';
+    const clearSubsystemNames = (root) => {
+      root.querySelectorAll('[data-transition-active]').forEach((element) => {
+        element.style.removeProperty('view-transition-name');
+        element.removeAttribute('data-transition-active');
+        element.removeAttribute('data-transition-source');
+      });
+    };
 
-    const frame = container.querySelector<HTMLElement>('[data-subsystem-frame]');
-    if (frame) {
-      frame.dataset.transitionActive = 'true';
-      frame.style.setProperty('view-transition-name', 'subsystem-frame');
-    }
+    const nameSubsystemElements = (container) => {
+      container.dataset.transitionActive = 'true';
+      container.dataset.transitionSource = 'true';
 
-    Object.entries(subsystemPartNames).forEach(([part, transitionName]) => {
-      const element = container.querySelector<HTMLElement>(`[data-subsystem-part="${part}"]`);
-      if (!element) return;
-      element.dataset.transitionActive = 'true';
-      element.style.setProperty('view-transition-name', transitionName);
-    });
-  };
-
-  const clearRootTransitionState = (root: HTMLElement) => {
-    delete root.dataset.subsystemTransition;
-    delete root.dataset.subsystemDirection;
-  };
-
-  document.addEventListener('astro:before-preparation', (event) => {
-    clearSubsystemNames(document);
-    activeSubsystemTransition = null;
-    clearRootTransitionState(document.documentElement);
-
-    const source = event.sourceElement;
-    const card = source instanceof Element
-      ? source.closest<HTMLElement>('[data-subsystem-transition]')
-      : null;
-    const cardSlug = card?.dataset.subsystemTransition;
-
-    if (card && cardSlug && subsystemSlugs.has(cardSlug)) {
-      activeSubsystemTransition = { slug: cardSlug, direction: 'forward' };
-      nameSubsystemElements(card);
-    } else if (
-      event.navigationType === 'traverse'
-      && event.direction === 'back'
-      && event.to.pathname === '/meridian/'
-    ) {
-      const hero = document.querySelector<HTMLElement>('[data-subsystem-hero]');
-      const heroSlug = hero?.dataset.subsystemHero;
-      if (hero && heroSlug && subsystemSlugs.has(heroSlug)) {
-        activeSubsystemTransition = { slug: heroSlug, direction: 'back' };
-        nameSubsystemElements(hero);
+      const frame = container.querySelector('[data-subsystem-frame]');
+      if (frame) {
+        frame.dataset.transitionActive = 'true';
+        frame.style.setProperty('view-transition-name', 'subsystem-frame');
       }
-    }
 
-    if (!activeSubsystemTransition) return;
-    document.documentElement.dataset.subsystemTransition = activeSubsystemTransition.slug;
-    document.documentElement.dataset.subsystemDirection = activeSubsystemTransition.direction;
-  });
+      Object.entries(subsystemPartNames).forEach(([part, transitionName]) => {
+        const element = container.querySelector(`[data-subsystem-part="${part}"]`);
+        if (!element) return;
+        element.dataset.transitionActive = 'true';
+        element.style.setProperty('view-transition-name', transitionName);
+      });
+    };
 
-  document.addEventListener('astro:before-swap', (event) => {
-    if (!activeSubsystemTransition) return;
+    const clearRootTransitionState = (root) => {
+      delete root.dataset.subsystemTransition;
+      delete root.dataset.subsystemDirection;
+    };
 
-    const transition = activeSubsystemTransition;
-    const selector = transition.direction === 'forward'
-      ? `[data-subsystem-hero="${transition.slug}"]`
-      : `[data-subsystem-transition="${transition.slug}"]`;
-    const target = event.newDocument.querySelector<HTMLElement>(selector);
+    document.addEventListener('astro:before-preparation', (event) => {
+      clearSubsystemNames(document);
+      activeSubsystemTransition = null;
+      clearRootTransitionState(document.documentElement);
 
-    event.newDocument.documentElement.dataset.subsystemTransition = transition.slug;
-    event.newDocument.documentElement.dataset.subsystemDirection = transition.direction;
-    if (target) nameSubsystemElements(target);
+      const source = event.sourceElement;
+      const card = source instanceof Element
+        ? source.closest('[data-subsystem-transition]')
+        : null;
+      const cardSlug = card?.dataset.subsystemTransition;
 
-    const finish = () => {
-      if (activeSubsystemTransition !== transition) return;
+      if (card && cardSlug && subsystemSlugs.has(cardSlug)) {
+        activeSubsystemTransition = { slug: cardSlug, direction: 'forward' };
+        nameSubsystemElements(card);
+      } else if (
+        event.navigationType === 'traverse'
+        && event.direction === 'back'
+        && event.to.pathname === '/meridian/'
+      ) {
+        const hero = document.querySelector('[data-subsystem-hero]');
+        const heroSlug = hero?.dataset.subsystemHero;
+        if (hero && heroSlug && subsystemSlugs.has(heroSlug)) {
+          activeSubsystemTransition = { slug: heroSlug, direction: 'back' };
+          nameSubsystemElements(hero);
+        }
+      }
+
+      if (!activeSubsystemTransition) return;
+      document.documentElement.dataset.subsystemTransition = activeSubsystemTransition.slug;
+      document.documentElement.dataset.subsystemDirection = activeSubsystemTransition.direction;
+    });
+
+    document.addEventListener('astro:before-swap', (event) => {
+      if (!activeSubsystemTransition) return;
+
+      const transition = activeSubsystemTransition;
+      const selector = transition.direction === 'forward'
+        ? `[data-subsystem-hero="${transition.slug}"]`
+        : `[data-subsystem-transition="${transition.slug}"]`;
+      const target = event.newDocument.querySelector(selector);
+
+      event.newDocument.documentElement.dataset.subsystemTransition = transition.slug;
+      event.newDocument.documentElement.dataset.subsystemDirection = transition.direction;
+      if (target) nameSubsystemElements(target);
+
+      const finish = () => {
+        if (activeSubsystemTransition !== transition) return;
+        clearSubsystemNames(document);
+        clearRootTransitionState(document.documentElement);
+        activeSubsystemTransition = null;
+      };
+      void event.viewTransition.finished.then(finish, finish);
+    });
+
+    document.addEventListener('astro:page-load', () => {
+      if (activeSubsystemTransition) return;
       clearSubsystemNames(document);
       clearRootTransitionState(document.documentElement);
-      activeSubsystemTransition = null;
-    };
-    void event.viewTransition.finished.then(finish, finish);
-  });
-
-  document.addEventListener('astro:page-load', () => {
-    if (activeSubsystemTransition) return;
-    clearSubsystemNames(document);
-    clearRootTransitionState(document.documentElement);
-  });
+    });
+  })();
 </script>

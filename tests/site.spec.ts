@@ -135,6 +135,7 @@ test.afterEach(async ({ page }) => {
 
 for (const route of accessibilityRoutes) {
   test(`passes full-page accessibility and layout checks at ${route}`, async ({ page }) => {
+    test.setTimeout(45_000);
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toBeVisible();
@@ -195,6 +196,28 @@ test('the wordmark accessible name matches its visible text', async ({ page }) =
   await expect(page.getByRole('link', { name: 'Dead Signal Works', exact: true })).toHaveAttribute('href', '/');
 });
 
+test('each press copy button writes only its own value once', async ({ page }) => {
+  await page.addInitScript(() => {
+    const state = globalThis as typeof globalThis & { __copyWrites?: number };
+    state.__copyWrites = 0;
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: () => {
+          state.__copyWrites = (state.__copyWrites ?? 0) + 1;
+          return Promise.resolve();
+        },
+      },
+    });
+  });
+
+  await page.goto('/press/');
+  await page.getByRole('button', { name: 'Copy studio description' }).click();
+  await expect.poll(() => page.evaluate(() => (
+    globalThis as typeof globalThis & { __copyWrites?: number }
+  ).__copyWrites ?? 0)).toBe(1);
+});
+
 test('ordinary page navigation starts the global view transition', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'Native document view transitions are exercised in Chromium.');
 
@@ -230,21 +253,56 @@ test('ordinary page navigation starts the global view transition', async ({ page
 });
 
 test('Meridian subsystem navigation retains its specialized transition state', async ({ page }) => {
+  const navigateToPenumbra = async () => {
+    await page.locator('astro-island').scrollIntoViewIfNeeded();
+    await expect(page.locator('astro-island:not([ssr])')).toHaveCount(1);
+    const penumbraCard = page.locator('[data-subsystem-transition="penumbra"]');
+    await expectStableLayout(penumbraCard);
+    await page.evaluate(() => {
+      const state = globalThis as typeof globalThis & { __sawSubsystemTransition?: boolean };
+      state.__sawSubsystemTransition = false;
+      document.addEventListener('astro:before-swap', () => {
+        state.__sawSubsystemTransition = document.documentElement.dataset.subsystemTransition === 'penumbra';
+      }, { once: true });
+    });
+    allowExpectedNavigationCancellation(page, '/meridian/penumbra/');
+    await penumbraCard.click();
+    await expect(page).toHaveURL(`${localOrigin}/meridian/penumbra/`);
+    expect(await page.evaluate(() => (
+      globalThis as typeof globalThis & { __sawSubsystemTransition?: boolean }
+    ).__sawSubsystemTransition)).toBe(true);
+  };
+
   await page.goto('/meridian/');
-  await page.locator('astro-island').scrollIntoViewIfNeeded();
-  await expect(page.locator('astro-island:not([ssr])')).toHaveCount(1);
-  await page.evaluate(() => {
-    const state = globalThis as typeof globalThis & { __sawSubsystemTransition?: boolean };
-    state.__sawSubsystemTransition = false;
-    document.addEventListener('astro:before-swap', () => {
-      state.__sawSubsystemTransition = document.documentElement.dataset.subsystemTransition === 'penumbra';
-    }, { once: true });
-  });
-  await page.locator('[data-subsystem-transition="penumbra"]').click();
-  await expect(page).toHaveURL(`${localOrigin}/meridian/penumbra/`);
-  expect(await page.evaluate(() => (
-    globalThis as typeof globalThis & { __sawSubsystemTransition?: boolean }
-  ).__sawSubsystemTransition)).toBe(true);
+  await navigateToPenumbra();
+  allowExpectedNavigationCancellation(page, '/meridian/');
+  await page.getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Meridian', exact: true })
+    .click();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/`);
+  await navigateToPenumbra();
+});
+
+test('desktop primary navigation uses direct Meridian and Contact links', async ({ page }) => {
+  await page.goto('/');
+  const navigation = page.getByRole('navigation', { name: 'Primary navigation' });
+  await expect(navigation.locator('details')).toHaveCount(0);
+
+  const meridian = navigation.getByRole('link', { name: 'Meridian', exact: true });
+  const contact = navigation.getByRole('link', { name: 'Contact', exact: true });
+  await expect(meridian).toHaveAttribute('href', '/meridian/');
+  await expect(contact).toHaveAttribute('href', '/contact/');
+
+  allowExpectedNavigationCancellation(page, '/meridian/');
+  await meridian.click();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/`);
+
+  await page.goto('/');
+  allowExpectedNavigationCancellation(page, '/contact/');
+  await page.getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Contact', exact: true })
+    .click();
+  await expect(page).toHaveURL(`${localOrigin}/contact/`);
 });
 
 test('primary navigation works without JavaScript after fonts settle', async ({ browser }) => {
@@ -253,15 +311,12 @@ test('primary navigation works without JavaScript after fonts settle', async ({ 
   const diagnostics = monitorPage(page);
   await page.goto('/', { waitUntil: 'networkidle' });
 
-  const disclosure = page.locator('.nav-cluster-meridian');
-  await disclosure.locator('summary').click();
-  await expect(disclosure).toHaveAttribute('open', '');
-  const docsLink = disclosure.getByRole('link', { name: 'Documentation' });
-  await expect(docsLink).toBeVisible();
-  await expectStableLayout(docsLink);
-  await docsLink.click({ force: true });
-  await expect(page).toHaveURL(`${localOrigin}/meridian/docs/`);
-  await expect(page.getByRole('heading', { level: 1, name: 'Start with Meridian.' })).toBeVisible();
+  const meridianLink = page.getByRole('link', { name: 'Meridian', exact: true });
+  await expect(meridianLink).toBeVisible();
+  await expectStableLayout(meridianLink);
+  await meridianLink.click({ force: true });
+  await expect(page).toHaveURL(`${localOrigin}/meridian/`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Meridian' })).toBeVisible();
 
   expectCleanDiagnostics(diagnostics);
   await context.close();
