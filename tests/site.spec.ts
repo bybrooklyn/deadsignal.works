@@ -26,6 +26,7 @@ interface BrowserDiagnostics {
   consoleErrors: string[];
   pageErrors: string[];
   failedRequests: Array<{ label: string; error: string }>;
+  expectedNavigationCancellations: Set<string>;
 }
 
 const diagnosticsByPage = new WeakMap<Page, BrowserDiagnostics>();
@@ -35,6 +36,7 @@ function monitorPage(page: Page): BrowserDiagnostics {
     consoleErrors: [],
     pageErrors: [],
     failedRequests: [],
+    expectedNavigationCancellations: new Set(),
   };
 
   page.on('console', (message) => {
@@ -55,11 +57,19 @@ function monitorPage(page: Page): BrowserDiagnostics {
 }
 
 function expectCleanDiagnostics(diagnostics: BrowserDiagnostics): void {
+  const cancellationErrors = new Set(['net::ERR_ABORTED', 'NS_BINDING_ABORTED']);
   const unexpectedFailedRequests = diagnostics.failedRequests
+    .filter(({ label, error }) => !(cancellationErrors.has(error) && diagnostics.expectedNavigationCancellations.has(label)))
     .map(({ label, error }) => `${label}: ${error}`);
   expect(diagnostics.consoleErrors, 'unexpected browser console errors').toEqual([]);
   expect(diagnostics.pageErrors, 'unexpected uncaught browser errors').toEqual([]);
   expect(unexpectedFailedRequests, 'unexpected failed first-party requests').toEqual([]);
+}
+
+function allowExpectedNavigationCancellation(page: Page, targetPath: string): void {
+  const diagnostics = diagnosticsByPage.get(page);
+  if (!diagnostics) throw new Error('Browser diagnostics were not initialized.');
+  diagnostics.expectedNavigationCancellations.add(`GET ${targetPath}`);
 }
 
 async function horizontalViewportState(page: Page) {
@@ -208,6 +218,7 @@ test('ordinary page navigation starts the global view transition', async ({ page
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __astroPageLoads?: number }
   ).__astroPageLoads ?? 0)).toBeGreaterThan(0);
+  allowExpectedNavigationCancellation(page, '/project-meridian/');
   await page.locator('.home-project-actions a[href="/project-meridian/"]').click();
   await expect(page).toHaveURL(`${localOrigin}/project-meridian/`);
   await expect.poll(() => page.evaluate(() => (
@@ -258,7 +269,8 @@ test('primary navigation works without JavaScript after fonts settle', async ({ 
 
 test('documentation search is keyboard accessible and returns safe local results', async ({ page }) => {
   await page.goto('/meridian/docs/');
-  await expect(page.locator('astro-island:not([ssr])')).toHaveCount(1);
+  const searchTrigger = page.getByRole('button', { name: /Search docs/u });
+  await expect(searchTrigger).toHaveAttribute('data-search-ready', 'true');
   await page.keyboard.press('Control+K');
 
   const dialog = page.getByRole('dialog', { name: 'Find a page.' });

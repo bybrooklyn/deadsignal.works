@@ -2,7 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  // Each browser project exercises every route with an accessibility scan.
+  // Keep those layout- and AX-heavy checks serial within a project so slower
+  // CI runners do not turn valid browser behavior into timing failures.
+  fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // Keep browser pressure bounded in every environment. Gecko and WebKit can
