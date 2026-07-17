@@ -14,7 +14,7 @@ interface Props {
 
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
-const currentPath = `/meridian/docs/${entry.id}`;
+const currentPath = `/meridian/docs/${entry.id}/`;
 const navigationItem = docsItemById[entry.id];
 if (!navigationItem) throw new Error(`Documentation entry ${entry.id} is missing from the navigation registry.`);
 ---

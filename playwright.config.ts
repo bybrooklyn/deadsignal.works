@@ -8,8 +8,9 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4321',
+    baseURL: 'https://127.0.0.1:4323',
     colorScheme: 'dark',
+    ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
@@ -18,11 +19,20 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
   webServer: {
-    command: 'bun run preview -- --host 127.0.0.1 --port 4321',
-    url: 'http://127.0.0.1:4321',
-    reuseExistingServer: !process.env.CI,
+    command: 'bunx wrangler dev --local --local-protocol https --port 4323',
+    url: 'https://127.0.0.1:4323',
+    ignoreHTTPSErrors: true,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

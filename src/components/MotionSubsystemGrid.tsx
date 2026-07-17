@@ -24,7 +24,7 @@ export default function MotionSubsystemGrid({ items }: Props) {
             <m.a
               className={`subsystem-card tone-${item.tone}`}
               data-subsystem-transition={item.slug}
-              href={`/meridian/${item.slug}`}
+              href={`/meridian/${item.slug}/`}
               key={item.slug}
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}

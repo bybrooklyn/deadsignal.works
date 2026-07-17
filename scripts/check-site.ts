@@ -13,10 +13,20 @@ const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 // guardrails against accidental global hydration, not product performance claims.
 const performanceBudgets = {
   simpleInitialScriptBytes: 32 * 1024,
-  interactiveInitialScriptBytes: 300 * 1024,
+  transitionInitialScriptBytes: 40 * 1024,
+  docsInitialScriptBytes: 216 * 1024,
+  homeAndProjectInitialScriptBytes: 288 * 1024,
+  meridianInitialScriptBytes: 300 * 1024,
   initialStylesheetBytes: 96 * 1024,
   emittedApplicationScriptBytes: 200 * 1024,
 } as const;
+
+const allowedHydrations = new Set([
+  'src/components/DocsToolbar.astro:DocsSearch:load',
+  'src/pages/index.astro:StudioWorkbench:load',
+  'src/pages/meridian.astro:MotionSubsystemGrid:visible',
+  'src/pages/project-meridian.astro:KineticProjectHero:load',
+]);
 
 interface HtmlTag {
   raw: string;
@@ -122,6 +132,30 @@ function outputRouteFromUrl(pathname: string): string {
   return clean ? `${clean}/index.html` : 'index.html';
 }
 
+function publicPathFromOutputRoute(outputPath: string): string {
+  if (outputPath === 'index.html') return '/';
+  if (outputPath.endsWith('/index.html')) return `/${outputPath.slice(0, -'index.html'.length)}`;
+  if (outputPath.endsWith('.html')) return `/${outputPath.slice(0, -'.html'.length)}/`;
+  throw new Error(`Cannot derive a public page path from ${outputPath}`);
+}
+
+function scriptBudgetFor(outputPath: string, html: string): number {
+  if (outputPath.startsWith('meridian/docs/')) return performanceBudgets.docsInitialScriptBytes;
+  if (outputPath === 'index.html' || outputPath === 'project-meridian/index.html') {
+    return performanceBudgets.homeAndProjectInitialScriptBytes;
+  }
+  if (outputPath === 'meridian/index.html') return performanceBudgets.meridianInitialScriptBytes;
+  if (html.includes('astro-view-transitions-enabled')) return performanceBudgets.transitionInitialScriptBytes;
+  return performanceBudgets.simpleInitialScriptBytes;
+}
+
+function nestedStrings(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(nestedStrings);
+  if (value && typeof value === 'object') return Object.values(value).flatMap(nestedStrings);
+  return [];
+}
+
 function pngSize(buffer: Buffer): { width: number; height: number } | undefined {
   const signature = '89504e470d0a1a0a';
   if (buffer.length < 24 || buffer.subarray(0, 8).toString('hex') !== signature) return undefined;
@@ -140,6 +174,7 @@ const updateSourceFiles = (await walk(updateSourceRoot)).filter((file) => /\.md$
 const siteData = await readFile(join(sourceRoot, 'data', 'site.ts'), 'utf8');
 const engineSourcePublic = /engineSourcePublic:\s*true/u.test(siteData);
 const htmlCache = new Map<string, string>();
+const discoveredHydrations = new Set<string>();
 
 for (const file of sourceFiles) {
   const source = await readFile(file, 'utf8');
@@ -149,6 +184,16 @@ for (const file of sourceFiles) {
     failures.add(`${sourcePath}: contains a prohibited browser injection or string-to-code sink`);
   }
   if (/\/Users\//u.test(source)) failures.add(`${sourcePath}: contains a personal absolute path`);
+  for (const match of source.matchAll(/<([A-Z][\w]*)\b[^>]*\bclient:([\w-]+)\b[^>]*>/gsu)) {
+    discoveredHydrations.add(`${sourcePath}:${match[1]}:${match[2]}`);
+  }
+}
+
+for (const hydration of discoveredHydrations) {
+  if (!allowedHydrations.has(hydration)) failures.add(`unapproved client hydration surface: ${hydration}`);
+}
+for (const hydration of allowedHydrations) {
+  if (!discoveredHydrations.has(hydration)) failures.add(`expected client hydration surface is missing: ${hydration}`);
 }
 
 const remainingJavaScriptSources = (await walk(repositoryRoot)).filter((file) => (
@@ -210,6 +255,7 @@ for (const route of requiredRoutes) {
 const titles = new Map<string, string>();
 const descriptions = new Map<string, string>();
 const canonicals = new Map<string, string>();
+const publicCanonicals = new Set<string>();
 
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
@@ -219,11 +265,13 @@ for (const file of htmlFiles) {
   const description = metaContent(html, 'name', 'description');
   const canonical = linkHref(html, 'canonical');
   const ogImage = metaContent(html, 'property', 'og:image');
+  const expectedCanonical = new URL(publicPathFromOutputRoute(outputPath), site.url).toString();
 
   if (!/<html\s+lang="en">/iu.test(html)) failures.add(`${outputPath}: missing document language`);
   if (!title) failures.add(`${outputPath}: missing title`);
   if (!description) failures.add(`${outputPath}: missing description`);
-  if (!canonical?.startsWith(`${site.url}/`)) failures.add(`${outputPath}: missing canonical URL`);
+  if (canonical !== expectedCanonical) failures.add(`${outputPath}: canonical URL ${canonical ?? '(missing)'} does not match ${expectedCanonical}`);
+  if (metaContent(html, 'property', 'og:url') !== expectedCanonical) failures.add(`${outputPath}: Open Graph URL does not match its canonical URL`);
   if (!/<h1(?:\s|>)/iu.test(html)) failures.add(`${outputPath}: missing level-one heading`);
   if (ogImage !== `${site.url}/social-card.png`) failures.add(`${outputPath}: missing PNG social image`);
   if (metaContent(html, 'property', 'og:image:type') !== 'image/png') failures.add(`${outputPath}: missing social image type`);
@@ -259,7 +307,23 @@ for (const file of htmlFiles) {
   if (jsonLdBlocks.length !== 1) failures.add(`${outputPath}: expected exactly one JSON-LD block`);
   for (const block of jsonLdBlocks) {
     try {
-      JSON.parse(block[1]);
+      const jsonLd = JSON.parse(block[1]) as unknown;
+      for (const value of nestedStrings(jsonLd)) {
+        let url: URL;
+        try {
+          url = new URL(value);
+        } catch {
+          continue;
+        }
+        if (
+          url.origin === site.url
+          && url.pathname !== '/'
+          && !extname(url.pathname)
+          && !url.pathname.endsWith('/')
+        ) {
+          failures.add(`${outputPath}: structured-data URL is not canonical: ${value}`);
+        }
+      }
     } catch {
       failures.add(`${outputPath}: invalid JSON-LD`);
     }
@@ -279,6 +343,7 @@ for (const file of htmlFiles) {
     const duplicate = canonicals.get(canonical);
     if (duplicate) failures.add(`${outputPath}: duplicate canonical also used by ${duplicate}`);
     canonicals.set(canonical, outputPath);
+    if (metaContent(html, 'name', 'robots') !== 'noindex, nofollow') publicCanonicals.add(canonical);
   }
 
   for (const anchor of tags(html, 'a')) {
@@ -306,6 +371,9 @@ for (const file of htmlFiles) {
     if (url.origin !== site.url) {
       if (url.protocol !== 'https:') failures.add(`${outputPath}: external link is not HTTPS: ${href}`);
       continue;
+    }
+    if (url.pathname !== '/' && !extname(url.pathname) && !url.pathname.endsWith('/')) {
+      failures.add(`${outputPath}: internal page link is not canonical: ${href}`);
     }
 
     const targetFile = await firstExisting(routeCandidates(url.pathname));
@@ -340,10 +408,7 @@ for (const file of htmlFiles) {
   const inlineScriptBytes = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/giu)]
     .reduce((total, match) => total + Buffer.byteLength(match[1]), 0);
   const initialScriptBytes = scriptGraph.bytes + inlineScriptBytes;
-  const interactive = html.includes('<astro-island') || html.includes('astro-view-transitions-enabled');
-  const scriptBudget = interactive
-    ? performanceBudgets.interactiveInitialScriptBytes
-    : performanceBudgets.simpleInitialScriptBytes;
+  const scriptBudget = scriptBudgetFor(outputPath, html);
   if (initialScriptBytes > scriptBudget) failures.add(`${outputPath}: initial script budget exceeded (${initialScriptBytes} > ${scriptBudget})`);
 
   let stylesheetBytes = 0;
@@ -354,6 +419,30 @@ for (const file of htmlFiles) {
   }
   if (stylesheetBytes > performanceBudgets.initialStylesheetBytes) {
     failures.add(`${outputPath}: stylesheet budget exceeded (${stylesheetBytes} > ${performanceBudgets.initialStylesheetBytes})`);
+  }
+}
+
+const sitemapCanonicals = new Set<string>();
+for (const file of files.filter((path) => /sitemap-\d+\.xml$/u.test(path))) {
+  const sitemap = await readFile(file, 'utf8');
+  for (const match of sitemap.matchAll(/<loc>([^<]+)<\/loc>/gu)) {
+    const loc = match[1];
+    if (sitemapCanonicals.has(loc)) failures.add(`sitemap contains duplicate URL ${loc}`);
+    sitemapCanonicals.add(loc);
+  }
+}
+for (const canonical of publicCanonicals) {
+  if (!sitemapCanonicals.has(canonical)) failures.add(`sitemap is missing canonical URL ${canonical}`);
+}
+for (const loc of sitemapCanonicals) {
+  if (!publicCanonicals.has(loc)) failures.add(`sitemap contains non-canonical URL ${loc}`);
+}
+
+const rssXml = await readFile(join(root, 'rss.xml'), 'utf8');
+for (const match of rssXml.matchAll(/<(?:link|guid)(?:\s[^>]*)?>(https:\/\/deadsignal\.works\/[^<]*)<\/(?:link|guid)>/gu)) {
+  const url = new URL(match[1]);
+  if (url.pathname !== '/' && !extname(url.pathname) && !url.pathname.endsWith('/')) {
+    failures.add(`RSS contains non-canonical page URL ${url.toString()}`);
   }
 }
 
@@ -407,7 +496,32 @@ for (const header of [
 for (const directive of ["default-src 'self'", "object-src 'none'", "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"]) {
   if (!headers.includes(directive)) failures.add(`content security policy is missing ${directive}`);
 }
-if (headers.includes("'unsafe-eval'")) failures.add('content security policy allows unsafe-eval');
+const csp = headers.match(/^\s*Content-Security-Policy:\s*(.+)$/mu)?.[1];
+if (!csp) {
+  failures.add('content security policy header has no value');
+} else {
+  const directiveTokens = (name: string) => csp
+    .split(';')
+    .map((directive) => directive.trim().split(/\s+/u))
+    .find(([directiveName]) => directiveName === name)
+    ?.slice(1) ?? [];
+  const expectedScriptSources = new Set([
+    "'self'",
+    "'unsafe-inline'",
+    "'wasm-unsafe-eval'",
+    'https://static.cloudflareinsights.com',
+  ]);
+  const scriptSources = new Set(directiveTokens('script-src'));
+  for (const source of expectedScriptSources) {
+    if (!scriptSources.has(source)) failures.add(`content security policy script-src is missing ${source}`);
+  }
+  for (const source of scriptSources) {
+    if (!expectedScriptSources.has(source)) failures.add(`content security policy has an unapproved script source ${source}`);
+  }
+  if (directiveTokens('connect-src').join(' ') !== "'self'") failures.add("content security policy connect-src must be exactly 'self'");
+  if (directiveTokens('worker-src').join(' ') !== "'self' blob:") failures.add("content security policy worker-src must be exactly 'self' blob:");
+}
+if (/(?:^|\s)'unsafe-eval'(?=\s|;|$)/u.test(headers)) failures.add('content security policy allows unsafe-eval');
 if (/script-src[^\n;]*\*/u.test(headers)) failures.add('content security policy has a wildcard script source');
 
 const securityText = await readFile(join(repositoryRoot, 'public', '.well-known', 'security.txt'), 'utf8');

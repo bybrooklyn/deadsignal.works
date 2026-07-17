@@ -8,29 +8,29 @@ interface Props {
 const { currentPath } = Astro.props;
 
 const meridianLinks = [
-  { label: 'Engine overview', href: '/meridian' },
-  { label: 'Documentation', href: '/meridian/docs' },
-  { label: 'Penumbra', detail: 'Rendering', href: '/meridian/penumbra' },
-  { label: 'Cairn', detail: 'Physics', href: '/meridian/cairn' },
-  { label: 'Wavefront', detail: 'Audio', href: '/meridian/wavefront' },
-  { label: 'Alluvium', detail: 'Procedural worlds', href: '/meridian/alluvium' },
+  { label: 'Engine overview', href: '/meridian/' },
+  { label: 'Documentation', href: '/meridian/docs/' },
+  { label: 'Penumbra', detail: 'Rendering', href: '/meridian/penumbra/' },
+  { label: 'Cairn', detail: 'Physics', href: '/meridian/cairn/' },
+  { label: 'Wavefront', detail: 'Audio', href: '/meridian/wavefront/' },
+  { label: 'Alluvium', detail: 'Procedural worlds', href: '/meridian/alluvium/' },
 ] as const;
 
 const connectLinks = [
   { label: 'Join Discord', href: site.discord, external: true },
-  { label: 'Contact', href: '/contact', external: false },
-  { label: 'Press kit', href: '/press', external: false },
+  { label: 'Contact', href: '/contact/', external: false },
+  { label: 'Press kit', href: '/press/', external: false },
 ] as const;
 
 const directLinks = [
-  { label: 'Project Meridian', href: '/project-meridian' },
-  { label: 'Studio', href: '/studio' },
-  { label: 'Devlog', href: '/updates' },
+  { label: 'Project Meridian', href: '/project-meridian/' },
+  { label: 'Studio', href: '/studio/' },
+  { label: 'Devlog', href: '/updates/' },
 ] as const;
 
-const isCurrent = (href: string) => currentPath === href || currentPath.startsWith(`${href}/`);
-const meridianCurrent = isCurrent('/meridian');
-const connectCurrent = currentPath === '/contact' || currentPath === '/press';
+const isCurrent = (href: string) => currentPath === href || currentPath.startsWith(href);
+const meridianCurrent = isCurrent('/meridian/');
+const connectCurrent = currentPath === '/contact/' || currentPath === '/press/';
 ---
 
 <div class="site-navigation" data-site-navigation>
@@ -86,17 +86,17 @@ const connectCurrent = currentPath === '/contact' || currentPath === '/press';
   <details class="mobile-nav" name="mobile-navigation" data-nav-disclosure>
     <summary class="mobile-nav-trigger">Menu <span aria-hidden="true">+</span></summary>
     <nav class="mobile-nav-panel" aria-label="Mobile navigation">
-      <a href="/project-meridian" aria-current={isCurrent('/project-meridian') ? 'page' : undefined}>Project Meridian</a>
+      <a href="/project-meridian/" aria-current={isCurrent('/project-meridian/') ? 'page' : undefined}>Project Meridian</a>
       <section>
-        <a href="/meridian" aria-current={currentPath === '/meridian' ? 'page' : undefined}>Meridian</a>
+        <a href="/meridian/" aria-current={currentPath === '/meridian/' ? 'page' : undefined}>Meridian</a>
         <div>
           {meridianLinks.slice(1).map((item) => (
             <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
           ))}
         </div>
       </section>
-      <a href="/studio" aria-current={isCurrent('/studio') ? 'page' : undefined}>Studio</a>
-      <a href="/updates" aria-current={isCurrent('/updates') ? 'page' : undefined}>Devlog</a>
+      <a href="/studio/" aria-current={isCurrent('/studio/') ? 'page' : undefined}>Studio</a>
+      <a href="/updates/" aria-current={isCurrent('/updates/') ? 'page' : undefined}>Devlog</a>
       <section>
         <span>Connect</span>
         <div>

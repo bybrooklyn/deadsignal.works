@@ -18,7 +18,7 @@ jobs:
   site:
     name: Site
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -44,8 +44,15 @@ jobs:
       - name: Check and build site
         run: bun run check:site
 
-      - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
+      - name: Install browser engines
+        run: bunx playwright install --with-deps chromium firefox webkit
+
+      - name: Expose Playwright Chromium to Lighthouse
+        run: |
+          echo "CHROME_PATH=$(bun -e 'import { chromium } from "@playwright/test"; process.stdout.write(chromium.executablePath())')" >> "$GITHUB_ENV"
 
       - name: Test accessibility and interactions
         run: bun run test:e2e:built
+
+      - name: Audit representative routes with Lighthouse
+        run: bun run audit:lighthouse

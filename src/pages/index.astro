@@ -40,7 +40,7 @@ const latest = (await getCollection('updates')).sort(
       </div>
       <div class="home-project-actions">
         <button class="action action-light action-unavailable" type="button" disabled>Wishlist on Steam <small>Page coming later</small></button>
-        <a class="action action-light" href="/project-meridian">Open the project page <span aria-hidden="true">↗</span></a>
+        <a class="action action-light" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>
         <a class="text-action" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
       </div>
     </div>
@@ -58,8 +58,8 @@ const latest = (await getCollection('updates')).sort(
         <p><span>Language</span> Rust</p>
         <p><span>Source</span> Private during early development</p>
         <div class="stacked-actions">
-          <a class="action action-primary" href="/meridian">Explore Meridian <span aria-hidden="true">↗</span></a>
-          <a class="action" href="/meridian/docs">Read the documentation <span aria-hidden="true">↗</span></a>
+          <a class="action action-primary" href="/meridian/">Explore Meridian <span aria-hidden="true">↗</span></a>
+          <a class="action" href="/meridian/docs/">Read the documentation <span aria-hidden="true">↗</span></a>
         </div>
       </div>
     </div>
@@ -69,7 +69,7 @@ const latest = (await getCollection('updates')).sort(
     <div class="shell studio-banner-grid">
       <p class="section-number">03 / The studio</p>
       <p>Dead Signal Works is one person building the game, the engine, and the studio around them.</p>
-      <a class="action action-light" href="/studio">About the studio <span aria-hidden="true">↗</span></a>
+      <a class="action action-light" href="/studio/">About the studio <span aria-hidden="true">↗</span></a>
     </div>
   </section>
 
@@ -82,7 +82,7 @@ const latest = (await getCollection('updates')).sort(
       <div>
         <h2>{latest.data.title}</h2>
         <p>{latest.data.description}</p>
-        <a class="text-action" href={`/updates/${latest.id}`}>Read the update <span aria-hidden="true">↗</span></a>
+        <a class="text-action" href={`/updates/${latest.id}/`}>Read the update <span aria-hidden="true">↗</span></a>
       </div>
     </section>
   )}

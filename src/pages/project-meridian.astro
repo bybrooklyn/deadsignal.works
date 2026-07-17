@@ -11,8 +11,8 @@ const gameSchema = {
   description: 'A single-player, first-person liminal horror game built around exploration across a large continuous world.',
   gamePlatform: ['Windows', 'Linux', 'Steam Deck', 'macOS'],
   playMode: 'SinglePlayer',
-  author: { '@type': 'Organization', name: site.legalName, url: site.url },
-  url: `${site.url}/project-meridian`,
+  author: { '@type': 'Organization', name: site.legalName, url: `${site.url}/` },
+  url: `${site.url}/project-meridian/`,
 };
 
 const facts = [
@@ -37,7 +37,7 @@ const questions = [
 ];
 ---
 
-<BaseLayout title="Project Meridian" description="A single-player, first-person liminal horror game built around exploration across a large continuous world." currentPath="/project-meridian" structuredData={gameSchema}>
+<BaseLayout title="Project Meridian" description="A single-player, first-person liminal horror game built around exploration across a large continuous world." currentPath="/project-meridian/" structuredData={gameSchema}>
   <KineticProjectHero mode="project" client:load />
 
   <InPageNav items={[
@@ -70,7 +70,7 @@ const questions = [
     <div class="copy-stack">
       <p class="large-copy">The game’s creative and production plans exist. Its engine foundations are being built. A public playable slice does not exist yet.</p>
       <p>I will post updates when I have work that is useful to show, including the rough parts when they explain something interesting.</p>
-      <a class="text-action" href="/updates">Read development updates <span aria-hidden="true">↗</span></a>
+      <a class="text-action" href="/updates/">Read development updates <span aria-hidden="true">↗</span></a>
     </div>
   </section>
 
@@ -80,7 +80,7 @@ const questions = [
       <div class="copy-stack">
         <p class="large-copy">Project Meridian is the first proving game for Meridian, the Rust engine being developed alongside it and prepared for an open-source release.</p>
         <p>The game drives requirements. Meridian’s source is private during early development and is planned for release under MIT or Apache-2.0.</p>
-        <a class="action action-primary" href="/meridian">Explore the engine <span aria-hidden="true">↗</span></a>
+        <a class="action action-primary" href="/meridian/">Explore the engine <span aria-hidden="true">↗</span></a>
       </div>
     </div>
   </section>

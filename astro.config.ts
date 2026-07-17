@@ -6,7 +6,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://deadsignal.works',
   output: 'static',
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
   integrations: [mdx(), react(), sitemap()],
   vite: {
     build: {

@@ -1,5 +1,4 @@
 ---
-import { site } from '../data/site';
 import SiteNavigation from './SiteNavigation.astro';
 
 interface Props {
@@ -11,7 +10,7 @@ const { currentPath } = Astro.props;
 
 <header class="site-header">
   <div class="shell header-inner">
-    <a class="wordmark" href="/" aria-label={`${site.name} home`}>
+    <a class="wordmark" href="/">
       <span>Dead Signal</span>
       <span>Works</span>
     </a>
