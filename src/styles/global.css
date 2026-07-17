@@ -27,6 +27,7 @@
 
 html {
   min-width: 320px;
+  overflow-x: clip;
   background: var(--background);
   scroll-behavior: smooth;
   scrollbar-gutter: stable;

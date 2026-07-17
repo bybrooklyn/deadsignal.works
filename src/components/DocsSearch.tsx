@@ -35,6 +35,7 @@ function renderExcerpt(excerpt: string) {
 export default function DocsSearch() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isReady, setIsReady] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [status, setStatus] = useState('Type at least two characters.');
@@ -61,6 +62,7 @@ export default function DocsSearch() {
       }
     };
     document.addEventListener('keydown', onKeyDown);
+    setIsReady(true);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
@@ -107,7 +109,7 @@ export default function DocsSearch() {
 
   return (
     <>
-      <button className="docs-search-trigger" type="button" onClick={openSearch} aria-haspopup="dialog" aria-controls="docs-search-dialog">
+      <button className="docs-search-trigger" type="button" onClick={openSearch} aria-haspopup="dialog" aria-controls="docs-search-dialog" data-search-ready={isReady ? 'true' : undefined}>
         <span>Search docs</span>
         <kbd>Ctrl/⌘ K</kbd>
       </button>

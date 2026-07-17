@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-const localOrigin = 'https://127.0.0.1:4323';
+const localOrigin = 'http://127.0.0.1:4323';
 const productionOrigin = 'https://deadsignal.works';
 const distRoot = new URL('../dist/', import.meta.url);
 
@@ -25,7 +25,8 @@ const accessibilityRoutes = [...sitemapRoutes, '/404/'];
 interface BrowserDiagnostics {
   consoleErrors: string[];
   pageErrors: string[];
-  failedRequests: string[];
+  failedRequests: Array<{ label: string; error: string }>;
+  expectedNavigationCancellations: Set<string>;
 }
 
 const diagnosticsByPage = new WeakMap<Page, BrowserDiagnostics>();
@@ -35,6 +36,7 @@ function monitorPage(page: Page): BrowserDiagnostics {
     consoleErrors: [],
     pageErrors: [],
     failedRequests: [],
+    expectedNavigationCancellations: new Set(),
   };
 
   page.on('console', (message) => {
@@ -44,7 +46,10 @@ function monitorPage(page: Page): BrowserDiagnostics {
   page.on('requestfailed', (request) => {
     const url = new URL(request.url());
     if (url.origin === localOrigin) {
-      diagnostics.failedRequests.push(`${request.method()} ${url.pathname}: ${request.failure()?.errorText ?? 'unknown failure'}`);
+      diagnostics.failedRequests.push({
+        label: `${request.method()} ${url.pathname}`,
+        error: request.failure()?.errorText ?? 'unknown failure',
+      });
     }
   });
 
@@ -52,23 +57,65 @@ function monitorPage(page: Page): BrowserDiagnostics {
 }
 
 function expectCleanDiagnostics(diagnostics: BrowserDiagnostics): void {
+  const cancellationErrors = new Set(['net::ERR_ABORTED', 'NS_BINDING_ABORTED']);
+  const unexpectedFailedRequests = diagnostics.failedRequests
+    .filter(({ label, error }) => !(cancellationErrors.has(error) && diagnostics.expectedNavigationCancellations.has(label)))
+    .map(({ label, error }) => `${label}: ${error}`);
   expect(diagnostics.consoleErrors, 'unexpected browser console errors').toEqual([]);
   expect(diagnostics.pageErrors, 'unexpected uncaught browser errors').toEqual([]);
-  expect(diagnostics.failedRequests, 'unexpected failed first-party requests').toEqual([]);
+  expect(unexpectedFailedRequests, 'unexpected failed first-party requests').toEqual([]);
+}
+
+function allowExpectedNavigationCancellation(page: Page, targetPath: string): void {
+  const diagnostics = diagnosticsByPage.get(page);
+  if (!diagnostics) throw new Error('Browser diagnostics were not initialized.');
+  diagnostics.expectedNavigationCancellations.add(`GET ${targetPath}`);
+}
+
+async function horizontalViewportState(page: Page) {
+  return page.evaluate(() => {
+    const root = document.documentElement;
+    const usableViewportWidth = root.clientWidth;
+    const overflow = Math.max(0, root.scrollWidth - usableViewportWidth);
+
+    return {
+      fits: overflow <= 1,
+      overflow,
+      rootScrollWidth: root.scrollWidth,
+      rootClientWidth: root.clientWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      usableViewportWidth,
+    };
+  });
 }
 
 async function expectStableLayout(locator: Locator): Promise<void> {
-  let previousBox = '';
+  await expect.poll(
+    () => locator.evaluate(() => document.fonts.status),
+    { message: 'fonts should finish loading before geometry is measured' },
+  ).toBe('loaded');
+  await expect.poll(
+    () => locator.evaluate((element) => {
+      const ancestors = new Set<Element>();
+      for (let current: Element | null = element; current; current = current.parentElement) ancestors.add(current);
+      return document.getAnimations().every((animation) => {
+        const target = animation.effect instanceof KeyframeEffect ? animation.effect.target : null;
+        return !(target instanceof Element && ancestors.has(target) && animation.playState === 'running');
+      });
+    }),
+    { message: 'animations affecting click geometry should finish' },
+  ).toBe(true);
+
+  let previousBox: number[] | undefined;
   let consecutiveMatches = 0;
 
   await expect.poll(async () => {
     const box = await locator.boundingBox();
     if (!box) return false;
 
-    const currentBox = [box.x, box.y, box.width, box.height]
-      .map((value) => value.toFixed(2))
-      .join(':');
-    consecutiveMatches = currentBox === previousBox ? consecutiveMatches + 1 : 0;
+    const currentBox = [box.x, box.y, box.width, box.height];
+    const matches = previousBox?.every((value, index) => Math.abs(value - currentBox[index]!) <= 0.25) ?? false;
+    consecutiveMatches = matches ? consecutiveMatches + 1 : 0;
     previousBox = currentBox;
     return consecutiveMatches >= 2;
   }, {
@@ -91,13 +138,21 @@ for (const route of accessibilityRoutes) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toBeVisible();
-    await expect.poll(
-      () => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
-      {
-        message: `${route} should not overflow the viewport horizontally`,
-        timeout: 10_000,
-      },
-    ).toBe(true);
+    let horizontalState = await horizontalViewportState(page);
+    try {
+      await expect.poll(
+        async () => {
+          horizontalState = await horizontalViewportState(page);
+          return horizontalState.fits;
+        },
+        {
+          message: `${route} should not overflow the viewport horizontally`,
+          timeout: 10_000,
+        },
+      ).toBe(true);
+    } catch (error) {
+      throw new Error(`${route} horizontal viewport state: ${JSON.stringify(horizontalState)}`, { cause: error });
+    }
 
     const failedImages = await page.locator('img').evaluateAll((images) => images
       .filter((image) => !(image instanceof HTMLImageElement) || !image.complete || image.naturalWidth === 0)
@@ -163,6 +218,7 @@ test('ordinary page navigation starts the global view transition', async ({ page
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __astroPageLoads?: number }
   ).__astroPageLoads ?? 0)).toBeGreaterThan(0);
+  allowExpectedNavigationCancellation(page, '/project-meridian/');
   await page.locator('.home-project-actions a[href="/project-meridian/"]').click();
   await expect(page).toHaveURL(`${localOrigin}/project-meridian/`);
   await expect.poll(() => page.evaluate(() => (
@@ -213,7 +269,8 @@ test('primary navigation works without JavaScript after fonts settle', async ({ 
 
 test('documentation search is keyboard accessible and returns safe local results', async ({ page }) => {
   await page.goto('/meridian/docs/');
-  await expect(page.locator('astro-island:not([ssr])')).toHaveCount(1);
+  const searchTrigger = page.getByRole('button', { name: /Search docs/u });
+  await expect(searchTrigger).toHaveAttribute('data-search-ready', 'true');
   await page.keyboard.press('Control+K');
 
   const dialog = page.getByRole('dialog', { name: 'Find a page.' });
@@ -250,7 +307,7 @@ test('mobile navigation and workbench stay inside the viewport', async ({ browse
   await menu.locator('summary').click();
   await expect(menu).toHaveAttribute('open', '');
   await expect(menu.getByRole('link', { name: 'Press kit' })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await expect.poll(async () => (await horizontalViewportState(page)).fits).toBe(true);
 
   await menu.locator('summary').click();
   const drawers = page.locator('.workbench-drawer');

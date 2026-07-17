@@ -27,7 +27,7 @@ git diff --check
 
 `bun run verify` builds the static site, audits generated routes and bundle
 budgets, checks dependencies, and runs the Chromium, Firefox, and WebKit
-Playwright suites against local Wrangler HTTPS.
+Playwright suites through local Wrangler routing and response headers.
 
 On a fresh Linux runner, install the browser system packages at the same time
 with `bunx playwright install --with-deps chromium firefox webkit`.
