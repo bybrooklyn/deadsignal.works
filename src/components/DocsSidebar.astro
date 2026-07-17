@@ -8,7 +8,7 @@ interface Props {
 const { currentPath } = Astro.props;
 ---
 
-<aside class="docs-sidebar" data-pagefind-ignore>
+<aside class="docs-sidebar" aria-label="Documentation navigation" data-pagefind-ignore>
   <nav aria-label="Documentation sections">
     {docsGroups.map((group) => (
       <section>

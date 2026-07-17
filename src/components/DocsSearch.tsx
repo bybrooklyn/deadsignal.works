@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 interface SearchResult {
   url: string;
@@ -9,6 +9,27 @@ interface SearchResult {
 interface PagefindModule {
   options: (options: { excerptLength: number }) => Promise<void>;
   search: (query: string) => Promise<{ results: Array<{ data: () => Promise<SearchResult> }> }>;
+}
+
+function renderExcerpt(excerpt: string) {
+  let highlighted = false;
+  return excerpt.split(/(<\/?mark>)/giu).map((part, index) => {
+    const tag = part.toLowerCase();
+    if (tag === '<mark>') {
+      highlighted = true;
+      return null;
+    }
+    if (tag === '</mark>') {
+      highlighted = false;
+      return null;
+    }
+
+    const text = part.replace(/<[^>]*>/gu, '');
+    if (!text) return null;
+    return highlighted
+      ? <mark key={index}>{text}</mark>
+      : <Fragment key={index}>{text}</Fragment>;
+  });
 }
 
 export default function DocsSearch() {
@@ -29,6 +50,11 @@ export default function DocsSearch() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && dialogRef.current?.open) {
+        event.preventDefault();
+        closeSearch();
+        return;
+      }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         dialogRef.current?.open ? closeSearch() : openSearch();
@@ -55,9 +81,15 @@ export default function DocsSearch() {
         await pagefind.options({ excerptLength: 24 });
         const response = await pagefind.search(cleanQuery);
         const loaded = await Promise.all(response.results.slice(0, 10).map((result) => result.data()));
+        const safeResults = loaded.flatMap((result) => {
+          const url = new URL(result.url, window.location.origin);
+          const isDocumentationPath = url.pathname === '/meridian/docs' || url.pathname.startsWith('/meridian/docs/');
+          if (url.origin !== window.location.origin || !isDocumentationPath) return [];
+          return [{ ...result, url: `${url.pathname}${url.search}${url.hash}` }];
+        });
         if (!cancelled) {
-          setResults(loaded);
-          setStatus(loaded.length === 0 ? 'No documentation pages matched.' : `${loaded.length} result${loaded.length === 1 ? '' : 's'}.`);
+          setResults(safeResults);
+          setStatus(safeResults.length === 0 ? 'No documentation pages matched.' : `${safeResults.length} result${safeResults.length === 1 ? '' : 's'}.`);
         }
       } catch {
         if (!cancelled) {
@@ -75,14 +107,19 @@ export default function DocsSearch() {
 
   return (
     <>
-      <button className="docs-search-trigger" type="button" onClick={openSearch}>
+      <button className="docs-search-trigger" type="button" onClick={openSearch} aria-haspopup="dialog" aria-controls="docs-search-dialog">
         <span>Search docs</span>
-        <kbd>⌘ K</kbd>
+        <kbd>Ctrl/⌘ K</kbd>
       </button>
       <dialog
+        id="docs-search-dialog"
         className="docs-search-dialog"
         ref={dialogRef}
         aria-labelledby="docs-search-title"
+        onCancel={(event) => {
+          event.preventDefault();
+          closeSearch();
+        }}
         onClick={(event) => {
           if (event.target === dialogRef.current) closeSearch();
         }}
@@ -105,15 +142,17 @@ export default function DocsSearch() {
             placeholder="Render graph, build from source, Alluvium…"
             autoComplete="off"
           />
-          <p className="docs-search-status" aria-live="polite">{status}</p>
-          <div className="docs-search-results">
+          <p className="docs-search-status" role="status">{status}</p>
+          <ul className="docs-search-results">
             {results.map((result) => (
-              <a href={result.url} onClick={closeSearch} key={result.url}>
-                <strong>{result.meta.title ?? result.url}</strong>
-                <span dangerouslySetInnerHTML={{ __html: result.excerpt }} />
-              </a>
+              <li key={result.url}>
+                <a href={result.url} onClick={closeSearch}>
+                  <strong>{result.meta.title ?? result.url}</strong>
+                  <span>{renderExcerpt(result.excerpt)}</span>
+                </a>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </dialog>
     </>

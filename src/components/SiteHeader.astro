@@ -1,6 +1,6 @@
 ---
 import { site } from '../data/site';
-import SiteNavigation from './SiteNavigation';
+import SiteNavigation from './SiteNavigation.astro';
 
 interface Props {
   currentPath: string;
@@ -16,6 +16,6 @@ const { currentPath } = Astro.props;
       <span>Works</span>
     </a>
 
-    <SiteNavigation currentPath={currentPath} client:load />
+    <SiteNavigation currentPath={currentPath} />
   </div>
 </header>

@@ -19,6 +19,8 @@ Run the production checks with:
 bun run check
 bun run build
 bun run check:site
+bun run check:security
+bun run test:e2e
 bun run preview
 ```
 
@@ -49,6 +51,9 @@ is granted. Third-party dependencies remain subject to their own licenses. See
 - React islands with Motion for purposeful interaction
 - Astro MDX and Pagefind for `/meridian/docs/`
 - Authored CSS with self-hosted Mona Sans and Hubot Sans variable fonts
+- TypeScript 7 for project-wide checking, with the TypeScript 6 API retained
+  only for Astro's embedded-language checker until its TypeScript 7 integration
+  is available
 - Bun for dependency management and all local commands
 
 ## Cloudflare Pages
@@ -62,3 +67,15 @@ Connect this repository to Cloudflare Pages with:
 Attach `deadsignal.works` from the Cloudflare Pages custom-domain settings
 after the first successful deployment. DNS and the Cloudflare project remain
 operator-managed.
+
+The repository also carries an explicit static-assets `wrangler.jsonc` for the
+existing Workers Builds check. It points Wrangler at the already-built `dist/`
+directory and prevents deploy-time framework detection from adding an SSR
+adapter or changing the source tree. A direct Workers deployment can use:
+
+```sh
+bun run deploy
+```
+
+Both deployment paths serve the same fully static output. Security and cache
+headers live in `public/_headers`, which Cloudflare reads from the built assets.

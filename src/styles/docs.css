@@ -452,11 +452,13 @@
 .architecture-flow {
   margin: 34px 0 40px;
   --flow-tone: var(--red);
+  --flow-readable: var(--red-hover);
+  --flow-ink: var(--text);
 }
 
-.architecture-flow.tone-grass { --flow-tone: var(--grass); }
-.architecture-flow.tone-amber { --flow-tone: var(--amber); }
-.architecture-flow.tone-paper { --flow-tone: var(--text); }
+.architecture-flow.tone-grass { --flow-tone: var(--grass); --flow-readable: var(--grass); --flow-ink: var(--background); }
+.architecture-flow.tone-amber { --flow-tone: var(--amber); --flow-readable: var(--amber); --flow-ink: var(--background); }
+.architecture-flow.tone-paper { --flow-tone: var(--text); --flow-readable: var(--text); --flow-ink: var(--background); }
 
 .architecture-flow figcaption {
   margin-bottom: 10px;
@@ -490,21 +492,19 @@
   border-left: 0;
 }
 
-.architecture-flow li:hover,
-.architecture-flow li:focus-visible {
-  color: var(--background);
+.architecture-flow li:hover {
+  color: var(--flow-ink);
   background: var(--flow-tone);
 }
 
-.architecture-flow li:hover .flow-index,
-.architecture-flow li:focus-visible .flow-index {
-  color: var(--background);
+.architecture-flow li:hover .flow-index {
+  color: var(--flow-ink);
 }
 
 .flow-index {
   display: block;
   margin-bottom: 30px;
-  color: var(--flow-tone);
+  color: var(--flow-readable);
   font-family: var(--mono);
   font-size: 0.64rem;
 }
@@ -725,8 +725,11 @@
 .docs-search-results {
   display: grid;
   max-height: 430px;
+  margin: 0;
+  padding: 0;
   overflow-y: auto;
   gap: 7px;
+  list-style: none;
 }
 
 .docs-search-results a {
