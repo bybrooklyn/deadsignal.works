@@ -17,8 +17,6 @@ const docs = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    group: z.enum(['learn', 'build', 'systems', 'reference']),
-    order: z.number().int().nonnegative(),
     updated: z.coerce.date().optional(),
     sourceRevision: z.string().optional(),
     sources: z.array(z.object({ label: z.string(), href: z.url() })).optional(),

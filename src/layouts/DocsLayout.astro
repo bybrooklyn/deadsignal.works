@@ -47,7 +47,7 @@ const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
   <DocsToolbar />
   {home ? (
     <article class="docs-home shell" data-pagefind-body>
-      <aside class="docs-source-availability" role="note">
+      <aside class="docs-source-availability" role="note" data-pagefind-ignore>
         <strong>Source access is private during early development.</strong>
         <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. These guides describe the engine while that release is prepared.</p>
       </aside>
@@ -57,22 +57,22 @@ const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
     <div class="docs-frame shell">
       <DocsSidebar currentPath={currentPath} />
       <article class="docs-article" data-pagefind-body>
-        <nav class="docs-breadcrumbs" aria-label="Breadcrumb">
+        <nav class="docs-breadcrumbs" aria-label="Breadcrumb" data-pagefind-ignore>
           <a href="/meridian/docs">Docs</a>
           {groupLabel && <span>{groupLabel}</span>}
         </nav>
         <header class="docs-article-header">
-          {groupLabel && <p>{groupLabel}</p>}
+          {groupLabel && <p data-pagefind-ignore>{groupLabel}</p>}
           <h1 data-pagefind-meta="title">{title}</h1>
           <p>{description}</p>
           {(updated || sourceRevision) && (
-            <div class="docs-source-meta">
+            <div class="docs-source-meta" data-pagefind-ignore>
               {updated && <span>Updated {updated.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</span>}
               {sourceRevision && <span>{site.engineSourcePublic ? 'Source revision' : 'Private source revision'} {sourceRevision.slice(0, 7)}</span>}
             </div>
           )}
         </header>
-        <aside class="docs-source-availability" role="note">
+        <aside class="docs-source-availability" role="note" data-pagefind-ignore>
           <strong>Source access is private during early development.</strong>
           <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. The technical detail remains available here in the meantime.</p>
         </aside>
@@ -80,13 +80,13 @@ const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
           <slot />
         </div>
         {site.engineSourcePublic && sources.length > 0 && (
-          <section class="docs-sources">
+          <section class="docs-sources" data-pagefind-ignore>
             <h2>Authoritative sources</h2>
             <p>This guide is explanatory. These repository sources carry authority.</p>
             <ul>{sources.map((source) => <li><a href={source.href} target="_blank" rel="noreferrer">{source.label} <span aria-hidden="true">↗</span></a></li>)}</ul>
           </section>
         )}
-        <nav class="docs-pagination" aria-label="Documentation pagination">
+        <nav class="docs-pagination" aria-label="Documentation pagination" data-pagefind-ignore>
           {previous ? <a href={previous.href}><span>Previous</span><strong>{previous.label}</strong></a> : <span />}
           {next && <a href={next.href}><span>Next</span><strong>{next.label}</strong></a>}
         </nav>

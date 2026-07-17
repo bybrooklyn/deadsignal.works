@@ -17,7 +17,7 @@ const { title, items, tone = 'red' } = Astro.props;
   <figcaption>{title}</figcaption>
   <ol>
     {items.map((item, index) => (
-      <li tabindex="0">
+      <li>
         <span class="flow-index">{String(index + 1).padStart(2, '0')}</span>
         <strong>{item.label}</strong>
         <p>{item.detail}</p>

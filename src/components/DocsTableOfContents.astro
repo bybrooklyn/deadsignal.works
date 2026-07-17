@@ -14,7 +14,7 @@ const visibleHeadings = headings.filter((heading) => heading.depth === 2 || head
 ---
 
 {visibleHeadings.length > 0 && (
-  <aside class="docs-toc" data-pagefind-ignore>
+  <aside class="docs-toc" aria-label="Page contents" data-pagefind-ignore>
     <p>On this page</p>
     <nav aria-label="On this page">
       {visibleHeadings.map((heading) => (

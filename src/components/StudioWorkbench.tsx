@@ -43,7 +43,7 @@ export default function StudioWorkbench() {
 
     const measure = () => {
       const available = container.clientHeight;
-      const preferredCollapsed = window.matchMedia('(max-width: 720px)').matches ? 84 : 92;
+      const preferredCollapsed = window.matchMedia('(max-width: 720px)').matches ? 108 : 92;
       const maximumCollapsed = Math.max(0, (available - 220) / (drawers.length - 1));
       setDrawerGeometry({
         available,

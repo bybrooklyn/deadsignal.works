@@ -61,15 +61,11 @@ export default function KineticProjectHero({ mode = 'home' }: Props) {
           <div className="project-hero-grid">
             <m.div
               className="kinetic-poster"
-              role="img"
-              tabIndex={0}
-              aria-label="An animated typographic poster for Project Meridian"
+              aria-hidden="true"
               initial={false}
               animate={{ opacity: 1, clipPath: 'inset(0 0 0% 0)' }}
               onHoverStart={() => setActive(true)}
               onHoverEnd={() => setActive(false)}
-              onFocus={() => setActive(true)}
-              onBlur={() => setActive(false)}
             >
               <m.span className="poster-block poster-red" animate={{ x: shifted ? '28%' : '0%', y: shifted ? '7%' : '0%', scaleY: shifted ? 0.9 : 1 }} />
               <m.span className="poster-block poster-grass" animate={{ x: shifted ? '-18%' : '0%', y: shifted ? '-8%' : '0%', scaleX: shifted ? 1.08 : 1 }} />

@@ -18,7 +18,7 @@ jobs:
   site:
     name: Site
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -33,10 +33,19 @@ jobs:
       - name: Install locked dependencies
         run: bun install --frozen-lockfile --ignore-scripts
 
-      - name: Check and build site
-        run: bun run check:site
+      - name: Audit dependencies
+        run: bun run check:security
 
       - name: Scan repository history for secrets
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check and build site
+        run: bun run check:site
+
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Test accessibility and interactions
+        run: bun run test:e2e:built

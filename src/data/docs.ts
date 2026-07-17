@@ -45,7 +45,7 @@ export const docsGroups: DocsNavGroup[] = [
     label: 'Systems',
     description: 'Detailed, non-normative guides to Meridian’s named architecture.',
     items: [
-      { id: 'systems/index', label: 'System map', description: 'A map of ownership, current state, and authoritative sources.', href: `${docsRoot}/systems` },
+      { id: 'systems', label: 'System map', description: 'A map of ownership, current state, and authoritative sources.', href: `${docsRoot}/systems` },
       { id: 'systems/penumbra', label: 'Penumbra', description: 'Rendering ownership, frame flow, current foundations, and direction.', href: `${docsRoot}/systems/penumbra` },
       { id: 'systems/cairn', label: 'Cairn', description: 'Physics ownership, fixed-step behavior, determinism, and current wrapper.', href: `${docsRoot}/systems/cairn` },
       { id: 'systems/wavefront', label: 'Wavefront', description: 'Audio devices, streaming, DSP, timing, mixing, and acoustics.', href: `${docsRoot}/systems/wavefront` },
@@ -68,4 +68,6 @@ export const docsItems = docsGroups.flatMap((group) =>
   group.items.map((item) => ({ ...item, group: group.id, groupLabel: group.label })),
 );
 
-export const docsItemById = Object.fromEntries(docsItems.map((item) => [item.id, item]));
+export const docsItemById: Readonly<Record<string, (typeof docsItems)[number]>> = Object.fromEntries(
+  docsItems.map((item) => [item.id, item]),
+);

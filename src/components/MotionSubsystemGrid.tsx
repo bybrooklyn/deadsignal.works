@@ -6,6 +6,7 @@ interface Item {
   pronunciation: string;
   pronunciationLabel: string;
   role: string;
+  maturity: string;
   summary: string;
   tone: string;
 }
@@ -34,7 +35,7 @@ export default function MotionSubsystemGrid({ items }: Props) {
               <span className="subsystem-transition-frame" data-subsystem-frame aria-hidden="true" />
               <span className="subsystem-number">0{index + 1}</span>
               <div>
-                <p data-subsystem-part="role">{item.role}</p>
+                <p data-subsystem-part="role"><span>{item.role}</span><span className="status-label">{item.maturity}</span></p>
                 <div className="subsystem-card-title">
                   <h3 data-subsystem-part="title">{item.name}</h3>
                   <span data-subsystem-part="pronunciation" aria-label={`pronounced ${item.pronunciationLabel}`}>{item.pronunciation}</span>

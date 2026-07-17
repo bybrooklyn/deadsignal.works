@@ -7,6 +7,7 @@ export interface Subsystem {
   pronunciationLabel: string;
   role: string;
   tone: SubsystemTone;
+  maturity: string;
   summary: string;
   introduction: string;
   purposeTitle: string;
@@ -25,7 +26,8 @@ export const subsystems: Subsystem[] = [
     pronunciationLabel: 'puh-NUM-bruh',
     role: 'Rendering',
     tone: 'red',
-    summary: 'Meridian’s rendering engine, built to turn enormous worlds into visible, measurable frames.',
+    maturity: 'Partial / Transitional',
+    summary: 'Meridian’s partial, transitional renderer: direct PBR, cascaded shadows, diffuse IBL, extraction, timing, and capture foundations beneath a planned production Forward+ path.',
     introduction:
       'Penumbra owns rendering architecture above Meridian’s hardware boundary. Its production direction is a path-independent Forward+ renderer, but the current implementation is a smaller and deliberately measured foundation.',
     purposeTitle: 'Make ambitious worlds visible without giving away control.',
@@ -52,7 +54,8 @@ export const subsystems: Subsystem[] = [
     pronunciationLabel: 'kairn',
     role: 'Physics',
     tone: 'grass',
-    summary: 'A physics engine for responsive characters, heavy structures, and worlds that should behave consistently.',
+    maturity: 'Transitional',
+    summary: 'A transitional Rapier-backed physics wrapper and grounded-controller foundation; Meridian-owned Cairn solver internals remain planned.',
     introduction:
       'Cairn is the long-term physics architecture for stable identity, deterministic modes, structural systems, and dedicated 2D and 3D paths. The current code is intentionally narrower.',
     purposeTitle: 'Make physical behavior stable enough to build a world on.',
@@ -79,9 +82,10 @@ export const subsystems: Subsystem[] = [
     pronunciationLabel: 'WAVE-front',
     role: 'Audio',
     tone: 'amber',
-    summary: 'An audio and acoustics engine built to make sound behave like part of the world.',
+    maturity: 'Scaffold',
+    summary: 'An adopted audio and acoustics architecture with a scaffold crate; no mixer, decoder, device backend, music runtime, voice stack, or acoustic solver exists yet.',
     introduction:
-      'Wavefront is designed around real-time-safe audio behavior, sample-accurate timing, bounded streaming, explicit device recovery, and optional feature tiers that disappear when disabled.',
+      'Wavefront is designed around real-time-safe audio behavior, sample-accurate timing, bounded streaming, explicit device recovery, and optional feature tiers that disappear when disabled. The current source is a scaffold only.',
     purposeTitle: 'Make sound behave like part of the world.',
     ambitionTitle: 'Sound that travels, changes, and carries physical weight.',
     directionTitle: 'Build a signal path that can survive the real-time boundary.',
@@ -106,7 +110,8 @@ export const subsystems: Subsystem[] = [
     pronunciationLabel: 'uh-LOO-vee-um',
     role: 'Procedural authoring',
     tone: 'paper',
-    summary: 'A procedural authoring system for plants, terrain, weathering, and the source work believable worlds demand.',
+    maturity: 'Implemented foundation',
+    summary: 'An implemented foundation for canonical recipes, strict scalar evaluation, stable generated identity, cache recovery, CLI work, and a basic inspector; production integrations remain ahead.',
     introduction:
       'Alluvium treats recipes, fields, stable generated identity, overrides, provenance, and cooking as one inspectable source pipeline. Its first bounded source foundation is implemented; its production integrations remain ahead.',
     purposeTitle: 'Build large worlds without making their source mysterious.',

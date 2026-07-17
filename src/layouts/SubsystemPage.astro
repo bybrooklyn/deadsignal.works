@@ -12,12 +12,13 @@ const { subsystem } = Astro.props;
 const docsUrl = `/meridian/docs/systems/${subsystem.slug}`;
 ---
 
-<BaseLayout title={`${subsystem.name} — Meridian`} description={subsystem.summary} currentPath={`/meridian/${subsystem.slug}`}>
+<BaseLayout title={`${subsystem.name} — Meridian`} description={subsystem.summary} currentPath={`/meridian/${subsystem.slug}`} enableSubsystemTransitions>
   <section class:list={['subsystem-hero', `tone-${subsystem.tone}`]} data-subsystem-hero={subsystem.slug}>
     <span class="subsystem-transition-frame" data-subsystem-frame aria-hidden="true"></span>
     <div class="shell subsystem-hero-grid">
       <div>
         <p class="kicker"><span class="subsystem-kicker-brand">Meridian</span> / <span class="subsystem-kicker-role" data-subsystem-part="role">{subsystem.role}</span></p>
+        <p class="status-label">{subsystem.maturity}</p>
         <div class="subsystem-title-line">
           <h1 data-subsystem-part="title">{subsystem.name}</h1>
           <span data-subsystem-part="pronunciation" aria-label={`pronounced ${subsystem.pronunciationLabel}`}>{subsystem.pronunciation}</span>
