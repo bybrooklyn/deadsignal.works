@@ -1,19 +1,14 @@
 ---
 title: Current status
-description: A dated snapshot of Meridian's private development foundations and the major systems still ahead.
-updated: 2026-07-16
-sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+description: A current public-safe snapshot of Meridian's development foundations, active work, and major systems still ahead.
+updated: 2026-07-17
+sourceRevision: 9e8f80b0ae3432f10501472598ea19c11a1894ed
 sources:
   - label: Active work plan at this revision
-    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/PLANNING.md
+    href: https://github.com/bybrooklyn/meridian/blob/9e8f80b0ae3432f10501472598ea19c11a1894ed/PLANNING.md
   - label: Private source readme at this revision
-    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/README.md
+    href: https://github.com/bybrooklyn/meridian/blob/9e8f80b0ae3432f10501472598ea19c11a1894ed/README.md
 ---
-
-<aside className="docs-authority-note">
-  <strong>This is a snapshot, not a live dashboard.</strong>
-  <p>It describes private source revision <code>8fc7ab0</code> on July 16, 2026. Direct source access will arrive with the planned open-source release.</p>
-</aside>
 
 ## Implemented foundations
 
@@ -21,17 +16,26 @@ sources:
 - A `wgpu`-backed RHI behind Meridian-owned contracts and a render graph.
 - Penumbra direct PBR, cascaded shadows, diffuse irradiance IBL, extraction, upload, pass timing, capture, and bounded GPU smokes.
 - Transactional source import plus bounded asset, package, streaming, world activation, save, and recovery paths.
-- Meridian UI foundations and bounded Creator Alpha source, session, transaction, play, recovery, UI, and build behavior.
+- Meridian UI core proof plus bounded Creator source, session, transaction, play, recovery, UI, and build foundations.
 - A transitional Rapier-backed physics wrapper and grounded-controller foundation.
 - An Alluvium implemented foundation with canonical text recipes, strict scalar evaluation, stable generated identity, cache recovery, CLI work, and a basic inspector.
 - A partial native-modeler foundation with bounded editable-model source, stable topology lineage, semantic recovery, and a derived preview.
 
+## Active and still unqualified
+
+Meridian UI packages `WP-UI-002` through `WP-UI-004` have locally implemented
+foundations but do not yet have the required cross-platform qualification.
+`WP-UI-005` is the active package for motion, accessibility, effects, and
+renderer qualification. Local implementation or a private source revision does
+not make those packages a complete Meridian UI framework or a visual-quality
+claim.
+
 ## Not complete
 
-The production Penumbra Forward+ path, full creator workflows, broader native modeler, Rust gameplay modules, optional Luau, animation, navigation, frameworks, first-class 2D, Meridian Shader Language, Wavefront runtime, Collective, native graphics backends, and the Project Meridian prototype remain incomplete at this snapshot.
+The production Penumbra Forward+ path, full creator workflows, broader native modeler, Rust gameplay modules, optional Luau, animation, navigation, frameworks, first-class 2D, Meridian Shader Language, Wavefront runtime, Collective, native graphics backends, and the Project Meridian prototype remain incomplete.
 
 Some named crates are scaffolds. Their presence in the workspace is not a runtime feature claim.
 
 ## What the next revision may change
 
-Status moves package by package. A newer source revision can close evidence, narrow a boundary, or make this page stale without changing the architecture’s long-term direction. That is why the date and private source revision appear at the top of this page.
+Status moves package by package. A newer source revision can close evidence or narrow a boundary without changing the architecture’s long-term direction. The provenance block above records exactly which snapshot this page describes.

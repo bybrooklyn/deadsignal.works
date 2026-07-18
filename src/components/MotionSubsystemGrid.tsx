@@ -26,11 +26,9 @@ export default function MotionSubsystemGrid({ items }: Props) {
               data-subsystem-transition={item.slug}
               href={`/meridian/${item.slug}/`}
               key={item.slug}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              initial={false}
               whileHover={{ y: -6 }}
-              transition={{ duration: 0.2, delay: index * 0.035, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <span className="subsystem-transition-frame" data-subsystem-frame aria-hidden="true" />
               <span className="subsystem-number">0{index + 1}</span>

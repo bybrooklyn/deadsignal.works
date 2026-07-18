@@ -53,6 +53,7 @@ function monitorPage(page: Page): BrowserDiagnostics {
     }
   });
 
+  diagnosticsByPage.set(page, diagnostics);
   return diagnostics;
 }
 
@@ -196,6 +197,17 @@ test('the wordmark accessible name matches its visible text', async ({ page }) =
   await expect(page.getByRole('link', { name: 'Dead Signal Works', exact: true })).toHaveAttribute('href', '/');
 });
 
+test('Current status confines technical build provenance to one snapshot block', async ({ page }) => {
+  await page.goto('/meridian/docs/learn/current-status/');
+
+  const provenance = page.locator('[data-docs-snapshot]');
+  await expect(provenance).toHaveAttribute('data-docs-snapshot', '9e8f80b0ae3432f10501472598ea19c11a1894ed');
+  const siteBuild = provenance.locator('[data-site-build]');
+  await expect(siteBuild).toHaveCount(1);
+  await expect(siteBuild).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u);
+  await expect(page.locator('.site-footer')).not.toContainText('Last updated:');
+});
+
 test('each press copy button writes only its own value once', async ({ page }) => {
   await page.addInitScript(() => {
     const state = globalThis as typeof globalThis & { __copyWrites?: number };
@@ -250,6 +262,27 @@ test('ordinary page navigation starts the global view transition', async ({ page
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __astroPageLoads?: number }
   ).__astroPageLoads ?? 0)).toBeGreaterThan(1);
+});
+
+test('rapid successive navigation remains clickable during the root view transition', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Root view-transition input behavior is native to Chromium.');
+
+  await page.goto('/');
+  allowExpectedNavigationCancellation(page, '/project-meridian/');
+  await page.getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Project Meridian', exact: true })
+    .click();
+  await expect(page).toHaveURL(`${localOrigin}/project-meridian/`);
+
+  const studio = page.getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Studio', exact: true });
+  await expect(studio).toBeVisible();
+  await page.waitForTimeout(60);
+  allowExpectedNavigationCancellation(page, '/studio/');
+  const box = await studio.boundingBox();
+  expect(box).not.toBeNull();
+  if (box) await page.mouse.click(box.x + (box.width / 2), box.y + (box.height / 2));
+  await expect(page).toHaveURL(`${localOrigin}/studio/`);
 });
 
 test('Meridian subsystem navigation retains its specialized transition state', async ({ page }) => {
@@ -318,6 +351,14 @@ test('primary navigation works without JavaScript after fonts settle', async ({ 
   await expect(page).toHaveURL(`${localOrigin}/meridian/`);
   await expect(page.getByRole('heading', { level: 1, name: 'Meridian' })).toBeVisible();
 
+  const subsystemCards = page.locator('.subsystem-card');
+  await expect(subsystemCards).toHaveCount(4);
+  const penumbra = page.locator('[data-subsystem-transition="penumbra"]');
+  await expect(penumbra).toBeVisible();
+  await expectStableLayout(penumbra);
+  await penumbra.click({ force: true });
+  await expect(page).toHaveURL(`${localOrigin}/meridian/penumbra/`);
+
   expectCleanDiagnostics(diagnostics);
   await context.close();
 });
@@ -381,6 +422,169 @@ test('mobile navigation and workbench stay inside the viewport', async ({ browse
   expectCleanDiagnostics(diagnostics);
   await context.close();
 });
+
+test('mobile navigation disclosures are exclusive, dismissible, and route-aware', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const diagnostics = monitorPage(page);
+  await page.goto('/meridian/docs/learn/current-status/');
+
+  const siteMenu = page.locator('details.mobile-nav');
+  const docsMenu = page.locator('details.docs-mobile-menu');
+  const siteSummary = siteMenu.locator('summary');
+  const docsSummary = docsMenu.locator('summary');
+
+  await docsSummary.click();
+  await expect(docsMenu).toHaveAttribute('open', '');
+  await expect(docsMenu.getByRole('link', { name: 'Current status', exact: true })).toHaveAttribute('aria-current', 'page');
+
+  await siteSummary.click();
+  await expect(docsMenu).not.toHaveAttribute('open', '');
+  await expect(siteMenu).toHaveAttribute('open', '');
+  await page.keyboard.press('Escape');
+  await expect(siteMenu).not.toHaveAttribute('open', '');
+  await expect(siteSummary).toBeFocused();
+
+  await docsSummary.click();
+  await expect(docsMenu).toHaveAttribute('open', '');
+  await page.mouse.click(8, 200);
+  await expect(docsMenu).not.toHaveAttribute('open', '');
+
+  await docsSummary.click();
+  allowExpectedNavigationCancellation(page, '/meridian/docs/learn/what-is-meridian/');
+  await docsMenu.getByRole('link', { name: 'What Meridian is', exact: true }).click();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/docs/learn/what-is-meridian/`);
+
+  expectCleanDiagnostics(diagnostics);
+  await context.close();
+});
+
+test('docs data tables become complete label-value cards at 320px', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 } });
+  const page = await context.newPage();
+  const diagnostics = monitorPage(page);
+  await page.goto('/meridian/docs/systems/');
+
+  const dataTable = page.locator('[data-docs-data-table]');
+  await expect(dataTable.locator('table')).toBeHidden();
+  const cards = dataTable.locator('.docs-data-cards');
+  await expect(cards).toBeVisible();
+  await expect(cards.locator('dt').first()).toHaveText('System');
+  await expect(cards.locator('dd').first()).toHaveText('Penumbra');
+  await expect.poll(async () => (await horizontalViewportState(page)).fits).toBe(true);
+
+  expectCleanDiagnostics(diagnostics);
+  await context.close();
+});
+
+test('share failure provides a selectable project URL and recovery announcement', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: () => Promise.reject(new DOMException('Clipboard access denied.', 'NotAllowedError')),
+      },
+    });
+  });
+  await page.goto('/project-meridian/');
+
+  await page.getByRole('button', { name: /Share project/u }).click();
+  const fallback = page.getByLabel('Project link');
+  await expect(fallback).toBeVisible();
+  await expect(fallback).toHaveValue(`${localOrigin}/project-meridian/`);
+  await expect(page.getByRole('status')).toHaveText(/Select and copy the project URL instead/u);
+});
+
+test('mobile wordmark and Menu controls retain 44px touch targets', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  for (const locator of [
+    page.getByRole('link', { name: 'Dead Signal Works', exact: true }),
+    page.locator('.mobile-nav-trigger'),
+  ]) {
+    const box = await locator.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test('project and docs retain their intended breakpoint hierarchy', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Exact visual breakpoints are captured in the Chromium baseline.');
+
+  for (const width of [980, 981]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/project-meridian/');
+    const poster = await page.locator('.kinetic-poster').boundingBox();
+    const summary = await page.locator('.project-summary').boundingBox();
+    expect(poster).not.toBeNull();
+    expect(summary).not.toBeNull();
+    if (poster && summary) {
+      expect(Math.abs(poster.y - summary.y), `${width}px keeps Project Meridian side-by-side`).toBeLessThanOrEqual(1);
+      expect(summary.x, `${width}px keeps the project summary beside the poster`).toBeGreaterThan(poster.x);
+    }
+  }
+
+  for (const width of [1120, 1121]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/meridian/docs/learn/current-status/');
+    await expect(page.locator('.docs-sidebar')).toBeVisible();
+    await expect(page.locator('.docs-toc')).toBeHidden();
+    await expect(page.locator('.docs-frame')).toHaveCSS('grid-template-columns', /190px/u);
+  }
+
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await page.goto('/meridian/docs/learn/current-status/');
+  await expect(page.locator('.docs-toc')).toBeVisible();
+});
+
+const visualRoutes = [
+  { name: 'home', route: '/' },
+  { name: 'project-meridian', route: '/project-meridian/' },
+  { name: 'meridian', route: '/meridian/' },
+  { name: 'current-status', route: '/meridian/docs/learn/current-status/' },
+] as const;
+
+for (const viewport of [
+  { name: '390', width: 390, height: 844 },
+  { name: '1440', width: 1440, height: 1000 },
+] as const) {
+  for (const visual of visualRoutes) {
+    test(`visual baseline ${visual.name} at ${viewport.name}px`, async ({ page, browserName }) => {
+      test.skip(browserName !== 'chromium', 'Visual snapshots are maintained from Chromium.');
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto(visual.route);
+      await expect(page).toHaveScreenshot(`${visual.name}-${viewport.name}.png`, {
+        animations: 'disabled',
+        caret: 'hide',
+        fullPage: true,
+        mask: [page.locator('[data-site-build]')],
+      });
+    });
+  }
+}
+
+for (const boundary of [
+  { name: 'project-980', route: '/project-meridian/', width: 980, locator: '.project-hero' },
+  { name: 'project-981', route: '/project-meridian/', width: 981, locator: '.project-hero' },
+  { name: 'docs-1120', route: '/meridian/docs/learn/current-status/', width: 1120, locator: '.docs-frame' },
+  { name: 'docs-1121', route: '/meridian/docs/learn/current-status/', width: 1121, locator: '.docs-frame' },
+] as const) {
+  test(`visual baseline ${boundary.name}`, async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Visual snapshots are maintained from Chromium.');
+    await page.setViewportSize({ width: boundary.width, height: 900 });
+    await page.goto(boundary.route);
+    await expect(page.locator(boundary.locator)).toHaveScreenshot(`${boundary.name}.png`, {
+      animations: 'disabled',
+      caret: 'hide',
+      mask: [page.locator('[data-site-build]')],
+    });
+  });
+}
 
 test('reduced-motion preference disables smooth scrolling and long transitions', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

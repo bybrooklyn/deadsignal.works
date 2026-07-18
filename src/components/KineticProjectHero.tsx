@@ -20,6 +20,8 @@ const timing = { type: 'spring' as const, stiffness: 185, damping: 20, mass: 0.8
 export default function KineticProjectHero({ mode = 'home' }: Props) {
   const [active, setActive] = useState(false);
   const [shareLabel, setShareLabel] = useState('Share project');
+  const [shareMessage, setShareMessage] = useState('');
+  const [shareFallbackUrl, setShareFallbackUrl] = useState('');
   const reduceMotion = useReducedMotion();
 
   async function shareProject() {
@@ -34,13 +36,19 @@ export default function KineticProjectHero({ mode = 'home' }: Props) {
       if (navigator.share) {
         await navigator.share(data);
         setShareLabel('Shared');
+        setShareMessage('Project link shared.');
       } else {
+        if (!navigator.clipboard?.writeText) throw new DOMException('Clipboard access is unavailable.');
         await navigator.clipboard.writeText(url);
         setShareLabel('Link copied');
+        setShareMessage('Project link copied.');
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      setShareLabel('Copy failed');
+      setShareLabel('Copy link');
+      setShareFallbackUrl(url);
+      setShareMessage('Copying is unavailable here. Select and copy the project URL instead.');
+      return;
     }
 
     window.setTimeout(() => setShareLabel('Share project'), 1800);
@@ -93,13 +101,20 @@ export default function KineticProjectHero({ mode = 'home' }: Props) {
               </dl>
 
               <div className="project-actions">
-                <button className="action action-unavailable" type="button" disabled>Wishlist on Steam <small>Not live yet</small></button>
+                <p className="availability-note">Steam wishlist coming when the page is live.</p>
                 {mode === 'home' && <a className="action action-primary" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>}
                 <a className="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
                 <button className="action action-button" type="button" onClick={shareProject}>{shareLabel} <span aria-hidden="true">↗</span></button>
+                {shareFallbackUrl && (
+                  <label className="share-fallback">
+                    <span>Project link</span>
+                    <input aria-label="Project link" readOnly value={shareFallbackUrl} onFocus={(event) => event.currentTarget.select()} />
+                  </label>
+                )}
+                <p className="share-status" role="status" aria-live="polite">{shareMessage}</p>
               </div>
 
-              <p className="project-fine-print">The Steam page and wishlist link will appear when they are real.</p>
+              <p className="project-fine-print">The Steam page appears here only when it is real.</p>
             </aside>
           </div>
         </section>

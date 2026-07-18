@@ -1,0 +1,52 @@
+---
+interface Column {
+  key: string;
+  label: string;
+}
+
+interface LinkCell {
+  label: string;
+  href: string;
+}
+
+type Cell = string | LinkCell;
+
+interface Props {
+  label: string;
+  columns: readonly Column[];
+  rows: ReadonlyArray<Record<string, Cell>>;
+}
+
+const { label, columns, rows } = Astro.props;
+
+const isLink = (value: Cell): value is LinkCell => typeof value === 'object';
+---
+
+<div class="docs-data-table" data-docs-data-table>
+  <table aria-label={label}>
+    <thead>
+      <tr>{columns.map((column) => <th scope="col">{column.label}</th>)}</tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr>
+          {columns.map((column) => {
+            const value = row[column.key] ?? '';
+            return <td>{isLink(value) ? <a href={value.href}>{value.label}</a> : value}</td>;
+          })}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <dl class="docs-data-cards" aria-label={`${label} as cards`}>
+    {rows.map((row) => (
+      <div>
+        {columns.map((column) => {
+          const value = row[column.key] ?? '';
+          return <div><dt>{column.label}</dt><dd>{isLink(value) ? <a href={value.href}>{value.label}</a> : value}</dd></div>;
+        })}
+      </div>
+    ))}
+  </dl>
+</div>

@@ -1,24 +1,33 @@
 ---
 title: Maturity and evidence
 description: A practical guide to reading Meridian’s implementation and validation language without turning plans into claims.
-updated: 2026-07-16
-sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+updated: 2026-07-17
+sourceRevision: 9e8f80b0ae3432f10501472598ea19c11a1894ed
 sources:
   - label: Implementation planning specification
-    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/IMPLEMENTATION_PLANNING_SPEC.md
+    href: https://github.com/bybrooklyn/meridian/blob/9e8f80b0ae3432f10501472598ea19c11a1894ed/specs/IMPLEMENTATION_PLANNING_SPEC.md
   - label: Testing and evidence policy
-    href: https://github.com/bybrooklyn/meridian/blob/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs/TESTING_BENCHMARKS_AND_VALIDATION.md
+    href: https://github.com/bybrooklyn/meridian/blob/9e8f80b0ae3432f10501472598ea19c11a1894ed/specs/TESTING_BENCHMARKS_AND_VALIDATION.md
 ---
+
+import DocsDataTable from '../../../components/DocsDataTable.astro';
 
 Meridian tracks documentation maturity, implementation maturity, and evidence status separately. They answer different questions.
 
 ## Three questions, not one percentage
 
-| Question | What it tells you |
-| --- | --- |
-| Is the behavior specified? | Whether the architecture and contracts have an adopted owner. |
-| Is it implemented? | Whether code exists at a stated boundary. |
-| What has been proven? | Whether tests, smokes, captures, or qualification runs support the claim. |
+<DocsDataTable
+  label="Three maturity questions"
+  columns={[
+    { key: 'question', label: 'Question' },
+    { key: 'answer', label: 'What it tells you' },
+  ]}
+  rows={[
+    { question: 'Is the behavior specified?', answer: 'Whether the architecture and contracts have an adopted owner.' },
+    { question: 'Is it implemented?', answer: 'Whether code exists at a stated boundary.' },
+    { question: 'What has been proven?', answer: 'Whether tests, smokes, captures, or qualification runs support the claim.' },
+  ]}
+/>
 
 There is intentionally no single “engine completion” percentage. A passing test count proves covered behavior, not how much of a ten-year roadmap exists.
 

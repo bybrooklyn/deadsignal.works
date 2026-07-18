@@ -77,19 +77,43 @@ const isCurrent = (href: string) => currentPath === href || currentPath.startsWi
     if (Reflect.get(globalThis, initializationKey)) return;
     Reflect.set(globalThis, initializationKey, true);
 
-    const closeDetails = (details) => details.removeAttribute('open');
+    const selector = 'details[data-nav-disclosure]';
+    const disclosures = () => [...document.querySelectorAll(selector)]
+      .filter((details) => details instanceof HTMLDetailsElement);
+    const closeDetails = (details, restoreFocus = false) => {
+      if (!details.open) return;
+      details.removeAttribute('open');
+      if (restoreFocus) details.querySelector('summary')?.focus();
+    };
+    const closeAll = (restoreFocus = false) => disclosures().forEach((details) => closeDetails(details, restoreFocus));
+
+    document.addEventListener('toggle', (event) => {
+      const details = event.target;
+      if (!(details instanceof HTMLDetailsElement) || !details.matches(selector) || !details.open) return;
+      disclosures().forEach((other) => {
+        if (other !== details) closeDetails(other);
+      });
+    }, true);
+
+    document.addEventListener('pointerdown', (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const openDetails = disclosures().filter((details) => details.open);
+      if (!openDetails.some((details) => details.contains(target))) closeAll();
+    });
 
     document.addEventListener('click', (event) => {
       const target = event.target;
-      if (!(target instanceof Node)) return;
-      document.querySelectorAll('[data-site-navigation] details[open]').forEach((details) => {
-        if (!details.contains(target)) closeDetails(details);
-      });
+      if (!(target instanceof Element) || !target.closest(`${selector} a`)) return;
+      closeAll();
     });
 
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
-      document.querySelectorAll('[data-site-navigation] details[open]').forEach(closeDetails);
+      const active = disclosures().find((details) => details.open);
+      if (!active) return;
+      event.preventDefault();
+      closeDetails(active, true);
     });
   })();
 </script>
