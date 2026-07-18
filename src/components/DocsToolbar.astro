@@ -1,6 +1,12 @@
 ---
 import DocsSearch from './DocsSearch';
 import { docsGroups } from '../data/docs';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
 ---
 
 <div class="docs-toolbar" data-pagefind-ignore>
@@ -10,13 +16,13 @@ import { docsGroups } from '../data/docs';
       {docsGroups.map((group) => <a href={group.items[0].href}>{group.label}</a>)}
     </nav>
     <DocsSearch client:load />
-    <details class="docs-mobile-menu">
+    <details class="docs-mobile-menu" name="mobile-navigation" data-nav-disclosure>
       <summary>Docs menu <span aria-hidden="true">+</span></summary>
       <nav aria-label="Mobile documentation navigation">
         {docsGroups.map((group) => (
           <section>
             <p>{group.label}</p>
-            {group.items.map((item) => <a href={item.href}>{item.label}</a>)}
+            {group.items.map((item) => <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>)}
           </section>
         ))}
       </nav>

@@ -1,14 +1,16 @@
 ---
 title: Specifications and authority
 description: A question-based map to the repository source that owns architecture, delivery, status, evidence, and subsystem behavior.
-updated: 2026-07-16
-sourceRevision: 8fc7ab04c7dd52eed18543433a248bb4f5353322
+updated: 2026-07-17
+sourceRevision: 9e8f80b0ae3432f10501472598ea19c11a1894ed
 sources:
   - label: Meridian specification index
-    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/specs
+    href: https://github.com/bybrooklyn/meridian/tree/9e8f80b0ae3432f10501472598ea19c11a1894ed/specs
   - label: Architecture decision index
-    href: https://github.com/bybrooklyn/meridian/tree/8fc7ab04c7dd52eed18543433a248bb4f5353322/docs/architecture/decisions
+    href: https://github.com/bybrooklyn/meridian/tree/9e8f80b0ae3432f10501472598ea19c11a1894ed/docs/architecture/decisions
 ---
+
+import DocsDataTable from '../../../components/DocsDataTable.astro';
 
 The website is an explanatory layer. Use this map when you need the source that can actually settle a question.
 
@@ -34,15 +36,22 @@ Use the adopted records in `docs/architecture/decisions/`. Decisions explain con
 
 ## Where do subsystem details live?
 
-| Question | Owning source |
-| --- | --- |
-| Rendering and Penumbra | `specs/RENDERING_AND_GRAPHICS_SPEC.md` |
-| Cairn physics | `specs/CAIRN_PHYSICS_SPEC.md` |
-| Wavefront audio | `specs/AUDIO_MUSIC_AND_ACOUSTICS_SPEC.md` |
-| Alluvium procedural authoring | `specs/PROCEDURAL_AUTHORING_SPEC.md` |
-| Native modeling | `specs/NATIVE_MODELING_AND_DCC_SPEC.md` |
-| Gameplay and optional scripting | `specs/GAMEPLAY_NARRATIVE_AND_SCRIPTING_SPEC.md` |
-| First-class 2D | `specs/TWO_DIMENSIONAL_ENGINE_SPEC.md` |
+<DocsDataTable
+  label="Subsystem authority map"
+  columns={[
+    { key: 'question', label: 'Question' },
+    { key: 'source', label: 'Owning source' },
+  ]}
+  rows={[
+    { question: 'Rendering and Penumbra', source: 'specs/RENDERING_AND_GRAPHICS_SPEC.md' },
+    { question: 'Cairn physics', source: 'specs/CAIRN_PHYSICS_SPEC.md' },
+    { question: 'Wavefront audio', source: 'specs/AUDIO_MUSIC_AND_ACOUSTICS_SPEC.md' },
+    { question: 'Alluvium procedural authoring', source: 'specs/PROCEDURAL_AUTHORING_SPEC.md' },
+    { question: 'Native modeling', source: 'specs/NATIVE_MODELING_AND_DCC_SPEC.md' },
+    { question: 'Gameplay and optional scripting', source: 'specs/GAMEPLAY_NARRATIVE_AND_SCRIPTING_SPEC.md' },
+    { question: 'First-class 2D', source: 'specs/TWO_DIMENSIONAL_ENGINE_SPEC.md' },
+  ]}
+/>
 
 ## What if sources disagree?
 

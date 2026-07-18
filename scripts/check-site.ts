@@ -2,6 +2,7 @@ import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { docsItems } from '../src/data/docs';
+import { docsSnapshot } from '../src/data/docsSnapshot';
 import { site } from '../src/data/site';
 import { subsystems } from '../src/data/subsystems';
 
@@ -15,7 +16,9 @@ const performanceBudgets = {
   simpleInitialScriptBytes: 32 * 1024,
   transitionInitialScriptBytes: 40 * 1024,
   docsInitialScriptBytes: 216 * 1024,
-  homeAndProjectInitialScriptBytes: 288 * 1024,
+  // The native-share recovery route adds one bounded interactive state to the
+  // Project Meridian island; leave room for that explicit accessibility path.
+  homeAndProjectInitialScriptBytes: 289 * 1024,
   meridianInitialScriptBytes: 300 * 1024,
   initialStylesheetBytes: 96 * 1024,
   emittedApplicationScriptBytes: 200 * 1024,
@@ -222,6 +225,16 @@ const docsSourceIds = docsSourceFiles.map((file) => relative(docsSourceRoot, fil
   .replace(/\/index$/u, ''));
 for (const id of navIds) if (!docsSourceIds.includes(id)) failures.add(`documentation navigation has no content entry for ${id}`);
 for (const id of docsSourceIds) if (!navIds.includes(id)) failures.add(`documentation content is missing from navigation: ${id}`);
+const sourceBackedDocumentIds = new Set<string>(docsSnapshot.sourceBackedDocumentIds);
+if (sourceBackedDocumentIds.size !== docsSnapshot.sourceBackedDocumentIds.length) {
+  failures.add('approved docs snapshot contains duplicate source-backed document IDs');
+}
+if (sourceBackedDocumentIds.size !== 13) {
+  failures.add(`approved docs snapshot declares ${sourceBackedDocumentIds.size} source-backed documents instead of 13`);
+}
+for (const id of sourceBackedDocumentIds) {
+  if (!docsSourceIds.includes(id)) failures.add(`approved docs snapshot references missing document ${id}`);
+}
 
 for (const file of docsSourceFiles) {
   const source = await readFile(file, 'utf8');
@@ -232,8 +245,26 @@ for (const file of docsSourceFiles) {
     .replace(/\/index$/u, '');
   const item = docsItems.find((entry) => entry.id === id);
   const title = source.match(/^title:\s*(.+)$/mu)?.[1]?.replace(/^['"]|['"]$/gu, '');
+  const hasUpdated = /^updated:/mu.test(source);
+  const hasSourceRevision = /^sourceRevision:/mu.test(source);
+  const isSourceBacked = sourceBackedDocumentIds.has(id);
   if (item && title !== item.label) failures.add(`${id}: content title and navigation label differ`);
   if (/^(?:group|order):/mu.test(source)) failures.add(`${id}: group/order duplicates the typed documentation registry`);
+  if (isSourceBacked) {
+    if (!new RegExp(`^updated:\\s*${escapeRegExp(docsSnapshot.updated)}\\s*$`, 'mu').test(source)) {
+      failures.add(`${id}: updated date does not match the approved docs snapshot`);
+    }
+    if (!new RegExp(`^sourceRevision:\\s*${escapeRegExp(docsSnapshot.revision)}\\s*$`, 'mu').test(source)) {
+      failures.add(`${id}: source revision does not match the approved docs snapshot`);
+    }
+    for (const match of source.matchAll(/https:\/\/github\.com\/bybrooklyn\/meridian\/(?:blob|tree)\/([0-9a-f]{7,40})(?:\/|$)/gu)) {
+      if (match[1] !== docsSnapshot.revision) {
+        failures.add(`${id}: source link revision ${match[1]} does not match the approved docs snapshot`);
+      }
+    }
+  } else if (hasUpdated || hasSourceRevision) {
+    failures.add(`${id}: planned/stub documentation must not carry source snapshot provenance`);
+  }
 }
 
 const requiredRoutes = new Set<string>();
@@ -256,6 +287,10 @@ const titles = new Map<string, string>();
 const descriptions = new Map<string, string>();
 const canonicals = new Map<string, string>();
 const publicCanonicals = new Set<string>();
+const currentStatusOutputPath = 'meridian/docs/learn/current-status/index.html';
+const siteBuildTimestamps = new Set<string>();
+let siteBuildPageCount = 0;
+const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
 
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
@@ -290,6 +325,26 @@ for (const file of htmlFiles) {
   if (/<[^>]+\son\w+="/iu.test(html)) failures.add(`${outputPath}: inline event-handler attribute`);
   if (!engineSourcePublic && /href="https:\/\/github\.com\/bybrooklyn\/meridian(?:\/|"|#|\?)/iu.test(html)) {
     failures.add(`${outputPath}: public link exposes the private Meridian source repository`);
+  }
+  const siteBuildMatches = [...html.matchAll(/<time\b(?=[^>]*\bdata-site-build(?:\s|=|>))[^>]*\bdatetime="([^"]+)"[^>]*>/giu)];
+  if (/Last updated:/iu.test(html)) failures.add(`${outputPath}: stale global editorial build timestamp`);
+  if (outputPath === currentStatusOutputPath) {
+    siteBuildPageCount += 1;
+    if (!html.includes(`data-docs-snapshot="${docsSnapshot.revision}"`)) {
+      failures.add(`${outputPath}: missing approved docs snapshot provenance`);
+    }
+    if (siteBuildMatches.length !== 1) {
+      failures.add(`${outputPath}: expected exactly one technical site-build timestamp`);
+    } else {
+      const timestamp = siteBuildMatches[0]![1];
+      if (!isoTimestampPattern.test(timestamp) || Number.isNaN(Date.parse(timestamp))) {
+        failures.add(`${outputPath}: site-build timestamp is not ISO-8601`);
+      } else {
+        siteBuildTimestamps.add(timestamp);
+      }
+    }
+  } else if (siteBuildMatches.length > 0) {
+    failures.add(`${outputPath}: technical site-build provenance belongs only on Current status`);
   }
 
   const ids = tags(html, '*').flatMap((tag) => tag.attributes.id ? [tag.attributes.id] : []);
@@ -420,6 +475,13 @@ for (const file of htmlFiles) {
   if (stylesheetBytes > performanceBudgets.initialStylesheetBytes) {
     failures.add(`${outputPath}: stylesheet budget exceeded (${stylesheetBytes} > ${performanceBudgets.initialStylesheetBytes})`);
   }
+}
+
+if (siteBuildPageCount !== 1) {
+  failures.add(`generated pages contain ${siteBuildPageCount} Current status provenance pages`);
+}
+if (siteBuildTimestamps.size !== 1) {
+  failures.add(`generated output contains ${siteBuildTimestamps.size} technical site-build timestamps`);
 }
 
 const sitemapCanonicals = new Set<string>();

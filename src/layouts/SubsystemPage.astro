@@ -75,7 +75,7 @@ const docsUrl = `/meridian/docs/systems/${subsystem.slug}/`;
       <a class="action action-primary" href={docsUrl}>Read the subsystem guide <span aria-hidden="true">↗</span></a>
       {site.engineSourcePublic
         ? <a class="action" href={`${site.engineRepository}${subsystem.specPath}`} target="_blank" rel="noreferrer">Open the normative specification <span aria-hidden="true">↗</span></a>
-        : <button class="action action-unavailable" type="button" disabled>Normative source <small>Private for now</small></button>}
+        : <p class="availability-note">Normative source access remains private for now.</p>}
       <a class="action" href="/meridian/">Back to Meridian <span aria-hidden="true">↗</span></a>
     </div>
   </section>

@@ -5,6 +5,7 @@ import DocsSidebar from '../components/DocsSidebar.astro';
 import DocsTableOfContents from '../components/DocsTableOfContents.astro';
 import DocsToolbar from '../components/DocsToolbar.astro';
 import { docsGroups, docsItems } from '../data/docs';
+import { docsSnapshot, docsSnapshotShortRevision } from '../data/docsSnapshot';
 import { site } from '../data/site';
 import '../styles/docs.css';
 
@@ -41,10 +42,17 @@ const currentIndex = docsItems.findIndex((item) => item.href === currentPath);
 const previous = currentIndex > 0 ? docsItems[currentIndex - 1] : undefined;
 const next = currentIndex >= 0 && currentIndex < docsItems.length - 1 ? docsItems[currentIndex + 1] : undefined;
 const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
+const isCurrentStatus = currentPath === '/meridian/docs/learn/current-status/';
+const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleDateString('en-US', {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
 ---
 
 <BaseLayout title={`${title} — Meridian docs`} description={description} currentPath={currentPath}>
-  <DocsToolbar />
+  <DocsToolbar currentPath={currentPath} />
   {home ? (
     <article class="docs-home shell" data-pagefind-body>
       <aside class="docs-source-availability" role="note" data-pagefind-ignore>
@@ -65,17 +73,31 @@ const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
           {groupLabel && <p data-pagefind-ignore>{groupLabel}</p>}
           <h1 data-pagefind-meta="title">{title}</h1>
           <p>{description}</p>
-          {(updated || sourceRevision) && (
+          {!isCurrentStatus && (updated || sourceRevision) && (
             <div class="docs-source-meta" data-pagefind-ignore>
               {updated && <span>Updated {updated.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</span>}
               {sourceRevision && <span>{site.engineSourcePublic ? 'Source revision' : 'Private source revision'} {sourceRevision.slice(0, 7)}</span>}
             </div>
           )}
         </header>
-        <aside class="docs-source-availability" role="note" data-pagefind-ignore>
-          <strong>Source access is private during early development.</strong>
-          <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. The technical detail remains available here in the meantime.</p>
-        </aside>
+        {isCurrentStatus ? (
+          <aside class="docs-status-provenance" role="note" data-pagefind-ignore data-docs-snapshot={docsSnapshot.revision}>
+            <div>
+              <strong>Current public snapshot</strong>
+              <p>This page describes the private source boundary without presenting it as a live dashboard or exposing the repository before release.</p>
+            </div>
+            <dl>
+              <div><dt>Snapshot</dt><dd><time datetime={`${docsSnapshot.updated}T00:00:00.000Z`}>{snapshotDate}</time></dd></div>
+              <div><dt>Private source</dt><dd><code>{docsSnapshotShortRevision}</code></dd></div>
+              <div><dt>Site build</dt><dd><time data-site-build datetime={__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}>{__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}</time></dd></div>
+            </dl>
+          </aside>
+        ) : (
+          <aside class="docs-source-availability" role="note" data-pagefind-ignore>
+            <strong>Source access is private during early development.</strong>
+            <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. The technical detail remains available here in the meantime.</p>
+          </aside>
+        )}
         <div class="docs-prose">
           <slot />
         </div>
