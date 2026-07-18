@@ -506,6 +506,33 @@ test('share failure provides a selectable project URL and recovery announcement'
   await expect(page.getByRole('status')).toHaveText(/Select and copy the project URL instead/u);
 });
 
+test('Project Meridian FAQ is exclusive and mobile taps do not navigate', async ({ page }) => {
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/project-meridian/');
+    const faq = page.locator('.faq-list');
+    const items = faq.locator('details[data-faq-item]');
+    const firstSummary = items.nth(0).locator('summary');
+    const secondSummary = items.nth(1).locator('summary');
+    const initialUrl = page.url();
+
+    await expect(items).toHaveCount(5);
+    await expect(items.nth(0)).toHaveAttribute('name', 'project-faq');
+    await expect(items.nth(0)).toHaveAttribute('open', '');
+    await expect(firstSummary).toHaveCSS('min-height', '64px');
+
+    await secondSummary.click();
+    await expect(page).toHaveURL(initialUrl);
+    await expect(items.nth(0)).not.toHaveAttribute('open', '');
+    await expect(items.nth(1)).toHaveAttribute('open', '');
+    await expect(items.nth(1).locator('.faq-answer')).toBeVisible();
+
+    await secondSummary.click();
+    await expect(page).toHaveURL(initialUrl);
+    await expect(items.nth(1)).not.toHaveAttribute('open', '');
+  }
+});
+
 test('mobile wordmark and Menu controls retain 44px touch targets', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');

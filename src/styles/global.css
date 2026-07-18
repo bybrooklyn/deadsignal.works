@@ -1101,9 +1101,11 @@ article[id] {
 
 .faq-list summary {
   display: flex;
+  min-height: 64px;
   padding: 21px 0;
   cursor: pointer;
   list-style: none;
+  align-items: center;
   justify-content: space-between;
   gap: 30px;
   font-family: var(--display);
@@ -1115,11 +1117,29 @@ article[id] {
   display: none;
 }
 
+.faq-list summary span {
+  flex: 0 0 auto;
+  transition: transform 180ms var(--ease-mechanical);
+}
+
 .faq-list details[open] summary span {
   transform: rotate(45deg);
 }
 
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 180ms var(--ease-mechanical);
+}
+
+.faq-list details[open] .faq-answer {
+  grid-template-rows: 1fr;
+}
+
 .faq-list details p {
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
   max-width: 740px;
   padding: 0 0 24px;
   color: var(--secondary);

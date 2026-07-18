@@ -89,11 +89,30 @@ const questions = [
     <div class="section-heading"><p class="section-number">05 / FAQ</p><h2>Before you ask Discord.</h2></div>
     <div class="faq-list">
       {questions.map(([question, answer], index) => (
-        <details open={index === 0}>
-          <summary>{question}<span aria-hidden="true">+</span></summary>
-          <p>{answer}</p>
+        <details name="project-faq" data-faq-item open={index === 0}>
+          <summary aria-controls={`faq-answer-${index + 1}`}>{question}<span aria-hidden="true">+</span></summary>
+          <div class="faq-answer" id={`faq-answer-${index + 1}`}>
+            <p>{answer}</p>
+          </div>
         </details>
       ))}
     </div>
   </section>
 </BaseLayout>
+
+<script is:inline>
+  (() => {
+    const initializationKey = '__deadSignalProjectFaqInitialized';
+    if (Reflect.get(globalThis, initializationKey)) return;
+    Reflect.set(globalThis, initializationKey, true);
+
+    const selector = '.faq-list details[data-faq-item]';
+    document.addEventListener('toggle', (event) => {
+      const details = event.target;
+      if (!(details instanceof HTMLDetailsElement) || !details.matches(selector) || !details.open) return;
+      document.querySelectorAll(selector).forEach((other) => {
+        if (other !== details && other instanceof HTMLDetailsElement) other.removeAttribute('open');
+      });
+    }, true);
+  })();
+</script>
