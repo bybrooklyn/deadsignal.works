@@ -197,6 +197,16 @@ test('the wordmark accessible name matches its visible text', async ({ page }) =
   await expect(page.getByRole('link', { name: 'Dead Signal Works', exact: true })).toHaveAttribute('href', '/');
 });
 
+test('Steam wishlist availability is an honest disabled status button', async ({ page }) => {
+  for (const route of ['/', '/project-meridian/']) {
+    await page.goto(route);
+    const wishlist = page.getByRole('button', { name: 'Steam wishlist coming soon', exact: true });
+    await expect(wishlist).toHaveCount(route === '/' ? 2 : 1);
+    await expect(wishlist.first()).toBeDisabled();
+    await expect(page.locator('.wishlist-action')).not.toHaveAttribute('href');
+  }
+});
+
 test('Current status confines technical build provenance to one snapshot block', async ({ page }) => {
   await page.goto('/meridian/docs/learn/current-status/');
 

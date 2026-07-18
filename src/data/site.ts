@@ -7,6 +7,7 @@ export const site = {
   engineRepository: 'https://github.com/bybrooklyn/meridian',
   engineSourcePublic: false,
   engineReleaseLicense: 'MIT or Apache-2.0',
+  steamWishlistUrl: null,
   discord: 'https://discord.gg/3NckH4Xtrn',
   tiktok: 'https://www.tiktok.com/@deadsignalworks',
   pressEmail: 'press@deadsignal.works',

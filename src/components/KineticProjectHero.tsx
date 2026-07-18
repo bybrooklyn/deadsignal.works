@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { domAnimation, LazyMotion, m, MotionConfig, useReducedMotion } from 'motion/react';
+import { site } from '../data/site';
 
 type Mode = 'home' | 'project';
 
@@ -101,7 +102,9 @@ export default function KineticProjectHero({ mode = 'home' }: Props) {
               </dl>
 
               <div className="project-actions">
-                <p className="availability-note">Steam wishlist coming when the page is live.</p>
+                {site.steamWishlistUrl
+                  ? <a className="action action-primary wishlist-action" href={site.steamWishlistUrl} target="_blank" rel="noreferrer">Wishlist on Steam <span aria-hidden="true">↗</span></a>
+                  : <button className="action action-primary wishlist-action" type="button" disabled aria-label="Steam wishlist coming soon">Steam wishlist coming soon</button>}
                 {mode === 'home' && <a className="action action-primary" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>}
                 <a className="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
                 <button className="action action-button" type="button" onClick={shareProject}>{shareLabel} <span aria-hidden="true">↗</span></button>

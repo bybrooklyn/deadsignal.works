@@ -1,0 +1,14 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const classes = ['action', 'wishlist-action', className].filter(Boolean);
+---
+
+{site.steamWishlistUrl
+  ? <a class:list={classes} href={site.steamWishlistUrl} target="_blank" rel="noreferrer">Wishlist on Steam <span aria-hidden="true">↗</span></a>
+  : <button class:list={classes} type="button" disabled aria-label="Steam wishlist coming soon">Steam wishlist coming soon</button>}

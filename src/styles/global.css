@@ -353,6 +353,23 @@ h2 em {
   cursor: pointer;
 }
 
+.wishlist-action:disabled {
+  cursor: default;
+  opacity: 0.82;
+}
+
+.wishlist-action.action-primary:disabled:hover {
+  color: var(--text);
+  border-color: var(--red);
+  background: var(--red);
+}
+
+.wishlist-action.action-light:disabled:hover {
+  color: var(--background);
+  border-color: var(--text);
+  background: var(--text);
+}
+
 .inline-actions {
   display: flex;
   flex-wrap: wrap;
