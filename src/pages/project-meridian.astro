@@ -38,7 +38,7 @@ const questions = [
 ---
 
 <BaseLayout title="Project Meridian" description="A single-player, first-person liminal horror game built around exploration across a large continuous world." currentPath="/project-meridian/" structuredData={gameSchema}>
-  <KineticProjectHero mode="project" client:load />
+  <KineticProjectHero mode="project" steamWishlistUrl={site.steamWishlistUrl} client:load />
 
   <InPageNav items={[
     { label: 'Overview', href: '#overview' },
@@ -101,18 +101,5 @@ const questions = [
 </BaseLayout>
 
 <script is:inline>
-  (() => {
-    const initializationKey = '__deadSignalProjectFaqInitialized';
-    if (Reflect.get(globalThis, initializationKey)) return;
-    Reflect.set(globalThis, initializationKey, true);
-
-    const selector = '.faq-list details[data-faq-item]';
-    document.addEventListener('toggle', (event) => {
-      const details = event.target;
-      if (!(details instanceof HTMLDetailsElement) || !details.matches(selector) || !details.open) return;
-      document.querySelectorAll(selector).forEach((other) => {
-        if (other !== details && other instanceof HTMLDetailsElement) other.removeAttribute('open');
-      });
-    }, true);
-  })();
+  document.addEventListener('toggle',e=>{const d=e.target,p=d.parentNode;if(d.open&&p.matches('.faq-list'))for(const o of p.children)o.open=o===d},1);
 </script>
