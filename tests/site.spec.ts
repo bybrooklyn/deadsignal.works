@@ -203,7 +203,9 @@ test('Steam wishlist availability is an honest disabled status button', async ({
     const wishlist = page.getByRole('button', { name: 'Steam wishlist coming soon', exact: true });
     await expect(wishlist).toHaveCount(route === '/' ? 2 : 1);
     await expect(wishlist.first()).toBeDisabled();
-    await expect(page.locator('.wishlist-action')).not.toHaveAttribute('href');
+    for (let index = 0; index < await wishlist.count(); index += 1) {
+      await expect(wishlist.nth(index)).not.toHaveAttribute('href');
+    }
   }
 });
 
@@ -295,35 +297,51 @@ test('rapid successive navigation remains clickable during the root view transit
   await expect(page).toHaveURL(`${localOrigin}/studio/`);
 });
 
-test('Meridian subsystem navigation retains its specialized transition state', async ({ page }) => {
-  const navigateToPenumbra = async () => {
-    await page.locator('astro-island').scrollIntoViewIfNeeded();
-    await expect(page.locator('astro-island:not([ssr])')).toHaveCount(1);
-    const penumbraCard = page.locator('[data-subsystem-transition="penumbra"]');
-    await expectStableLayout(penumbraCard);
+test('Meridian subsystem navigation retains its specialized transition state for every subsystem', async ({ page }) => {
+  for (const slug of ['penumbra', 'cairn', 'wavefront', 'alluvium']) {
+    await page.goto('/meridian/');
+    const card = page.locator(`[data-subsystem-transition="${slug}"]`);
+    await card.scrollIntoViewIfNeeded();
+    await expectStableLayout(card);
     await page.evaluate(() => {
-      const state = globalThis as typeof globalThis & { __sawSubsystemTransition?: boolean };
-      state.__sawSubsystemTransition = false;
+      const state = globalThis as typeof globalThis & { __sawSubsystemTransition?: string };
+      state.__sawSubsystemTransition = '';
       document.addEventListener('astro:before-swap', () => {
-        state.__sawSubsystemTransition = document.documentElement.dataset.subsystemTransition === 'penumbra';
+        state.__sawSubsystemTransition = document.documentElement.dataset.subsystemTransition ?? '';
       }, { once: true });
     });
-    allowExpectedNavigationCancellation(page, '/meridian/penumbra/');
-    await penumbraCard.click();
-    await expect(page).toHaveURL(`${localOrigin}/meridian/penumbra/`);
+    allowExpectedNavigationCancellation(page, `/meridian/${slug}/`);
+    await card.click();
+    await expect(page).toHaveURL(`${localOrigin}/meridian/${slug}/`);
     expect(await page.evaluate(() => (
-      globalThis as typeof globalThis & { __sawSubsystemTransition?: boolean }
-    ).__sawSubsystemTransition)).toBe(true);
-  };
+      globalThis as typeof globalThis & { __sawSubsystemTransition?: string }
+    ).__sawSubsystemTransition)).toBe(slug);
 
+    await page.evaluate(() => {
+      const state = globalThis as typeof globalThis & { __sawSubsystemBack?: boolean };
+      state.__sawSubsystemBack = false;
+      document.addEventListener('astro:before-swap', () => {
+        state.__sawSubsystemBack = document.documentElement.dataset.subsystemDirection === 'back';
+      }, { once: true });
+    });
+    allowExpectedNavigationCancellation(page, '/meridian/');
+    await page.locator('[data-subsystem-back]').click();
+    await expect(page).toHaveURL(`${localOrigin}/meridian/`);
+    expect(await page.evaluate(() => (
+      globalThis as typeof globalThis & { __sawSubsystemBack?: boolean }
+    ).__sawSubsystemBack)).toBe(true);
+  }
+});
+
+test('Meridian subsystem cards remain navigable on a narrow touch viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/meridian/');
-  await navigateToPenumbra();
-  allowExpectedNavigationCancellation(page, '/meridian/');
-  await page.getByRole('navigation', { name: 'Primary navigation' })
-    .getByRole('link', { name: 'Meridian', exact: true })
-    .click();
-  await expect(page).toHaveURL(`${localOrigin}/meridian/`);
-  await navigateToPenumbra();
+  const card = page.locator('[data-subsystem-transition="alluvium"]');
+  await card.scrollIntoViewIfNeeded();
+  await expectStableLayout(card);
+  allowExpectedNavigationCancellation(page, '/meridian/alluvium/');
+  await card.click();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/alluvium/`);
 });
 
 test('desktop primary navigation uses direct Meridian and Contact links', async ({ page }) => {

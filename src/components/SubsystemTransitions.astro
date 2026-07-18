@@ -12,6 +12,7 @@
       summary: 'subsystem-summary',
     };
     let activeSubsystemTransition = null;
+    let transitionSequence = 0;
 
     const clearSubsystemNames = (root) => {
       root.querySelectorAll('[data-transition-active]').forEach((element) => {
@@ -45,6 +46,7 @@
     };
 
     document.addEventListener('astro:before-preparation', (event) => {
+      transitionSequence += 1;
       clearSubsystemNames(document);
       activeSubsystemTransition = null;
       clearRootTransitionState(document.documentElement);
@@ -53,11 +55,21 @@
       const card = source instanceof Element
         ? source.closest('[data-subsystem-transition]')
         : null;
+      const backLink = source instanceof Element
+        ? source.closest('[data-subsystem-back]')
+        : null;
       const cardSlug = card?.dataset.subsystemTransition;
+      const backSlug = backLink?.dataset.subsystemBack;
 
       if (card && cardSlug && subsystemSlugs.has(cardSlug)) {
-        activeSubsystemTransition = { slug: cardSlug, direction: 'forward' };
+        activeSubsystemTransition = { slug: cardSlug, direction: 'forward', sequence: transitionSequence };
         nameSubsystemElements(card);
+      } else if (backLink && backSlug && subsystemSlugs.has(backSlug)) {
+        const hero = document.querySelector('[data-subsystem-hero]');
+        if (hero) {
+          activeSubsystemTransition = { slug: backSlug, direction: 'back', sequence: transitionSequence };
+          nameSubsystemElements(hero);
+        }
       } else if (
         event.navigationType === 'traverse'
         && event.direction === 'back'
@@ -66,7 +78,7 @@
         const hero = document.querySelector('[data-subsystem-hero]');
         const heroSlug = hero?.dataset.subsystemHero;
         if (hero && heroSlug && subsystemSlugs.has(heroSlug)) {
-          activeSubsystemTransition = { slug: heroSlug, direction: 'back' };
+          activeSubsystemTransition = { slug: heroSlug, direction: 'back', sequence: transitionSequence };
           nameSubsystemElements(hero);
         }
       }
@@ -90,12 +102,16 @@
       if (target) nameSubsystemElements(target);
 
       const finish = () => {
-        if (activeSubsystemTransition !== transition) return;
+        if (activeSubsystemTransition?.sequence !== transition.sequence) return;
         clearSubsystemNames(document);
         clearRootTransitionState(document.documentElement);
         activeSubsystemTransition = null;
       };
-      void event.viewTransition.finished.then(finish, finish);
+      if (event.viewTransition?.finished) {
+        void event.viewTransition.finished.then(finish, finish);
+      } else {
+        finish();
+      }
     });
 
     document.addEventListener('astro:page-load', () => {

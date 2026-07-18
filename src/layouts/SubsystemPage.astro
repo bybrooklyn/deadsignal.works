@@ -26,7 +26,7 @@ const docsUrl = `/meridian/docs/systems/${subsystem.slug}/`;
         <p class="page-lede" data-subsystem-part="summary">{subsystem.summary}</p>
         <div class="inline-actions">
           <a class="action action-primary" href={docsUrl}>Read the technical guide <span aria-hidden="true">↗</span></a>
-          <a class="action" href="/meridian/">Back to Meridian <span aria-hidden="true">↗</span></a>
+          <a class="action" href="/meridian/" data-subsystem-back={subsystem.slug}>Back to Meridian <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <aside class="subsystem-side subsystem-visual" aria-label={`${subsystem.name} visual diagram`}>
