@@ -555,7 +555,10 @@ for (const viewport of [
 ] as const) {
   for (const visual of visualRoutes) {
     test(`visual baseline ${visual.name} at ${viewport.name}px`, async ({ page, browserName }) => {
-      test.skip(browserName !== 'chromium', 'Visual snapshots are maintained from Chromium.');
+      test.skip(
+        browserName !== 'chromium' || process.platform !== 'darwin',
+        'Visual snapshots are maintained from Chromium on macOS, where the committed baselines are captured.',
+      );
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto(visual.route);
       await expect(page).toHaveScreenshot(`${visual.name}-${viewport.name}.png`, {
@@ -575,7 +578,10 @@ for (const boundary of [
   { name: 'docs-1121', route: '/meridian/docs/learn/current-status/', width: 1121, locator: '.docs-frame' },
 ] as const) {
   test(`visual baseline ${boundary.name}`, async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'Visual snapshots are maintained from Chromium.');
+    test.skip(
+      browserName !== 'chromium' || process.platform !== 'darwin',
+      'Visual snapshots are maintained from Chromium on macOS, where the committed baselines are captured.',
+    );
     await page.setViewportSize({ width: boundary.width, height: 900 });
     await page.goto(boundary.route);
     await expect(page.locator(boundary.locator)).toHaveScreenshot(`${boundary.name}.png`, {
