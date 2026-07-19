@@ -2,6 +2,7 @@
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
 import DocsSidebar from '../components/DocsSidebar.astro';
+import DocsSourceAvailability from '../components/DocsSourceAvailability.astro';
 import DocsTableOfContents from '../components/DocsTableOfContents.astro';
 import DocsToolbar from '../components/DocsToolbar.astro';
 import { docsGroups, docsItems } from '../data/docs';
@@ -55,10 +56,7 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
   <DocsToolbar currentPath={currentPath} />
   {home ? (
     <article class="docs-home shell" data-pagefind-body>
-      <aside class="docs-source-availability" role="note" data-pagefind-ignore>
-        <strong>Source access is private during early development.</strong>
-        <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. These guides describe the engine while that release is prepared.</p>
-      </aside>
+      <DocsSourceAvailability detail="These guides describe the engine while that release is prepared." />
       <slot />
     </article>
   ) : (
@@ -66,8 +64,10 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
       <DocsSidebar currentPath={currentPath} />
       <article class="docs-article" data-pagefind-body>
         <nav class="docs-breadcrumbs" aria-label="Breadcrumb" data-pagefind-ignore>
-          <a href="/meridian/docs/">Docs</a>
-          {groupLabel && <span>{groupLabel}</span>}
+          <ol>
+            <li><a href="/meridian/docs/">Docs</a></li>
+            {groupLabel && <li><span aria-hidden="true">/</span><span aria-current="page">{groupLabel}</span></li>}
+          </ol>
         </nav>
         <header class="docs-article-header">
           {groupLabel && <p data-pagefind-ignore>{groupLabel}</p>}
@@ -93,10 +93,7 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
             </dl>
           </aside>
         ) : (
-          <aside class="docs-source-availability" role="note" data-pagefind-ignore>
-            <strong>Source access is private during early development.</strong>
-            <p>Meridian is planned for an open-source release under {site.engineReleaseLicense}. The technical detail remains available here in the meantime.</p>
-          </aside>
+          <DocsSourceAvailability detail="The technical detail remains available here in the meantime." />
         )}
         <div class="docs-prose">
           <slot />

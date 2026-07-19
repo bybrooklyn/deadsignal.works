@@ -20,3 +20,27 @@ const { currentPath } = Astro.props;
     ))}
   </nav>
 </aside>
+
+<script is:inline>
+  (() => {
+    const initializationKey = '__deadSignalDocsSidebarInitialized';
+    if (Reflect.get(globalThis, initializationKey)) return;
+    Reflect.set(globalThis, initializationKey, true);
+
+    let savedScrollTop = 0;
+    let hasSavedPosition = false;
+
+    document.addEventListener('astro:before-swap', () => {
+      const sidebar = document.querySelector('.docs-sidebar');
+      if (!(sidebar instanceof HTMLElement)) return;
+      savedScrollTop = sidebar.scrollTop;
+      hasSavedPosition = true;
+    });
+
+    document.addEventListener('astro:page-load', () => {
+      if (!hasSavedPosition) return;
+      const sidebar = document.querySelector('.docs-sidebar');
+      if (sidebar instanceof HTMLElement) sidebar.scrollTop = savedScrollTop;
+    });
+  })();
+</script>

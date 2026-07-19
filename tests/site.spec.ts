@@ -197,16 +197,64 @@ test('the wordmark accessible name matches its visible text', async ({ page }) =
   await expect(page.getByRole('link', { name: 'Dead Signal Works', exact: true })).toHaveAttribute('href', '/');
 });
 
-test('Steam wishlist availability is an honest disabled status button', async ({ page }) => {
+test('Steam wishlist status exposes a useful follow-up action without pretending Steam is live', async ({ page }) => {
   for (const route of ['/', '/project-meridian/']) {
     await page.goto(route);
-    const wishlist = page.getByRole('button', { name: 'Steam wishlist coming soon', exact: true });
+    const wishlist = page.locator('[data-wishlist-flip]');
     await expect(wishlist).toHaveCount(route === '/' ? 2 : 1);
-    await expect(wishlist.first()).toBeDisabled();
     for (let index = 0; index < await wishlist.count(); index += 1) {
-      await expect(wishlist.nth(index)).not.toHaveAttribute('href');
+      const tile = wishlist.nth(index);
+      const toggle = tile.getByRole('button', { name: /Steam wishlist coming soon/u });
+      const follow = tile.getByRole('link', { name: /Follow development/u });
+      await expect(tile).toHaveAttribute('data-wishlist-ready', 'true');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await expect(follow).toHaveAttribute('href', '/updates/');
+
+      await toggle.focus();
+      await expect.poll(() => tile.locator('.wishlist-flip-inner').evaluate(
+        (element) => getComputedStyle(element).transform !== 'none',
+      )).toBe(true);
+
+      await toggle.evaluate((button) => (button as HTMLButtonElement).click());
+      await expect(tile).toHaveAttribute('data-wishlist-flipped', 'true');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     }
   }
+});
+
+test('Steam wishlist fallback remains useful without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  const diagnostics = monitorPage(page);
+  await page.goto('/');
+
+  const wishlist = page.locator('[data-wishlist-flip]');
+  await expect(wishlist).toHaveCount(2);
+  await expect(wishlist.first().getByText('Steam wishlist coming soon', { exact: true })).toBeVisible();
+  await expect(wishlist.first().getByRole('link', { name: /Follow development/u })).toBeVisible();
+
+  await page.goto('/project-meridian/');
+  await expect(page.locator('.faq-list details[data-faq-item]').first()).toHaveAttribute('name', 'project-faq');
+
+  expectCleanDiagnostics(diagnostics);
+  await context.close();
+});
+
+test('Steam wishlist tile flips deliberately on touch input', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const diagnostics = monitorPage(page);
+  await page.goto('/');
+
+  const tile = page.locator('[data-wishlist-flip]').first();
+  const toggle = tile.getByRole('button', { name: /Steam wishlist coming soon/u });
+  await toggle.tap();
+  await expect(tile).toHaveAttribute('data-wishlist-flipped', 'true');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(tile.getByRole('link', { name: /Follow development/u })).toHaveAttribute('href', '/updates/');
+
+  expectCleanDiagnostics(diagnostics);
+  await context.close();
 });
 
 test('Current status confines technical build provenance to one snapshot block', async ({ page }) => {
@@ -240,6 +288,10 @@ test('each press copy button writes only its own value once', async ({ page }) =
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __copyWrites?: number }
   ).__copyWrites ?? 0)).toBe(1);
+
+  allowExpectedNavigationCancellation(page, '/');
+  await page.getByRole('link', { name: 'Dead Signal Works', exact: true }).click();
+  await expect(page).toHaveURL(`${localOrigin}/`);
 });
 
 test('ordinary page navigation starts the global view transition', async ({ page, browserName }) => {
@@ -333,6 +385,57 @@ test('Meridian subsystem navigation retains its specialized transition state for
   }
 });
 
+test('Meridian subsystem history traversal preserves specialized back and forward transitions', async ({ page }) => {
+  await page.goto('/meridian/');
+  const card = page.locator('[data-subsystem-transition="penumbra"]');
+  await card.scrollIntoViewIfNeeded();
+  await expectStableLayout(card);
+  allowExpectedNavigationCancellation(page, '/meridian/penumbra/');
+  await card.click();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/penumbra/`);
+
+  await page.goBack();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/`);
+  await expect.poll(() => page.evaluate(() => (
+    document.documentElement.dataset.subsystemTransition ?? ''
+  ))).toBe('');
+  await page.evaluate(() => {
+    const state = globalThis as typeof globalThis & {
+      __subsystemForwardEvent?: { direction: string; navigationType: string; path: string; cardCount: number; slug: string };
+    };
+    state.__subsystemForwardEvent = { direction: '', navigationType: '', path: '', cardCount: 0, slug: '' };
+    document.addEventListener('astro:before-preparation', (event) => {
+      const navigation = event as Event & {
+        direction?: string;
+        navigationType?: string;
+        to?: URL;
+      };
+      state.__subsystemForwardEvent = {
+        direction: navigation.direction ?? '',
+        navigationType: navigation.navigationType ?? '',
+        path: navigation.to?.pathname ?? '',
+        cardCount: document.querySelectorAll('[data-subsystem-transition="penumbra"]').length,
+        slug: document.documentElement.dataset.subsystemTransition ?? '',
+      };
+    }, { once: true });
+  });
+
+  await page.goForward();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/penumbra/`);
+  const forwardEvent = await page.evaluate(() => (
+    globalThis as typeof globalThis & {
+      __subsystemForwardEvent?: { direction: string; navigationType: string; path: string; cardCount: number; slug: string };
+    }
+  ).__subsystemForwardEvent);
+  expect(forwardEvent).toMatchObject({
+    direction: 'forward',
+    navigationType: 'traverse',
+    path: '/meridian/penumbra/',
+    slug: 'penumbra',
+  });
+  expect(forwardEvent?.cardCount).toBeGreaterThan(0);
+});
+
 test('Meridian subsystem cards remain navigable on a narrow touch viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/meridian/');
@@ -421,6 +524,33 @@ test('documentation search is keyboard accessible and returns safe local results
   await expect(dialog).not.toBeVisible();
 });
 
+test('documentation sidebar keeps its scroll position while current-page semantics update', async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 700 });
+  await page.goto('/meridian/docs/learn/current-status/');
+  const sidebar = page.locator('.docs-sidebar');
+  await sidebar.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+  const initialScroll = await sidebar.evaluate((element) => element.scrollTop);
+  expect(initialScroll).toBeGreaterThan(0);
+
+  const target = sidebar.locator('a').last();
+  const targetHref = await target.getAttribute('href');
+  expect(targetHref).toBeTruthy();
+  if (!targetHref) return;
+  allowExpectedNavigationCancellation(page, targetHref);
+  await target.click();
+  await expect(page).toHaveURL(`${localOrigin}${targetHref}`);
+  await expect(page.locator(`.docs-sidebar a[href="${targetHref}"]`)).toHaveAttribute('aria-current', 'page');
+  await expect.poll(() => page.locator('.docs-sidebar').evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+});
+
+test('documentation breadcrumbs expose an ordered hierarchy', async ({ page }) => {
+  await page.goto('/meridian/docs/learn/current-status/');
+  const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
+  await expect(breadcrumbs.locator('ol')).toHaveCount(1);
+  await expect(breadcrumbs.locator('li')).toHaveCount(2);
+  await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText('Learn');
+});
+
 test('mobile navigation and workbench stay inside the viewport', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -430,7 +560,7 @@ test('mobile navigation and workbench stay inside the viewport', async ({ browse
   const menu = page.locator('.mobile-nav');
   await menu.locator('summary').click();
   await expect(menu).toHaveAttribute('open', '');
-  await expect(menu.getByRole('link', { name: 'Press kit' })).toBeVisible();
+  await expect(menu.getByRole('link', { name: 'Press information' })).toBeVisible();
   await expect.poll(async () => (await horizontalViewportState(page)).fits).toBe(true);
 
   await menu.locator('summary').click();
@@ -524,6 +654,24 @@ test('share failure provides a selectable project URL and recovery announcement'
   await expect(page.getByRole('status')).toHaveText(/Select and copy the project URL instead/u);
 });
 
+test('successful project sharing can be followed by immediate client navigation', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: () => Promise.resolve() },
+    });
+  });
+  await page.goto('/project-meridian/');
+  await page.getByRole('button', { name: /Share project/u }).click();
+  await expect(page.getByRole('status')).toHaveText('Project link copied.');
+  allowExpectedNavigationCancellation(page, '/studio/');
+  await page.getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Studio', exact: true })
+    .click();
+  await expect(page).toHaveURL(`${localOrigin}/studio/`);
+});
+
 test('Project Meridian FAQ is exclusive and mobile taps do not navigate', async ({ page }) => {
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
@@ -535,7 +683,7 @@ test('Project Meridian FAQ is exclusive and mobile taps do not navigate', async 
     const initialUrl = page.url();
 
     await expect(items).toHaveCount(5);
-    await expect(items.nth(0)).toHaveAttribute('name', 'project-faq');
+    await expect(items.nth(0)).not.toHaveAttribute('name', 'project-faq');
     await expect(items.nth(0)).toHaveAttribute('open', '');
     await expect(firstSummary).toHaveCSS('min-height', '64px');
 
@@ -545,10 +693,60 @@ test('Project Meridian FAQ is exclusive and mobile taps do not navigate', async 
     await expect(items.nth(1)).toHaveAttribute('open', '');
     await expect(items.nth(1).locator('.faq-answer')).toBeVisible();
 
-    await secondSummary.click();
+    const remainedOpenDuringClose = await secondSummary.evaluate((summary) => {
+      (summary as HTMLElement).click();
+      return (summary.parentElement as HTMLDetailsElement | null)?.open ?? false;
+    });
+    expect(remainedOpenDuringClose).toBe(true);
     await expect(page).toHaveURL(initialUrl);
     await expect(items.nth(1)).not.toHaveAttribute('open', '');
   }
+});
+
+test('Project Meridian FAQ remains single-bound after repeated client-router visits', async ({ page }) => {
+  await page.goto('/project-meridian/');
+  for (let index = 0; index < 3; index += 1) {
+    allowExpectedNavigationCancellation(page, '/studio/');
+    await page.getByRole('navigation', { name: 'Primary navigation' })
+      .getByRole('link', { name: 'Studio', exact: true })
+      .click();
+    await expect(page).toHaveURL(`${localOrigin}/studio/`);
+    allowExpectedNavigationCancellation(page, '/project-meridian/');
+    await page.getByRole('navigation', { name: 'Primary navigation' })
+      .getByRole('link', { name: 'Project Meridian', exact: true })
+      .click();
+    await expect(page).toHaveURL(`${localOrigin}/project-meridian/`);
+  }
+
+  const items = page.locator('.faq-list details[data-faq-item]');
+  await items.nth(1).locator('summary').click();
+  await expect(items.nth(0)).not.toHaveAttribute('open', '');
+  await expect(items.nth(1)).toHaveAttribute('open', '');
+  expect(await items.evaluateAll((details) => details.filter((item) => item.hasAttribute('open')).length)).toBe(1);
+});
+
+test('Project Meridian FAQ closes immediately when reduced motion is requested', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/project-meridian/');
+  const first = page.locator('.faq-list details[data-faq-item]').first();
+  const openAfterClick = await first.locator('summary').evaluate((summary) => {
+    (summary as HTMLElement).click();
+    return (summary.parentElement as HTMLDetailsElement | null)?.open ?? true;
+  });
+  expect(openAfterClick).toBe(false);
+});
+
+test('updates expose RSS discovery and omit empty article pagination', async ({ page }) => {
+  await page.goto('/updates/');
+  await expect(page.getByRole('link', { name: /RSS feed/u })).toHaveAttribute('href', '/rss.xml');
+  const firstUpdate = page.locator('.updates-list > a').first();
+  const updateHref = await firstUpdate.getAttribute('href');
+  expect(updateHref).toBeTruthy();
+  if (!updateHref) return;
+  allowExpectedNavigationCancellation(page, updateHref);
+  await firstUpdate.click();
+  await expect(page).toHaveURL(`${localOrigin}${updateHref}`);
+  await expect(page.getByRole('navigation', { name: 'Updates navigation' })).toHaveCount(0);
 });
 
 test('mobile wordmark and Menu controls retain 44px touch targets', async ({ page }) => {
@@ -654,7 +852,11 @@ test('reduced-motion preference disables smooth scrolling and long transitions',
   const values = await page.evaluate(() => ({
     scrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
     transitionDuration: getComputedStyle(document.querySelector('.workbench-drawer')!).transitionDuration,
+    wishlistTransform: getComputedStyle(document.querySelector('.wishlist-flip-inner')!).transform,
+    wishlistBackPosition: getComputedStyle(document.querySelector('.wishlist-flip-back')!).position,
   }));
   expect(values.scrollBehavior).toBe('auto');
   expect(Math.max(...values.transitionDuration.split(',').map((value) => Number.parseFloat(value)))).toBeLessThanOrEqual(0.001);
+  expect(values.wishlistTransform).toBe('none');
+  expect(values.wishlistBackPosition).toBe('static');
 });

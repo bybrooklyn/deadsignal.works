@@ -1,10 +1,8 @@
-import { useState } from 'react';
-import { domAnimation, LazyMotion, m, MotionConfig, useReducedMotion } from 'motion/react';
-
-type Mode = 'home' | 'project';
+import { useEffect, useRef, useState } from 'react';
+import { domAnimation, LazyMotion, MotionConfig } from 'motion/react';
+import * as m from 'motion/react-m';
 
 interface Props {
-  mode?: Mode;
   steamWishlistUrl?: string | null;
 }
 
@@ -18,12 +16,21 @@ const facts = [
 
 const timing = { type: 'spring' as const, stiffness: 185, damping: 20, mass: 0.82 };
 
-export default function KineticProjectHero({ mode = 'home', steamWishlistUrl = null }: Props) {
+export default function KineticProjectHero({ steamWishlistUrl = null }: Props) {
   const [active, setActive] = useState(false);
   const [shareLabel, setShareLabel] = useState('Share project');
   const [shareMessage, setShareMessage] = useState('');
   const [shareFallbackUrl, setShareFallbackUrl] = useState('');
-  const reduceMotion = useReducedMotion();
+  const [wishlistReady, setWishlistReady] = useState(false);
+  const [wishlistFlipped, setWishlistFlipped] = useState(false);
+  const shareTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setWishlistReady(true);
+    return () => {
+      if (shareTimeoutRef.current !== null) window.clearTimeout(shareTimeoutRef.current);
+    };
+  }, []);
 
   async function shareProject() {
     const url = new URL('/project-meridian/', window.location.origin).toString();
@@ -52,18 +59,22 @@ export default function KineticProjectHero({ mode = 'home', steamWishlistUrl = n
       return;
     }
 
-    window.setTimeout(() => setShareLabel('Share project'), 1800);
+    if (shareTimeoutRef.current !== null) window.clearTimeout(shareTimeoutRef.current);
+    shareTimeoutRef.current = window.setTimeout(() => {
+      setShareLabel('Share project');
+      shareTimeoutRef.current = null;
+    }, 1800);
   }
 
-  const shifted = active && !reduceMotion;
+  const shifted = active;
 
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user" transition={timing}>
-        <section className="project-hero shell" aria-labelledby={`${mode}-project-title`}>
+        <section className="project-hero shell" aria-labelledby="project-title">
           <header className="project-hero-heading">
-            <p className="kicker"><span>{mode === 'home' ? 'Current game' : 'Working title'}</span> / early development</p>
-            <h1 id={`${mode}-project-title`}>Project Meridian.</h1>
+            <p className="kicker"><span>Working title</span> / early development</p>
+            <h1 id="project-title">Project Meridian.</h1>
             <p>A single-player, first-person liminal horror game built around exploration across a large continuous world.</p>
           </header>
 
@@ -104,8 +115,38 @@ export default function KineticProjectHero({ mode = 'home', steamWishlistUrl = n
               <div className="project-actions">
                 {steamWishlistUrl
                   ? <a className="action action-primary wishlist-action" href={steamWishlistUrl} target="_blank" rel="noreferrer">Wishlist on Steam <span aria-hidden="true">↗</span></a>
-                  : <button className="action action-primary wishlist-action" type="button" disabled aria-label="Steam wishlist coming soon">Steam wishlist coming soon</button>}
-                {mode === 'home' && <a className="action action-primary" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>}
+                  : (
+                    <div
+                      className="wishlist-flip action-primary"
+                      data-wishlist-flip
+                      data-wishlist-ready={wishlistReady ? 'true' : undefined}
+                      data-wishlist-flipped={wishlistFlipped ? 'true' : undefined}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Escape' && wishlistFlipped) {
+                          setWishlistFlipped(false);
+                          event.currentTarget.querySelector<HTMLButtonElement>('[data-wishlist-toggle]')?.focus();
+                        }
+                      }}
+                    >
+                      <div className="wishlist-flip-inner">
+                        <button
+                          className="wishlist-flip-face wishlist-flip-front"
+                          type="button"
+                          aria-expanded={wishlistFlipped}
+                          aria-controls="project-hero-wishlist-follow"
+                          data-wishlist-toggle
+                          disabled={!wishlistReady}
+                          onClick={() => setWishlistFlipped((flipped) => !flipped)}
+                        >
+                          <span>Steam wishlist coming soon</span>
+                          <small>Turn over</small>
+                        </button>
+                        <div className="wishlist-flip-face wishlist-flip-back" id="project-hero-wishlist-follow">
+                          <a href="/updates/">Follow development <span aria-hidden="true">↗</span></a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 <a className="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
                 <button className="action action-button" type="button" onClick={shareProject}>{shareLabel} <span aria-hidden="true">↗</span></button>
                 {shareFallbackUrl && (

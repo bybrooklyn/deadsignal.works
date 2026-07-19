@@ -81,6 +81,25 @@
           activeSubsystemTransition = { slug: heroSlug, direction: 'back', sequence: transitionSequence };
           nameSubsystemElements(hero);
         }
+      } else if (
+        event.navigationType === 'traverse'
+        && event.direction === 'forward'
+      ) {
+        const match = event.to.pathname.match(/^\/meridian\/([a-z-]+)\/$/);
+        const slug = match?.[1];
+        const targetCard = slug
+          ? document.querySelector(`[data-subsystem-transition="${slug}"]`)
+          : null;
+        if (targetCard && slug && subsystemSlugs.has(slug)) {
+          activeSubsystemTransition = { slug, direction: 'forward', sequence: transitionSequence };
+          nameSubsystemElements(targetCard);
+          document.addEventListener('astro:after-preparation', () => {
+            const targetHero = event.newDocument.querySelector(`[data-subsystem-hero="${slug}"]`);
+            event.newDocument.documentElement.dataset.subsystemTransition = slug;
+            event.newDocument.documentElement.dataset.subsystemDirection = 'forward';
+            if (targetHero) nameSubsystemElements(targetHero);
+          }, { once: true });
+        }
       }
 
       if (!activeSubsystemTransition) return;
@@ -97,6 +116,8 @@
         : `[data-subsystem-transition="${transition.slug}"]`;
       const target = event.newDocument.querySelector(selector);
 
+      document.documentElement.dataset.subsystemTransition = transition.slug;
+      document.documentElement.dataset.subsystemDirection = transition.direction;
       event.newDocument.documentElement.dataset.subsystemTransition = transition.slug;
       event.newDocument.documentElement.dataset.subsystemDirection = transition.direction;
       if (target) nameSubsystemElements(target);

@@ -33,12 +33,12 @@ const questions = [
   ['Is Project Meridian the final title?', 'Maybe. It is the working title and remains subject to change.'],
   ['Is there a release date?', 'No. Development is not being tied to a public date before the work can support one.'],
   ['Is it multiplayer?', 'No. Project Meridian is designed as a single-player game.'],
-  ['Is the game open source?', 'No. Project Meridian is proprietary. The Meridian engine is planned for a separate open-source release; its source is private during early development.'],
+  ['Is the game open source?', 'No. Project Meridian is proprietary. The Meridian engine has been relicensed to MPL-2.0 for a separate open-source release; its source is private during early development.'],
 ];
 ---
 
 <BaseLayout title="Project Meridian" description="A single-player, first-person liminal horror game built around exploration across a large continuous world." currentPath="/project-meridian/" structuredData={gameSchema}>
-  <KineticProjectHero mode="project" steamWishlistUrl={site.steamWishlistUrl} client:load />
+  <KineticProjectHero steamWishlistUrl={site.steamWishlistUrl} client:load />
 
   <InPageNav items={[
     { label: 'Overview', href: '#overview' },
@@ -79,7 +79,7 @@ const questions = [
       <div><p class="section-number">04 / Technology</p><h2>Built on Meridian.</h2></div>
       <div class="copy-stack">
         <p class="large-copy">Project Meridian is the first proving game for Meridian, the Rust engine being developed alongside it and prepared for an open-source release.</p>
-        <p>The game drives requirements. Meridian’s source is private during early development and is planned for release under MIT or Apache-2.0.</p>
+        <p>The game drives requirements. Meridian has been relicensed to MPL-2.0, while its source remains private during early development.</p>
         <a class="action action-primary" href="/meridian/">Explore the engine <span aria-hidden="true">↗</span></a>
       </div>
     </div>
@@ -100,6 +100,4 @@ const questions = [
   </section>
 </BaseLayout>
 
-<script is:inline>
-  document.addEventListener('toggle',e=>{const d=e.target,p=d.parentNode;if(d.open&&p.matches('.faq-list'))for(const o of p.children)o.open=o===d},1);
-</script>
+<script is:inline>(()=>{let e=globalThis;if(e.__dsFaq)return;e.__dsFaq=!0;let t=`.faq-list details`,n=new Set,r=e=>{if(!e.open)return;if(window.matchMedia(`(prefers-reduced-motion: reduce)`).matches){e.open=!1;return}let t=e.lastElementChild;e.dataset.faqClosing=``;let r=()=>{window.clearTimeout(i),n.delete(i),delete e.dataset.faqClosing,e.open=!1};t.addEventListener(`transitionend`,r,{once:!0});let i=window.setTimeout(r,260);n.add(i)},i=()=>{document.querySelectorAll(t).forEach(e=>e.removeAttribute(`name`))};document.addEventListener(`click`,e=>{let n=e.target.closest?.(`${t}>summary`);if(!n)return;let i=n.parentElement;if(e.preventDefault(),i.dataset.faqClosing===void 0){if(i.open){r(i);return}i.parentElement?.querySelectorAll(`details[open]`).forEach(e=>{e!==i&&r(e)}),i.open=!0}}),document.addEventListener(`astro:before-swap`,()=>{n.forEach(window.clearTimeout),n.clear()}),document.addEventListener(`astro:page-load`,i),i()})();</script>

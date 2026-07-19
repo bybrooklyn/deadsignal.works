@@ -20,9 +20,12 @@ export default function MotionSubsystemGrid({ items }: Props) {
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
         <div className="subsystem-grid">
-          {items.map((item, index) => (
+          {items.map((item, index) => {
+            const isScaffold = item.maturity.toLowerCase() === 'scaffold';
+            return (
             <m.a
-              className={`subsystem-card tone-${item.tone}`}
+              className={`subsystem-card tone-${item.tone}${isScaffold ? ' is-scaffold' : ''}`}
+              data-maturity={isScaffold ? 'scaffold' : undefined}
               data-subsystem-transition={item.slug}
               href={`/meridian/${item.slug}/`}
               key={item.slug}
@@ -31,7 +34,7 @@ export default function MotionSubsystemGrid({ items }: Props) {
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             >
               <span className="subsystem-transition-frame" data-subsystem-frame aria-hidden="true" />
-              <span className="subsystem-number">0{index + 1}</span>
+              <span className="subsystem-number">{String(index + 1).padStart(2, '0')}</span>
               <div>
                 <p data-subsystem-part="role"><span>{item.role}</span><span className="status-label">{item.maturity}</span></p>
                 <div className="subsystem-card-title">
@@ -42,7 +45,8 @@ export default function MotionSubsystemGrid({ items }: Props) {
               <p className="subsystem-summary" data-subsystem-part="summary">{item.summary}</p>
               <span className="subsystem-arrow" aria-hidden="true">↗</span>
             </m.a>
-          ))}
+            );
+          })}
         </div>
       </MotionConfig>
     </LazyMotion>

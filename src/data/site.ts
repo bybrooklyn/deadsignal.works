@@ -6,7 +6,7 @@ export const site = {
   description: 'An eccentric solo game and software studio focused on realistic, highly performant games and the technology behind them.',
   engineRepository: 'https://github.com/bybrooklyn/meridian',
   engineSourcePublic: false,
-  engineReleaseLicense: 'MIT or Apache-2.0',
+  engineReleaseLicense: 'MPL-2.0',
   steamWishlistUrl: null,
   discord: 'https://discord.gg/3NckH4Xtrn',
   tiktok: 'https://www.tiktok.com/@deadsignalworks',

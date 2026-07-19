@@ -1,0 +1,14 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+  detail: string;
+}
+
+const { detail } = Astro.props;
+---
+
+<aside class="docs-source-availability" role="note" data-pagefind-ignore>
+  <strong>Source access is private during early development.</strong>
+  <p>Meridian has been relicensed to {site.engineReleaseLicense} for its planned open-source release. {detail}</p>
+</aside>

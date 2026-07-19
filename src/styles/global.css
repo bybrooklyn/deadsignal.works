@@ -146,10 +146,22 @@ h2 em {
   font-variation-settings: 'wght' 760, 'wdth' 106;
   letter-spacing: -0.025em;
   line-height: 0.92;
+  transition: opacity 140ms linear;
 }
 
 .wordmark span:last-child {
   color: var(--red-hover);
+  transition: color 140ms linear;
+}
+
+.wordmark:hover,
+.wordmark:focus-visible {
+  opacity: 0.84;
+}
+
+.wordmark:hover span:last-child,
+.wordmark:focus-visible span:last-child {
+  color: var(--text);
 }
 
 .site-navigation {
@@ -358,21 +370,114 @@ h2 em {
   cursor: pointer;
 }
 
-.wishlist-action:disabled {
-  cursor: default;
-  opacity: 0.82;
+.wishlist-flip {
+  min-width: min(100%, 230px);
+  min-height: 52px;
+  perspective: 900px;
 }
 
-.wishlist-action.action-primary:disabled:hover {
-  color: var(--text);
+.wishlist-flip-inner {
+  display: grid;
+  gap: 6px;
+  min-height: 52px;
+}
+
+.wishlist-flip-face {
+  display: flex;
+  min-height: 52px;
+  padding: 10px 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--secondary);
+  border: 1px dashed var(--border);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 670;
+  text-align: left;
+}
+
+.wishlist-flip-front {
+  width: 100%;
+}
+
+.wishlist-flip-front:disabled {
+  cursor: default;
+}
+
+.wishlist-flip-front small {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 560;
+  letter-spacing: 0.03em;
+}
+
+.wishlist-flip:not([data-wishlist-ready]) .wishlist-flip-front small {
+  display: none;
+}
+
+.wishlist-flip-back {
+  padding: 0;
+  border-style: solid;
   border-color: var(--red);
   background: var(--red);
 }
 
-.wishlist-action.action-light:disabled:hover {
+.wishlist-flip-back a {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text);
+}
+
+.wishlist-flip[data-wishlist-ready] .wishlist-flip-inner {
+  position: relative;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 320ms var(--ease-mechanical);
+}
+
+.wishlist-flip[data-wishlist-ready] .wishlist-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.wishlist-flip[data-wishlist-ready] .wishlist-flip-back {
+  transform: rotateX(180deg);
+}
+
+.wishlist-flip[data-wishlist-flipped='true'] .wishlist-flip-inner {
+  transform: rotateX(180deg);
+}
+
+.wishlist-flip.action-primary .wishlist-flip-front {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--red) 65%, var(--border));
+  background: color-mix(in srgb, var(--red) 20%, var(--surface));
+}
+
+.wishlist-flip.action-light .wishlist-flip-front {
   color: var(--background);
-  border-color: var(--text);
+  border-color: color-mix(in srgb, var(--background) 45%, transparent);
   background: var(--text);
+}
+
+.wishlist-flip.action-light .wishlist-flip-front small {
+  color: color-mix(in srgb, var(--background) 65%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wishlist-flip[data-wishlist-ready]:hover .wishlist-flip-inner,
+  .wishlist-flip[data-wishlist-ready]:focus-within .wishlist-flip-inner {
+    transform: rotateX(180deg);
+  }
 }
 
 .inline-actions {
@@ -1141,6 +1246,10 @@ article[id] {
   grid-template-rows: 1fr;
 }
 
+.faq-list details[data-faq-closing] .faq-answer {
+  grid-template-rows: 0fr;
+}
+
 .faq-list details p {
   min-height: 0;
   margin: 0;
@@ -1329,6 +1438,16 @@ article[id] {
   border: 1px solid var(--border);
 }
 
+.subsystem-card.is-scaffold > .subsystem-transition-frame {
+  border-style: dashed;
+}
+
+.subsystem-card.is-scaffold::before {
+  height: 0;
+  border-top: 5px dashed var(--tone);
+  background: transparent;
+}
+
 .subsystem-card::before {
   position: absolute;
   top: 0;
@@ -1410,6 +1529,12 @@ article[id] {
   background: var(--tone);
   font-size: 0.66rem;
   font-weight: 700;
+}
+
+.subsystem-card.is-scaffold .status-label {
+  color: var(--tone-readable);
+  border: 1px dashed var(--tone);
+  background: transparent;
 }
 
 .subsystem-summary {
@@ -1877,6 +2002,23 @@ article[id] {
   border-top: 1px solid var(--border);
 }
 
+.updates-rss {
+  display: inline-flex;
+  margin-top: 22px;
+  align-items: center;
+  gap: 7px;
+  color: var(--red-hover);
+  border-bottom: 1px solid currentColor;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+
+.updates-rss:hover,
+.updates-rss:focus-visible {
+  color: var(--text);
+}
+
 .updates-list > a {
   display: grid;
   grid-template-columns: 50px 140px minmax(0, 1fr) 30px;
@@ -1954,6 +2096,50 @@ article[id] {
 .article-body em,
 .article-body strong {
   color: var(--text);
+}
+
+.updates-pagination {
+  display: grid;
+  margin: 0 0 28px;
+  padding-top: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.updates-pagination a {
+  display: grid;
+  min-height: 96px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.updates-pagination a:last-child {
+  text-align: right;
+}
+
+.updates-pagination a:hover,
+.updates-pagination a:focus-visible {
+  border-color: var(--red-hover);
+}
+
+.updates-pagination span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+}
+
+.updates-pagination strong {
+  align-self: end;
+  color: var(--text);
+}
+
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-results-button,
+input[type='search']::-webkit-search-results-decoration {
+  -webkit-appearance: none;
 }
 
 .error-page {
@@ -2668,5 +2854,17 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
   ::view-transition-new(subsystem-pronunciation),
   ::view-transition-new(subsystem-summary) {
     animation: none !important;
+  }
+
+  .wishlist-flip[data-wishlist-ready] .wishlist-flip-inner {
+    display: grid;
+    gap: 6px;
+    transform: none !important;
+  }
+
+  .wishlist-flip[data-wishlist-ready] .wishlist-flip-face {
+    position: static;
+    transform: none;
+    backface-visibility: visible;
   }
 }

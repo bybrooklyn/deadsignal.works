@@ -3,11 +3,20 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('updates');
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  const entries = (await getCollection('updates')).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  );
+  return entries.map((entry, index) => ({
+    params: { slug: entry.id },
+    props: {
+      entry,
+      newer: index > 0 ? entries[index - 1] : undefined,
+      older: index < entries.length - 1 ? entries[index + 1] : undefined,
+    },
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, newer, older } = Astro.props;
 const { Content } = await render(entry);
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -28,6 +37,12 @@ const articleSchema = {
       <time datetime={entry.data.pubDate.toISOString()}>{entry.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</time>
     </header>
     <div class="article-body"><Content /></div>
+    {(newer || older) && (
+      <nav class="updates-pagination" aria-label="Updates navigation">
+        {older && <a href={`/updates/${older.id}/`}><span>Older update</span><strong>{older.data.title}</strong></a>}
+        {newer && <a href={`/updates/${newer.id}/`}><span>Newer update</span><strong>{newer.data.title}</strong></a>}
+      </nav>
+    )}
     <a class="action" href="/updates/">All updates <span aria-hidden="true">↗</span></a>
   </article>
 </BaseLayout>

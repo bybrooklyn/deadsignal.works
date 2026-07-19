@@ -9,23 +9,4 @@ const { value, label = 'Copy text' } = Astro.props;
 
 <button class="copy-button" type="button" data-copy-value={value}>{label}</button>
 
-<script is:inline>
-  (() => {
-    const button = document.currentScript?.previousElementSibling;
-    if (!(button instanceof HTMLButtonElement) || !button.matches('[data-copy-value]')) return;
-
-    button.addEventListener('click', async () => {
-      const value = button.dataset.copyValue;
-      if (!value) return;
-
-      const original = button.textContent ?? 'Copy text';
-      try {
-        await navigator.clipboard.writeText(value);
-        button.textContent = 'Copied';
-      } catch {
-        button.textContent = 'Copy failed';
-      }
-      window.setTimeout(() => { button.textContent = original; }, 1600);
-    });
-  })();
-</script>
+<script is:inline>(()=>{let e=globalThis;if(e.__dsCopy)return;e.__dsCopy=!0;let t=new Map,n=e=>{let n=t.get(e);n&&(window.clearTimeout(n.timeout),t.delete(e))};document.addEventListener(`click`,async e=>{let r=e.target.closest?.(`button[data-copy-value]`);if(!(r instanceof HTMLButtonElement))return;let i=r.dataset.copyValue;if(!i)return;let a=t.get(r)?.label??r.textContent??`Copy text`;try{await navigator.clipboard.writeText(i),r.textContent=`Copied`}catch{r.textContent=`Copy failed`}n(r);let o=window.setTimeout(()=>{r.textContent=a,t.delete(r)},1600);t.set(r,{label:a,timeout:o})}),document.addEventListener(`astro:before-swap`,()=>{t.forEach(({timeout:e})=>window.clearTimeout(e)),t.clear()})})();</script>

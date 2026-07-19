@@ -19,7 +19,7 @@ const meridianLinks = [
 const connectLinks = [
   { label: 'Join Discord', href: site.discord, external: true },
   { label: 'Contact', href: '/contact/', external: false },
-  { label: 'Press kit', href: '/press/', external: false },
+  { label: 'Press information', href: '/press/', external: false },
 ] as const;
 
 const directLinks = [
@@ -71,49 +71,4 @@ const isCurrent = (href: string) => currentPath === href || currentPath.startsWi
   </details>
 </div>
 
-<script is:inline>
-  (() => {
-    const initializationKey = '__deadSignalSiteNavigationInitialized';
-    if (Reflect.get(globalThis, initializationKey)) return;
-    Reflect.set(globalThis, initializationKey, true);
-
-    const selector = 'details[data-nav-disclosure]';
-    const disclosures = () => [...document.querySelectorAll(selector)]
-      .filter((details) => details instanceof HTMLDetailsElement);
-    const closeDetails = (details, restoreFocus = false) => {
-      if (!details.open) return;
-      details.removeAttribute('open');
-      if (restoreFocus) details.querySelector('summary')?.focus();
-    };
-    const closeAll = (restoreFocus = false) => disclosures().forEach((details) => closeDetails(details, restoreFocus));
-
-    document.addEventListener('toggle', (event) => {
-      const details = event.target;
-      if (!(details instanceof HTMLDetailsElement) || !details.matches(selector) || !details.open) return;
-      disclosures().forEach((other) => {
-        if (other !== details) closeDetails(other);
-      });
-    }, true);
-
-    document.addEventListener('pointerdown', (event) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      const openDetails = disclosures().filter((details) => details.open);
-      if (!openDetails.some((details) => details.contains(target))) closeAll();
-    });
-
-    document.addEventListener('click', (event) => {
-      const target = event.target;
-      if (!(target instanceof Element) || !target.closest(`${selector} a`)) return;
-      closeAll();
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      const active = disclosures().find((details) => details.open);
-      if (!active) return;
-      event.preventDefault();
-      closeDetails(active, true);
-    });
-  })();
-</script>
+<script is:inline>(()=>{let e=globalThis;if(e.__dsNav)return;e.__dsNav=!0;let t=`details[data-nav-disclosure]`,n=()=>[...document.querySelectorAll(t)].filter(e=>e instanceof HTMLDetailsElement),r=(e,t=!1)=>{e.open&&(e.removeAttribute(`open`),t&&e.querySelector(`summary`)?.focus())},i=(e=!1)=>n().forEach(t=>r(t,e));document.addEventListener(`toggle`,e=>{let i=e.target;!(i instanceof HTMLDetailsElement)||!i.matches(t)||!i.open||n().forEach(e=>{e!==i&&r(e)})},!0),document.addEventListener(`pointerdown`,e=>{let t=e.target;t instanceof Node&&(n().filter(e=>e.open).some(e=>e.contains(t))||i())}),document.addEventListener(`click`,e=>{let n=e.target;!(n instanceof Element)||!n.closest(`${t} a`)||i()}),document.addEventListener(`keydown`,e=>{if(e.key!==`Escape`)return;let t=n().find(e=>e.open);t&&(e.preventDefault(),r(t,!0))})})();</script>

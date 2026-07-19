@@ -35,6 +35,7 @@ function renderExcerpt(excerpt: string) {
 export default function DocsSearch() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const focusFrameRef = useRef<number | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -42,7 +43,11 @@ export default function DocsSearch() {
 
   function openSearch() {
     dialogRef.current?.showModal();
-    window.setTimeout(() => inputRef.current?.focus(), 0);
+    if (focusFrameRef.current !== null) window.cancelAnimationFrame(focusFrameRef.current);
+    focusFrameRef.current = window.requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      focusFrameRef.current = null;
+    });
   }
 
   function closeSearch() {
@@ -63,7 +68,10 @@ export default function DocsSearch() {
     };
     document.addEventListener('keydown', onKeyDown);
     setIsReady(true);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      if (focusFrameRef.current !== null) window.cancelAnimationFrame(focusFrameRef.current);
+    };
   }, []);
 
   useEffect(() => {

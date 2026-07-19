@@ -56,7 +56,7 @@ const docsUrl = `/meridian/docs/systems/${subsystem.slug}/`;
   <section class="content-section shell" id="ambition">
     <div class="section-heading"><p class="section-number">02 / Ambition</p><h2>{subsystem.ambitionTitle}</h2><p>The technical guide keeps current implementation and long-term direction separate.</p></div>
     <ol class="numbered-list">
-      {subsystem.ambition.map((item, index) => <li><span>0{index + 1}</span><p>{item}</p></li>)}
+      {subsystem.ambition.map((item, index) => <li><span>{String(index + 1).padStart(2, '0')}</span><p>{item}</p></li>)}
     </ol>
   </section>
 
