@@ -1,21 +1,73 @@
-Dead Signal Works Proprietary License
+Dead Signal Works Website Source-Available License
+Version 1.0, July 18, 2026
 
 Copyright (c) 2026 Dead Signal Works LLC. All rights reserved.
 
-This website and its source code, original artwork, written content,
-documentation, and related materials (collectively, the "Software") are
-proprietary to Dead Signal Works LLC.
+1. Scope
 
-No license or permission is granted to use, copy, reproduce, modify, merge,
-publish, distribute, sublicense, sell, or create derivative works from the
-Software, in whole or in part, without prior written permission from Dead
-Signal Works LLC.
+This license applies to the source code, original artwork, written content,
+documentation, design assets, and other original materials in this repository
+(collectively, the "Website Materials"). Third-party materials remain subject
+to their own license terms.
 
-Third-party software and other materials included with or used by the Software
-remain subject to their respective license terms.
+2. Source-available permission
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL DEAD
-SIGNAL WORKS LLC BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
-FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+Subject to this license, Dead Signal Works LLC grants you a limited,
+revocable, non-exclusive, non-transferable permission to access, download,
+inspect, and run an unmodified local copy of the Website Materials solely for
+personal, non-commercial evaluation, education, or security research.
+
+3. Restrictions
+
+Except for the limited permission in Section 2 or rights that applicable law
+cannot restrict, you may not, without prior written permission from Dead
+Signal Works LLC:
+
+- copy, reproduce, modify, adapt, translate, or create derivative works from
+  the Website Materials;
+- publish, distribute, sublicense, sell, rent, transfer, or otherwise provide
+  the Website Materials to another person or entity;
+- host, deploy, or publicly display the Website Materials or any website based
+  on them;
+- use the Website Materials for any commercial purpose or to provide a product
+  or service; or
+- remove or alter copyright, attribution, or proprietary notices.
+
+4. Trademarks and identity
+
+No permission is granted to use the names, trademarks, service marks, logos,
+trade dress, fictional settings, characters, or other brand identity of Dead
+Signal Works LLC, Meridian, or Project Meridian.
+
+5. Separate projects
+
+The Meridian engine is a separate project governed by the Mozilla Public
+License 2.0 when its source is made available under that license. References
+to Meridian in the Website Materials do not apply the MPL-2.0 to this website.
+Project Meridian game source and private production materials are not included
+in this repository and remain proprietary.
+
+6. Ownership and reservation of rights
+
+The Website Materials are proprietary to Dead Signal Works LLC. Making their
+source publicly available does not make them open source and does not grant any
+rights beyond those expressly stated in this license. All other rights are
+reserved.
+
+7. Termination
+
+The permission in Section 2 terminates automatically if you breach this
+license. On termination, you must stop using the Website Materials and delete
+copies in your possession or control, except where retention is required by
+law.
+
+8. Disclaimer of warranty and limitation of liability
+
+THE WEBSITE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
+NON-INFRINGEMENT. TO THE MAXIMUM EXTENT PERMITTED BY LAW, DEAD SIGNAL WORKS
+LLC WILL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM,
+OUT OF, OR IN CONNECTION WITH THE WEBSITE MATERIALS OR THEIR USE.
+
+For permissions beyond this license, contact Dead Signal Works LLC.

@@ -48,10 +48,16 @@ The animated Project Meridian composition is site artwork, not game footage.
 
 ## License
 
-This website and its original source, artwork, and content are proprietary to
-Dead Signal Works LLC. No permission to use, copy, modify, or distribute them
-is granted. Third-party dependencies remain subject to their own licenses. See
+This website repository is **source-available and proprietary**, not open
+source. Its public source may be inspected and an unmodified copy may be run
+locally for limited non-commercial evaluation, education, or security research.
+Modification, redistribution, deployment, commercial use, and use of Dead
+Signal Works branding are not permitted without prior written permission. See
 [`LICENSE`](LICENSE) for the full terms.
+
+The Meridian engine is a separate project governed by MPL-2.0 when its source
+is released under that license. Project Meridian’s game source and private
+production materials remain proprietary and are not included here.
 
 ## Stack
 
