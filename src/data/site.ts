@@ -7,6 +7,7 @@ export const site = {
   engineRepository: 'https://github.com/bybrooklyn/meridian',
   engineSourcePublic: false,
   engineReleaseLicense: 'MPL-2.0',
+  alchemistRepository: 'https://github.com/bybrooklyn/alchemist',
   steamWishlistUrl: null,
   discord: 'https://discord.gg/3NckH4Xtrn',
   tiktok: 'https://www.tiktok.com/@deadsignalworks',
@@ -18,6 +19,7 @@ export const footerNavigation = [
   { label: 'Press information', href: '/press/', external: false },
   { label: 'Contact', href: '/contact/', external: false },
   { label: 'Meridian engine', href: '/meridian/', external: false },
+  { label: 'Alchemist', href: '/alchemist/', external: false },
   { label: 'Discord', href: site.discord, external: true },
   { label: 'TikTok', href: site.tiktok, external: true },
 ] as const;

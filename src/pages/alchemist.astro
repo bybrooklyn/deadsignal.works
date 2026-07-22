@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InPageNav from '../components/InPageNav.astro';
+
+const repository = 'https://github.com/bybrooklyn/alchemist';
+const description = 'Alchemist is self-hosted media transcoding automation that analyzes a library, encodes only when the result is worthwhile, and explains every decision.';
+const facts = [
+  ['Purpose', 'Self-hosted media transcoding automation'],
+  ['Application', 'Rust server with a web interface'],
+  ['License', 'AGPL-3.0-or-later'],
+  ['Paid tier', 'None'],
+  ['Private feature tree', 'None'],
+  ['Platforms', 'Linux, Windows, macOS, and Docker'],
+  ['Targets', 'AV1, HEVC, and H.264'],
+  ['Hardware', 'NVIDIA, Intel, AMD, Apple, and CPU fallback'],
+  ['Copyright', 'Brooklyn Halmstad'],
+  ['Project', 'Dead Signal Works'],
+];
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Alchemist',
+  description,
+  applicationCategory: 'MultimediaApplication',
+  operatingSystem: 'Linux, Windows, macOS, Docker',
+  softwareHelp: 'https://deadsignal.works/alchemist/docs/',
+  codeRepository: repository,
+  license: 'https://www.gnu.org/licenses/agpl-3.0.html',
+  author: {
+    '@type': 'Person',
+    name: 'Brooklyn Halmstad',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Dead Signal Works LLC',
+    url: 'https://deadsignal.works/',
+  },
+};
+---
+
+<BaseLayout
+  title="Alchemist"
+  description={description}
+  currentPath="/alchemist/"
+  structuredData={structuredData}
+  socialImagePath="/alchemist/social-card.png"
+  socialImageAlt="Alchemist — self-hosted media transcoding automation"
+>
+  <section class="meridian-hero" id="overview">
+    <div class="shell meridian-hero-grid">
+      <div>
+        <p class="kicker"><span>Open source</span> / A Dead Signal Works project</p>
+        <h1>Alchemist</h1>
+        <p class="page-lede">Self-hosted media transcoding automation that encodes only when the result is worthwhile—and explains every decision.</p>
+        <p class="meridian-license-note">Copyright Brooklyn Halmstad. AGPL-3.0-or-later, with no paid tier or private feature tree.</p>
+        <div class="inline-actions">
+          <a class="action action-primary" href="/alchemist/docs/">Read the docs <span aria-hidden="true">↗</span></a>
+          <a class="action" href={repository}>View source <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <aside class="meridian-status-panel" aria-label="Alchemist project facts">
+        <p class="section-number">Alchemist / current release line</p>
+        <h2>One application. One careful job.</h2>
+        <dl>
+          <div><dt>Software</dt><dd>Rust application with a web interface</dd></div>
+          <div><dt>License</dt><dd>AGPL-3.0-or-later</dd></div>
+          <div><dt>Runs on</dt><dd>Linux, Windows, macOS, and Docker</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <InPageNav items={[
+    { label: 'Overview', href: '#overview' },
+    { label: 'Purpose', href: '#purpose' },
+    { label: 'Decisions', href: '#decisions' },
+    { label: 'Facts', href: '#facts' },
+    { label: 'Project links', href: '#project-links' },
+  ]} />
+
+  <section class="content-section shell prose-split" id="purpose">
+    <div><p class="section-number">01 / Purpose</p><h2>Transcode what is worth transcoding.</h2></div>
+    <div class="copy-stack">
+      <p class="large-copy">Alchemist scans a media library, measures what is there, and safely encodes only the files where a better result is worthwhile.</p>
+      <p>It analyzes codecs, resolution, bitrate, streams, and available hardware before it decides to transcode, remux, or skip a file. The original stays in place until the new output passes validation.</p>
+    </div>
+  </section>
+
+  <section class="content-section surface-section" id="decisions">
+    <div class="shell">
+      <div class="section-heading meridian-section-heading"><p class="section-number">02 / Decisions</p><h2>Useful automation should still tell you what it did.</h2><p>Alchemist is deliberately narrower than a visual workflow system or general file-automation suite.</p></div>
+      <div class="meridian-use-grid">
+        <article><span>01</span><h3>Analyze first.</h3><p>Codec, bitrate, resolution, stream, and hardware facts inform a deterministic plan.</p></article>
+        <article><span>02</span><h3>Protect the original.</h3><p>New output is validated before it can replace anything, and deletion remains explicit.</p></article>
+        <article><span>03</span><h3>Explain every skip.</h3><p>When a file is already efficient or cannot be processed safely, Alchemist records why.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section shell" id="facts">
+    <div class="section-heading"><p class="section-number">03 / Project facts</p><h2>What it is and where it runs.</h2></div>
+    <dl class="project-fact-sheet">
+      {facts.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
+    </dl>
+  </section>
+
+  <section class="content-section surface-section" id="project-links">
+    <div class="shell read-more-panel">
+      <div><p class="section-number">04 / Project links</p><h2>Source, releases, issues, and the full manual.</h2><p>Alchemist’s source and working history are public. The documentation is mirrored here from the same repository.</p></div>
+      <div class="stacked-actions">
+        <a class="action action-primary" href="/alchemist/docs/">Read the documentation <span aria-hidden="true">↗</span></a>
+        <a class="action" href={repository}>GitHub <span aria-hidden="true">↗</span></a>
+        <a class="action" href={`${repository}/releases`}>Releases <span aria-hidden="true">↗</span></a>
+        <a class="action" href={`${repository}/issues`}>Issues <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

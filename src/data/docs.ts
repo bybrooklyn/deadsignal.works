@@ -1,17 +1,9 @@
+import { documentationProduct, type DocsNavGroup as BaseDocsNavGroup } from './documentation';
+
 export type DocsGroupId = 'learn' | 'build' | 'systems' | 'reference';
 
-export interface DocsNavItem {
-  id: string;
-  label: string;
-  description: string;
-  href: string;
-}
-
-export interface DocsNavGroup {
+export interface DocsNavGroup extends BaseDocsNavGroup {
   id: DocsGroupId;
-  label: string;
-  description: string;
-  items: DocsNavItem[];
 }
 
 const docsRoot = '/meridian/docs';
@@ -71,3 +63,14 @@ export const docsItems = docsGroups.flatMap((group) =>
 export const docsItemById: Readonly<Record<string, (typeof docsItems)[number]>> = Object.fromEntries(
   docsItems.map((item) => [item.id, item]),
 );
+
+export const meridianDocumentation = documentationProduct({
+  id: 'meridian',
+  name: 'Meridian',
+  docsTitle: 'Meridian docs',
+  docsRoot: `${docsRoot}/`,
+  groups: docsGroups,
+  searchPlaceholder: 'Render graph, build from source, Alluvium…',
+  licenseHolder: 'Dead Signal Works LLC',
+  sourcePublic: false,
+});

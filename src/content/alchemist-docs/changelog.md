@@ -1,0 +1,725 @@
+---
+generated: true
+sourcePath: "docs/content/changelog.md"
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
+title: Changelog
+description: Release history for Alchemist.
+---
+
+## [0.3.5-rc.3] - 2026-07-05
+
+### Security and network hardening
+
+- Login rate limiting now ignores spoofable forwarded headers unless the direct
+  peer is a configured trusted proxy, then resolves the real client from the
+  right side of the `X-Forwarded-For` chain. This blocks attacker-injected
+  forwarding hops from sharing or bypassing rate-limit buckets.
+- Setup-token comparison now percent-decodes query tokens and compares them in
+  constant time.
+- Unauthenticated login failures no longer expose raw database errors.
+- Notification delivery now applies the existing SSRF and local-address policy
+  to SMTP targets, not only webhooks.
+- Notification and log redaction now covers more Discord, Slack, GitHub,
+  Telegram, query-string, and path-embedded secret forms before they reach
+  persisted logs or error output.
+
+### Transcoding and data safety
+
+- Output promotion is now safer on Windows by using a backup-rename-restore
+  flow, reducing the chance of losing either the existing destination or the new
+  encode if replacement fails.
+- Per-job temporary output filenames now match orphaned-temp cleanup and remain
+  unique across colliding output paths.
+- Scan buffering now deduplicates colliding output paths before enqueueing.
+- Jobs that are canceled while finalization is racing now keep a consistent job
+  state.
+- Zero-byte encoded outputs are always rejected, including configurations that
+  bypass quality gates.
+- VMAF checks now snapshot configuration before running so they do not hold
+  shared config readers during long analysis work.
+- FFmpeg subprocesses are killed on drop, and orchestrator cancel bookkeeping
+  no longer has the cancel-channel/pending-cancel lock-order deadlock.
+- FFmpeg stderr truncation now respects character boundaries, avoiding a panic
+  on non-ASCII stderr.
+
+### FFmpeg and hardware behavior
+
+- FFmpeg input and output paths are now passed as `OsStr`, preserving non-UTF-8
+  paths on supported platforms.
+- Subtitle filtergraph paths now escape single quotes correctly.
+- NVENC constant-quality encodes now include `-b:v 0`, preventing an unintended
+  bitrate cap.
+- QSV lookahead depth now uses `-look_ahead_depth`, and AV1 QSV configuration is
+  guarded by detected support.
+
+### Database, filesystem, and settings
+
+- Added indexes for `jobs.output_path` and `logs.job_id`, improving
+  scan-collision checks and per-job log retrieval.
+- SQLite `VACUUM INTO` backup paths now escape single quotes correctly.
+- Daily stats now use the correct SQLite modifier order for local-day
+  boundaries.
+- Runtime settings writes now serialize config read-modify-write operations to
+  prevent lost updates.
+- Schedule validation now rejects equal start and end times.
+- Windows device-id and disk-space handling now normalizes verbatim and UNC
+  paths so drive grouping and free-space checks do not fail open.
+- Filesystem browsing now bounds media-hint directory walks and extends the
+  sensitive-path denylist for dotfiles, `.ssh`, and system paths such as `/var`.
+
+### Release verification
+
+- Release tests now align with the hardened trusted-proxy behavior and schema
+  version 18 so the full local gates pass against the current migrations.
+
+## [0.3.5-rc.2] - 2026-07-04
+
+### Docker GPU diagnostics and permissions
+
+- Docker images now include `vainfo`, matching the Intel/AMD troubleshooting
+  docs and making VAAPI validation possible inside the container. This fixes
+  the reported `vainfo: command not found` failure when debugging Intel GPU
+  passthrough in the published container. (#6)
+- `PUID`/`PGID` startup now preserves Docker `group_add` supplemental groups
+  when dropping privileges, so unprivileged containers keep access to
+  `/dev/dri` render nodes. This supports the common self-hosted pattern of
+  running as a media user while adding the host's numeric render GID.
+- Docker runtime validation is now enforced in CI and release smoke checks:
+  Docker PR builds watch `Dockerfile.runtime`, `entrypoint.sh`, and the runtime
+  contract script, then smoke test `vainfo`, `setpriv`, and VAAPI/QSV/NVENC
+  encoder presence in the built image.
+- `just docker-runtime-contract` now runs the same local runtime-image smoke
+  with a temporary build context, including `PUID`/`PGID` supplemental-group
+  preservation, so Docker image drift can be caught before release.
+- Docker quick-start docs now explain the container-native `/app/config` and
+  `/app/data` paths first, then show how `host_path:container_path` bind mounts
+  persist those directories on the host. Examples such as
+  `/data/alchemist/config:/app/config` now explicitly mean "host storage at
+  `/data/alchemist/config`, visible inside the container at `/app/config`."
+
+### Startup safety
+
+- Existing but invalid `config.toml` files now fail startup instead of falling
+  back to defaults. This prevents a malformed config from being silently
+  replaced by default settings the next time the UI saves configuration.
+- Missing configs still enter setup mode in server mode, so first-run Docker and
+  binary installs continue to work normally.
+
+### Security and dependencies
+
+- `cargo audit` is now part of `just release-verify`, and the lockfile updates
+  `quinn-proto` to the fixed stream-reassembly release, `time` to the fixed
+  stack-exhaustion release, and `anyhow` past its downcast warning.
+- `sqlx` now disables default features and enables only the SQLite stack
+  Alchemist actually uses, so the MySQL backend is never compiled and
+  `cargo tree -i rsa` reports the crate is absent from the build graph.
+- The one remaining advisory, RUSTSEC-2023-0071 (Marvin timing sidechannel in
+  `rsa`), has no fixed release. `rsa` is only an optional dependency of the
+  unused `sqlx-mysql` backend and stays in `Cargo.lock` purely because Cargo
+  records optional dependencies of graph members even when their feature gate is
+  off. It is never compiled or reached, so it is documented and ignored in
+  `.cargo/audit.toml` with that rationale rather than left as a false alarm.
+- The Rust MSRV is now 1.88 because the fixed `time` release requires it.
+
+### Release process
+
+- Release workflow tag validation now normalizes an optional leading `v` before
+  comparing against `VERSION`, so both `v0.3.5-rc.2` and `0.3.5-rc.2` match the
+  same release version.
+- The release workflow now triggers on numeric version tags as well as `v*`
+  tags.
+- `scripts/bump_version.sh` now updates only git-tracked `package.json` files,
+  so ignored local tool state such as `.mimocode/package.json` cannot interrupt
+  a version bump after only some files have been changed.
+
+### Transcoding and fallback behavior
+
+- Hardware encoder open failures that self-heal by retrying on CPU now record
+  the failed hardware attempt in the job attempt history. Users can see that a
+  GPU path was tried and why the final encode ran on CPU.
+- Encoder selection now prefers preserving the requested codec on CPU before
+  downgrading to a different GPU codec. For example, an HEVC request on a host
+  with only H.264 hardware encode support now uses `libx265` when CPU fallback
+  is available instead of silently producing H.264.
+- If CPU fallback is unavailable, codec-downgrade GPU fallback remains
+  available, preserving the existing escape hatch for hardware-only setups.
+
+### UI and self-hosted reliability
+
+- Optional saved preferences, such as saved job views before any views exist,
+  now return an empty value instead of a 404. This removes noisy browser errors
+  during normal first-use states.
+- The setup wizard now validates manually typed library paths with the server
+  before adding them, surfacing missing or unreadable folders immediately
+  instead of letting the first scan find nothing.
+- The offline banner now checks `/api/health` to determine whether the
+  Alchemist server is reachable, rather than relying on browser WAN connectivity
+  state. This avoids false "offline" banners on LAN/self-hosted deployments.
+- Web fonts are now self-hosted through `@fontsource`, matching the app's
+  self-hosted CSP and keeping the UI functional without Google Fonts access.
+- Completed job details now round average bitrate display values to whole kbps
+  for cleaner presentation.
+
+### Developer workflow
+
+- `just clean` now removes more generated artifacts across docs, web builds,
+  web e2e runtime output, native macOS artifacts, Jellyfin plugin build output,
+  and conditional WhyTho build targets without tracking the WhyTho workspace.
+- Resolved new `clippy` lints (`collapsible_if`, `manual_is_multiple_of`) that
+  the current stable toolchain enforces, keeping the `-D warnings` CI gate green
+  without changing runtime behavior.
+
+## [0.3.5-rc.1] - 2026-06-24
+
+### Reliability: hardware encoder failures now self-heal
+
+- **VideoToolbox (and any hardware encoder) that fails to open its session now falls back
+  to CPU instead of failing the job.** On macOS, a daemon running without a logged-in GUI
+  session (LaunchDaemon, SSH, sandbox) cannot create a VideoToolbox session, so every
+  encode died with `Could not open encoder … -22` and the job was marked failed as an
+  opaque "Transient" error with no recovery. Three fixes: (1) the hardware probe is now
+  hardware-only — it no longer passes `-allow_sw 1`, so detection matches the real encode
+  command and VideoToolbox is not selected when no hardware session can open; (2) on an
+  encoder-open failure the pipeline re-plans onto the CPU encoder (libx265/libx264/SVT-AV1)
+  and runs once more before giving up; (3) encoder-open failures are classified as
+  permanent (`EncoderUnavailable`), not transient, so they stop retrying and surface an
+  actionable, documented reason.
+
+### Error codes and a public error reference
+
+- **Every error now carries a stable code and a docs link.** Job failures, decisions, and
+  the typed `AlchemistError` family resolve to a documented code, surfaced in API
+  `application/problem+json` responses (`code` + `docs_url`), in the job-detail failure
+  panel as a "Learn more" link, and in the logs. A new
+  [Error reference](https://deadsignal.works/alchemist/docs/errors/) documents the cause and fix for
+  every code.
+- Bounded automatic retry with capped backoff for genuinely transient failures (transient
+  IO, a full disk that may clear); deterministic failures (corrupt media, encoder-open,
+  planner faults) fail fast instead of looping. The opaque "Unknown error: Transient" log
+  line is gone.
+
+### Logging
+
+- **Logs are now written to a daily-rotating file** (`~/.config/alchemist/logs/alchemist.log`,
+  overridable via `ALCHEMIST_LOG_DIR`) alongside stdout, so they survive restarts and are
+  downloadable from the Logs page (and `GET /api/logs/download`).
+- Every job log line carries its `job_id` via a tracing span, so a failure is traceable
+  end-to-end across analyze → plan → encode → finalize.
+- **Secrets are redacted before logs are stored** — API tokens, `Authorization` headers,
+  session cookies, and Discord/Slack webhook tokens are masked.
+
+### Auto-updater robustness
+
+- **The self-updater now takes a complete pre-update backup** — both an online database
+  snapshot and a copy of `config.toml` — and prunes to the five most recent backup sets so
+  the directory does not grow unbounded.
+- **Pre-flight checks fail fast**: the updater verifies there is enough free disk space for
+  the download and extracted binary and that the install directory is writable *before*
+  draining jobs, taking a backup, or downloading anything (`409`/`507` with a clear
+  message).
+- **The binary swap is now an atomic, same-filesystem rename with a co-located rollback.**
+  The new binary is staged beside the current one (the download lives in a temp dir that
+  may be on another filesystem) and swapped with `mv -f`; a rollback copy is kept next to
+  the binary so an on-disk restore is also atomic. If the updated binary exits during
+  startup, the helper restores the previous one and relaunches.
+
+### Convert and UI polish
+
+- **Large Convert uploads no longer abort at 30 seconds.** Uploads stream via a dedicated
+  request with no client timeout and a real progress bar; `apiFetch` gained a per-call
+  `timeoutMs` override. The Convert status poll now stops once a job reaches a terminal
+  state instead of polling forever.
+- "Save view" on the Jobs page uses a themed, focus-trapped dialog with inline validation
+  instead of a native browser prompt.
+- **Page sections survive component errors.** Convert, Settings, Logs, Statistics, and
+  Intelligence are wrapped in error boundaries, so a single failing island shows an inline
+  error with a reload action instead of a blank page. An offline banner appears when the
+  browser loses connectivity.
+- **Accessibility and toast polish.** Settings navigation is keyboard-operable (arrow keys
+  with a roving tabindex and a real tablist), dialogs trap focus and mark the rest of the
+  app inert, and toasts pause auto-dismiss while hovered or focused.
+
+### macOS app
+
+- **Manage API tokens and notification targets natively.** The macOS app can create and
+  revoke API tokens and add, test, and remove notification targets (Discord, Gotify, ntfy,
+  webhook, Telegram) without leaving the app, and routes Settings to the standard macOS
+  Settings window.
+
+## [0.3.4] - 2026-06-22
+
+### Docker & hardware acceleration
+
+- **Intel, AMD, and NVIDIA hardware encoding now works in the Docker image.** The bundled
+  FFmpeg was a generic static build compiled without `--enable-vaapi` / `--enable-libvpl` /
+  `--enable-nvenc`, so every GPU probe failed with `Unknown encoder` and silently fell back to
+  CPU — even when the host's `vainfo` reported a healthy driver. The image now ships
+  **jellyfin-ffmpeg**, which bundles the Intel (VAAPI + QSV via oneVPL), AMD (VAAPI), and
+  NVIDIA (NVENC) encoders plus the matching runtime. Passing `/dev/dri` (or the NVIDIA
+  Container Toolkit) into the container is now enough. (#4)
+- Hardware detection now distinguishes "no GPU" from "GPU found but this FFmpeg build can't use
+  it." When a render node is discovered but every probe fails with a missing-encoder error, the
+  startup logs and **Settings → Hardware** say so explicitly and point at the fix, instead of a
+  bare "NO GPU DETECTED."
+- Corrected the GPU-passthrough docs. The old examples told everyone to add
+  `group_add: [video, render]`, which crashes the container on start (`unable to find group
+  render` — that group name doesn't exist inside it) and is unnecessary for the default root
+  user. The docs now explain device permissions: the default root container needs only the
+  device passed in, and unprivileged (`PUID`/`PGID`) runs use the host's **numeric** render GID.
+
+### Licensing
+
+- Relicensed from GPL-3.0 to **AGPL-3.0-or-later**. Alchemist's web UI, API, and
+  daemon are network-facing, so AGPL section 13 now requires anyone running a
+  modified Alchemist as a network service to offer that modified source to its
+  users — closing the hosted-fork gap GPL-3.0 left open. Nothing changes for
+  self-hosters: still free, no paid tier, no license key, no phone-home. The
+  `LICENSE` file, `Cargo.toml`, Docker/Homebrew packaging metadata, web and macOS
+  About screens, and all documentation were updated to AGPLv3.
+
+### Native macOS app
+
+Closes the 2026-06-11 `native/mac` audit sweep (two P1, five P2, two RG, two UX, one
+TD, one FG). The whole sweep is verified by `just mac-check`.
+
+- Live updates work again. SSE frame parsing moved off `URLSession.AsyncBytes.lines`
+  (which silently drops the blank-line frame delimiters) onto raw-byte framing inside
+  `AlchemistSSEParser`, so progress, status, decision, log, engine, and config events
+  reach the UI without a manual refresh. (P1-12)
+- The bundled daemon no longer freezes. Its stdout/stderr stream to
+  `~/Library/Application Support/Alchemist/daemon.log` instead of undrained pipes that
+  blocked the daemon once the 64 KB buffer filled; the log path appears in System and
+  its tail surfaces on start/crash failures. (P1-13)
+- Daemon lifecycle is supervised: it is terminated when the app quits (no more orphans),
+  a `terminationHandler` reports crashes, and bundled mode binds the private port 41737
+  with a `/api/ready` probe that adopts an already-running daemon and confirms a real
+  bind before reporting Running — instead of trusting whatever owns port 3000. (P2-36,
+  P2-40)
+- Sessions persist across launches. A single readiness-polling bootstrap routine
+  replaces three divergent startup paths and a 700 ms guess; the keychain session token
+  is dropped only on a real authentication rejection, not on a cold-launch connection
+  race. (P2-37, TD-13)
+- The SSE reconnect state machine reports honest state, backs off correctly, and stops
+  retrying a dead session (presenting login) instead of hammering every ~2 seconds.
+  Jobs tab, sort, direction, and page changes now refetch immediately. (P2-38, P2-39)
+- Smaller fixes: a dedicated cookie-free `URLSession` (RG-12), the open job inspector
+  refreshes on status change (RG-13), queue shortcuts rebound to ⌘⌥S/⌘⌥P off
+  Spotlight-owned ⌘Space (UX-6), and cancelled jobs notify "Encode cancelled" with a
+  "Job #id" fallback for off-page jobs (UX-7).
+- Remote connection mode is fully wired: switching modes manages the bundled daemon,
+  and in remote mode local-path import and drop-to-enqueue are disabled (only
+  upload-based Convert reaches the server). (FG-6)
+
+## [0.3.4-rc.2] - 2026-06-06
+
+Begins the focused 0.3.4 trust and adoption cycle. Stable promotion requires a
+seven-day RC soak without a new P1/P2 issue.
+
+### Reliability & Safety
+
+- Login and global rate limiting, LAN checks, and trusted-proxy checks now share
+  one normalized client-IP resolver. Forwarded headers remain accepted only
+  from trusted peers, proxied clients receive independent login buckets, and
+  IPv4-mapped IPv6 addresses are normalized consistently. (P2-33, RG-10)
+- Large library scans no longer stall the UI. The SQLite pool previously used a
+  single shared connection, which serialized every request — including the
+  per-request auth session lookup — behind the scan's writes; the pool now
+  allows several connections. The scan also writes jobs in chunked transactions
+  and reads file settings once per scan instead of once per file, and the jobs
+  view coalesces SSE-driven refreshes into a throttled refetch.
+
+### Engine
+
+- Disk-space guardrail: before starting a job, the engine checks free space on
+  that job's output filesystem and holds queued jobs (they stay queued and
+  retry) when it is below `system.min_free_space_gb` (default 10 GiB; set `0`
+  to disable). The hold and reason show in the engine status badge, and an
+  optional `disk.space_low` notification fires when the guardrail engages. The
+  check fails open when free space cannot be determined. (AUTO-3)
+
+### Distribution
+
+- GitHub releases now populate their body from the matching changelog section.
+- A post-publication Release Smoke workflow verifies version output, `selftest`,
+  isolated server readiness, published Docker images, and Jellyfin plugin
+  loading across available native runners.
+- The recommended Docker quick start now uses the stable `latest` image.
+
+### Jellyfin
+
+- The plugin now targets Jellyfin `10.11.10` and is versioned `0.3.4.0`.
+- The canonical package and Jellyfin plugin identifier is
+  `dev.bybrooklyn.alchemist`.
+- RC and stable releases attach `dev.bybrooklyn.alchemist_0.3.4.0.zip`, MD5,
+  and SHA-256 assets. Stable releases additionally update the dedicated
+  Jellyfin repository feed; RC releases leave the stable feed unchanged.
+- Plugin tests cover scoped connection checks, dry-run enqueue behavior, real
+  enqueue requests, event-stream access, path translation, completion event
+  parsing, and containing-directory selection.
+
+### Docs
+
+- Corrected the AV1 hardware-encode support matrix across the documentation.
+  AV1 *encode* requires NVIDIA RTX 40 (Ada), AMD RDNA 3, or Intel Arc / Meteor
+  Lake; no Apple Silicon has an AV1 hardware encoder, so macOS encodes AV1 on
+  the CPU (SVT-AV1). HEVC and H.264 support were already accurate and unchanged.
+
+## [0.3.3] - 2026-06-03
+
+Promotes 0.3.3-rc.4 to stable.
+
+### Reliability & Safety
+
+- Batch delete/restart now de-duplicates the requested ids and verifies every id is eligible (not active, archived, or missing) before mutating, so a partially-applicable batch can no longer half-commit — preventing orphaned resume sessions on delete and silent requeues on restart. (P2-34)
+- The system self-test now runs a real ffprobe → plan → encode pipeline, exposed both as `POST /api/system/selftest` and the new `alchemist selftest` CLI subcommand; the HTTP path is single-flighted and returns `429 SELFTEST_BUSY` while one is already in progress. (P2-35)
+- The self-test "Write Temp" failure path now cleans up its temporary directory instead of leaking it. (RG-11)
+- Auth middleware now returns `500 AUTH_BACKEND_UNAVAILABLE` when a session or API-token lookup fails at the database layer, instead of masking a backend outage as a `401`.
+- The jobs table endpoint rejects unknown `status` filter tokens with `400 INVALID_JOB_STATUS_FILTER` rather than silently ignoring them.
+- Gotify daily-summary delivery now posts to `<server>/message`.
+
+### Docs
+
+- Force the patched `qs` 6.15.2 transitive resolution used by Docusaurus' `webpack-dev-server` tooling, keeping the release audit clean.
+
+### Known Issues
+
+- Login rate limiting keys on the direct socket peer IP. Behind a TLS-terminating reverse proxy this can rate-limit all clients together; configure `trusted_proxies` accordingly. Tracked as P2-33; fix planned for the next release.
+- IPv4-mapped IPv6 peers (`::ffff:a.b.c.d`) are not normalized in LAN / trusted-proxy classification, which can affect dual-stack hosts. Tracked as RG-10.
+
+## [0.3.3-rc.4] - 2026-05-19
+
+### Performance & Reliability
+
+- Stats top-reason trends now use dedicated indexes on `decisions(created_at, action)` and `job_failure_explanations(updated_at)` (schema 16), preventing full table scans on the Statistics page that could leave it loading indefinitely on large libraries.
+- The Statistics page now uses `Promise.allSettled` so a slow or failed endpoint never freezes the whole view; partial results render alongside a visible error state.
+- The media analyzer now emits a typed factual report with deterministic labels and optional metrics for BPP density, remux-like density, heavy/lossless audio, image/styled subtitles, HDR/color metadata, Dolby Vision side data, interlacing, VFR hints, and missing metadata warnings. This is analyzer-only evidence for future explanations and Library Intelligence; planner decisions are unchanged.
+- Analyzer metadata now records source chapter counts, and finalization logs a non-fatal job warning if the promoted output has fewer chapters than the source.
+
+### Frontend Platform
+
+- Frontend dependencies were refreshed for the Astro 6 / React 19 / Tailwind 4 generation. Tailwind now uses the official Vite plugin, Vite is allowed to resolve to Astro 6's required major version, and Recharts tooltip typings were updated for Recharts 3.
+- Docs dependencies now force the patched `ws` 8.20.1 transitive resolution used by Docusaurus' webpack tooling, keeping the release audit clean.
+
+### UX & UI
+
+- Selected color profile persists across all pages and survives navigation. A first-paint script reads a localStorage cache, and a global `ThemeBootstrap` island syncs the server preference and writes it back to the cache.
+- About dialog motion now matches the System modal and animates out of the About button position when triggered from the header.
+- `AboutDialog` `titleCase` now tolerates missing channel/install-type/verification fields instead of crashing on undefined.
+- Jobs now support first-pass keyboard shortcuts: `/` focuses job search, `?` opens the shortcut reference, and `Esc` closes it without intercepting text-entry fields.
+- Jobs search now matches decision and failure explanation text in addition to file paths, making skip/failure reasons discoverable from the table search box.
+- The mobile Dashboard now prioritizes an Active Now panel with active job progress and hides the desktop stats strip on narrow screens.
+- The Dashboard now includes a queue-wide ETA panel backed by recent completed encode samples and the current concurrency limit.
+- Statistics now includes a Storage reclaimed panel that keeps the raw saved bytes visible and adds an approximate 4 GB movie equivalent.
+- Dense job timestamps now use a shared relative-time display with exact local and UTC timestamps available on hover/focus.
+- Job rows now expose the existing action menu on right-click, including a Copy input path action for power-user workflows.
+- File Settings now shows a conservative Impact panel that summarizes staged output naming, output root, replace-policy, and delete-source changes before save.
+- Failure explanations now use a reusable FFmpeg stderr classifier for common disk-full, NVENC resource, pixel-format, corrupt-input, and encoder-parameter signatures.
+
+### Operations
+
+- Schema migration coverage now asserts schema 16 and verifies the trend indexes against the v0.2.5 upgrade fixture.
+- Dashboard e2e coverage was refreshed for the About dialog payload shape and hardened version selectors.
+- Database backup restore planning now has a dry-run validation endpoint that inspects uploaded `.db.gz` snapshots without mutating the live database.
+- Direct binary users can run `--install` or `--install-directory <PATH>` to copy the current executable into a target install directory.
+- The raw config editor now has a no-persistence validation endpoint and UI preview with redacted summary counts and high-risk warnings.
+- Watch Folders plan preview is covered end-to-end and exposes an accessible preview action per folder.
+
+### Source-Device Engine Mode
+
+- Source-device tracking (PERF-2, schema 14) now drives the Balanced engine mode: a second concurrent job is never claimed from the same physical disk while one is in flight.
+
+### Incremental Scan
+
+- Incremental scan (PERF-3, schema 15) records `watch_dirs.last_scanned_at` and a `media_probe_cache.file_id` identity hint so unchanged files skip re-analysis when path, size, mtime, and inode/volume index all match.
+
+### Data Safety
+
+- `POST /api/jobs/clear-history?status=…` now rejects or refuses to delete when the filter parses to no recognized values; previously a mistyped query parameter could wipe the entire jobs table.
+
+## [0.3.2-rc.2] - 2026-04-29
+
+### Integrations & Automation
+
+- Native update checks now support stable, RC, and nightly channels with signed release manifests, direct-binary install eligibility, drain-before-install behavior, and package-manager guidance for Docker/Homebrew/AUR/Windows/source installs.
+
+### Performance & Startup
+
+- Hardware detection cache: successful hardware probes are persisted by OS, architecture, FFmpeg/FFprobe versions, hardware settings, and cache schema version so repeat boots can reuse a valid detection result immediately.
+- Hardware detection now refreshes runtime state and the probe log after background detection completes, avoiding a blocking startup path while still updating the UI when hardware changes.
+- Database migration coverage now verifies schema version 13, including the `hardware_detection_cache` table, ARR token scope storage, and the `media_probe_cache` table against the v0.2.5 upgrade fixture.
+
+### Conversion & Jobs
+
+- Convert preview now returns a structured source/output/estimate summary alongside the generated FFmpeg command so the UI can explain the planned operation before queueing it.
+- Job queue stress coverage now verifies a large queued set can be claimed without duplicate IDs or skipped rows.
+- Failure coverage now checks FFmpeg process crashes surface as job failures with logs and no leftover output artifact.
+
+### API & Documentation
+
+- Additional settings, schedule, metrics, readiness, SSE, and ARR webhook failure paths now use the structured `{ error: { code, message } }` API envelope.
+- Documentation was refreshed for the current 0.3.2 state: hardware caching, schema version 13, notification quiet hours, ARR ingress, Convert preview summaries, runtime backup, and engine lifecycle semantics.
+- Comparison and open-source docs now make the GPLv3/no-paid-tier/no-license-key positioning explicit and contrast it with official competitor pricing, license, server/node, worker, and flow/plugin documentation.
+
+## [0.3.2-rc.1] - 2026-04-24
+
+### Integrations & Automation
+
+- ARR webhook ingress: Sonarr/Radarr Download webhooks can now enqueue imported media through `POST /api/webhooks/arr`.
+- ARR-only API tokens: new `arr_webhook` token scope limits webhook credentials to the ARR ingress route.
+- ARR path translations: optional `system.arr_path_translations` maps container paths to Alchemist-visible host paths before enqueue.
+- Quiet hours for notifications: notification settings now expose local start/end quiet-hour controls and suppress non-failure events during the window.
+
+### Performance & Reliability
+
+- FFprobe result cache: analyzer results are cached by input path, mtime, size, and ffprobe version to avoid repeated probes for unchanged media.
+- Database migration coverage now verifies schema version 12, ARR token scope storage, and the `media_probe_cache` table against the v0.2.5 upgrade fixture.
+
+### API & Security
+
+- API error schema v1: high-traffic auth, middleware, settings, system, jobs, and ARR webhook paths now return structured `{ error: { code, message } }` responses.
+- API-token docs and OpenAPI now include the `arr_webhook` access level.
+
+### UX & Documentation
+
+- Setup sidebar now shows the full disabled app navigation during first-run setup, including Intelligence and Convert.
+- Astro content collections now back the first help-content surface, with Quality settings linking to a VMAF quality-gate help page.
+- Configuration, database schema, web-interface, and API docs were updated for ARR webhooks, quiet hours, and probe caching.
+
+## [0.3.1] - 2026-04-21
+
+Consolidates the 0.3.1-rc.1 through 0.3.1-rc.5 release candidates and the
+post-rc.5 audit remediation work.
+
+### Reliability & Stability
+
+- Segment-based encode resume: interrupted jobs persist resume sessions and completed segments so restart continues without discarding work.
+- Notification target reads/writes preserve the additive migration path, tolerate legacy shapes, and avoid duplicate-delete projection bugs.
+- Daily summary delivery retries safely after transient failures and avoids duplicate sends across restart by persisting the last successful day.
+- Completed-job detail fails closed on database errors instead of returning partial `200 OK`; encode stat duration fallback uses encoded output, not source.
+- One-click SQLite backup: runtime settings can now download a consistent gzip-compressed database snapshot via SQLite's online backup path.
+- Login now returns server errors for real database failures; duplicate notification/schedule rows no longer disappear together from a single delete.
+
+### Jobs & UX
+
+- Manual enqueue: the jobs UI supports enqueueing a single absolute file path through the same backend dedupe and output rules as library scans.
+- Queued-job visibility: job detail exposes queue position and processor blocked reasons.
+- Attempt-history surfacing: job detail shows encode attempt history with outcome, timing, and captured failure summary.
+- File-history grouping: attempt history is now grouped into distinct runs so retries, reruns, and requeues remain legible in the detail modal.
+- `JobManager` refactor ships with dedicated controller/dialog helpers and tighter SSE reconciliation so filtered tables and open modals stay aligned with backend truth.
+- Intelligence actions: remux recommendations and duplicate candidates are actionable directly from the Intelligence page.
+- Shift-range selection: holding `Shift` while clicking job checkboxes selects the full range between the anchor row and the clicked row.
+
+### Notifications
+
+- Native `ntfy` target support: configure server URL, topic, and optional access token directly from notification settings instead of routing through a generic webhook.
+
+### Conversion Workflow
+
+- Single-file upload/convert workflow with configurable upload size cap (`conversion_upload_limit_gb`, default 8 GB).
+- Converted-download retention is configurable (`conversion_download_retention_hours`, default 1, range 1-24).
+
+### Security & Audit Remediation
+
+- Backend database layer split from a single `db.rs` into the `src/db/` submodule (config, conversion, events, jobs, mod, stats, system, types) to reduce the blast radius of schema or query changes.
+- Additional audit findings addressed across `src/server/` handlers.
+- Satisfy newer GitHub clippy lints and CI clippy strictness (`-D clippy::unwrap_used`, `-D clippy::expect_used`).
+
+### Documentation
+
+- Full docs SEO overhaul: frontmatter (title/description/keywords), JSON-LD SoftwareApplication schema, sitemap, robots.txt, and OG social card.
+- New pages: Alchemist for Jellyfin, Open Source, AV1 transcoding, Migrating from Tdarr, and alternatives hub with Alchemist vs Tdarr / Alchemist vs FileFlows comparisons.
+- New troubleshooting subpages: NVENC not detected, VAAPI not detected, Jellyfin direct-play failing.
+- Updated configuration-reference, database-schema, architecture, and web-interface docs to match the current codebase.
+
+## [0.3.1-rc.5] - 2026-04-16
+
+### Reliability & Stability
+
+- **Segment-based encode resume** — interrupted encode jobs now persist resume sessions and completed segments so restart and recovery flows can continue without discarding all completed work.
+- **Notification target compatibility hardening** — notification target reads/writes now preserve the additive migration path, tolerate legacy shapes, and avoid duplicate-delete projection bugs in settings management.
+- **Daily summary reliability** — summary delivery now retries safely after transient failures and avoids duplicate sends across restart boundaries by persisting the last successful day.
+- **Job-detail correctness** — completed-job detail loading now fails closed on database errors instead of returning partial `200 OK` payloads, and encode stat duration fallback uses the encoded output rather than the source file.
+- **Auth and settings safety** — login now returns server errors for real database failures, and duplicate notification/schedule rows no longer disappear together from a single delete action.
+
+### Jobs & UX
+
+- **Manual enqueue flow** — the jobs UI now supports enqueueing a single absolute file path through the same backend dedupe and output rules used by library scans.
+- **Queued-job visibility** — job detail now exposes queue position and processor blocked reasons so operators can see why a queued job is not starting.
+- **Attempt-history surfacing** — job detail now shows encode attempt history directly in the modal, including outcome, timing, and captured failure summary.
+- **Jobs UI follow-through** — the `JobManager` refactor now ships with dedicated controller/dialog helpers and tighter SSE reconciliation so filtered tables and open detail modals stay aligned with backend truth.
+- **Intelligence actions** — remux recommendations and duplicate candidates are now actionable directly from the Intelligence page.
+
+## [0.3.1-rc.3] - 2026-04-12
+
+### New Features
+
+#### Job Management Refactor
+- **Componentized Job Manager** — extracted monolithic `JobManager.tsx` into a modular suite under `web/src/components/jobs/`, including dedicated components for the toolbar, table, and detail modal.
+- **Enhanced Job Detail Modal** — rebuilt the job detail view with better loading states, smoother transitions, and improved information hierarchy for analysis, decisions, and failure reasons.
+- **Job SSE Hook** — unified job-related Server-Sent Events logic into a custom `useJobSSE` hook for better state management and reduced re-renders.
+
+#### Themes & UX
+- **Midnight OLED+** — enhanced the `midnight` theme with true-black surfaces and suppressed decorative gradients to maximize OLED power savings.
+- **Improved Toasts** — toast notifications now feature a high-quality backdrop blur and refined border styling for better visibility against busy backgrounds.
+
+#### Reliability & Observability
+- **Engine Lifecycle Specs** — added a comprehensive Playwright suite for validating engine transitions (Running -> Draining -> Paused -> Stopped).
+- **Planner & Lifecycle Docs** — added detailed technical documentation for the transcoding planner logic and engine state machine.
+- **Encode Attempt Tracking** — added a database migration to track individual encode attempts, laying the groundwork for more granular retry statistics.
+
+#### Hardware & Performance
+- **Concurrency & Speed Optimizations** — internal refinements to the executor and processor to improve hardware utilization and address reported speed issues on certain platforms.
+- **Backlog Grooming** — updated `TODO.md` with a focus on validating AMF and VAAPI AV1 hardware encoders.
+
+## [0.3.1-rc.1] - 2026-04-08
+
+### New Features
+
+#### Conversion & Library Workflows
+- **Experimental Conversion / Remux page** — upload a single file, inspect streams, preview the generated FFmpeg command, run a remux/transcode job through Alchemist, and download the result when complete.
+- **Expanded Library Intelligence** — duplicate detection now sits alongside storage-focused recommendation sections for remux-only opportunities, wasteful audio layouts, and commentary/descriptive-track cleanup candidates.
+
+#### Authentication & Automation
+- **Named API tokens** — create bearer tokens from Settings with `read_only` or `full_access` access classes. Tokens are only shown once at creation time and stored server-side as hashes.
+- **OpenAPI contract** — hand-maintained OpenAPI spec added alongside expanded human API docs for auth, token management, and update-check behavior.
+
+#### Notifications
+- **Provider-specific notification targets** — notification settings now use provider-specific configuration payloads instead of the old shared endpoint/token shape.
+- **Provider expansion** — Discord webhook, Discord bot, Gotify, generic webhook, Telegram, and SMTP email targets are supported.
+- **Richer event model** — notification events now distinguish queue/start/completion/failure plus scan completion, engine idle, and daily summary delivery.
+- **Daily summary scheduling** — notifications include a global `daily_summary_time_local` setting and per-target opt-in for digest delivery.
+
+#### Deployment & Distribution
+- **Windows update check** — the About dialog now checks GitHub Releases for the latest stable version and links directly to the release download page when an update is available.
+- **Distribution metadata generation** — in-repo Homebrew and AUR packaging templates plus workflow rendering were added as the foundation for package-manager distribution.
+
+### Documentation
+- **Config path clarity** — docs now consistently describe `~/.config/alchemist/config.toml` as the default host-side config location on Linux/macOS, while Docker examples still use `/app/config/config.toml` inside the container.
+- **Backlog realignment** — the backlog was rewritten around current repo reality, marking large newly implemented surfaces as “Implemented / In Progress” and keeping the roadmap automation-first.
+
+## [0.3.0] - 2026-04-06
+
+### Security
+- Fixed a critical bug where a config parse failure on a configured instance would re-enable unauthenticated setup endpoints (filesystem browse, settings bundle) for any network client.
+- Session cookies are no longer marked `Secure` by default, which was breaking login over plain HTTP/LAN. Opt in with `ALCHEMIST_COOKIE_SECURE=true` for reverse-proxy deployments.
+- `/api/fs/*` filesystem browsing is now restricted to loopback connections only during the initial setup flow.
+- Proxy header handling hardened with explicit trust configuration for reverse-proxy deployments.
+
+### New Features
+
+#### Library & Encoding
+- **Per-library profiles** — each watch folder gets its own transcoding profile. Four built-in presets (Space Saver, Quality First, Balanced, Streaming) are ready to use or customize.
+- **Container remuxing** — files already in the target codec but wrapped in MP4/MOV are remuxed to MKV losslessly, skipping a full re-encode.
+- **Subtitle sidecar extraction** — text-based subtitle tracks (SRT, ASS, VTT) can be extracted as separate files alongside the output rather than muxed in.
+- **Stream rules** — strip audio tracks by title keyword (e.g. commentary tracks), filter by language code, or keep only the default audio track.
+- **VMAF quality gating** — encodes scoring below a configurable threshold are rejected and the source is preserved.
+- **Library Intelligence** — duplicate detection surfaces files with matching stems across the library.
+- **Library Doctor** — health scanning detects corrupt or broken files directly from System Settings.
+- **Mirrored output root** — write transcoded files to a separate directory tree that mirrors the source structure, rather than alongside the source.
+
+#### Job Management
+- **Skipped tab** — dedicated tab for skipped jobs with structured skip reasons.
+- **Archived tab** — cleared completed jobs are preserved in an Archived tab rather than disappearing permanently.
+- **Sort controls** — sort the job list by last updated, date added, file name, or file size.
+- **Per-job priority** — promote individual jobs up the queue from the job detail panel.
+- **Retry countdown** — failed jobs waiting to retry show "Retrying in 47m", updated live every 30 seconds.
+- **Structured skip and failure explanations** — skip reasons and failure summaries are stored as structured payloads with a code, plain-English summary, measured values, and operator guidance; surfaced in the job detail panel before the raw FFmpeg log.
+
+#### Engine Control
+- **Engine runtime modes** — Background (1 job), Balanced (half CPU count, capped at 4), and Throughput (half CPU count, uncapped). Manual concurrency and thread overrides available in the Advanced panel.
+- **Drain mode** — stop accepting new jobs while letting active encodes finish cleanly.
+- **Boot auto-analysis** — ffprobe runs on all queued jobs at startup so skip/transcode decisions are pre-computed before the engine starts.
+
+### UI Redesign
+- Removed page `h1` headers; replaced the old header block with a thin engine control strip showing the status dot, Start/Pause/Stop, mode pills, About, and Logout in one row.
+- Dashboard restructured around a compact stat row, savings summary card, and a larger Recent Activity panel.
+- Log viewer groups entries by job into collapsible sections; system-level log lines render inline between groups.
+- Setup wizard rebuilt inside the main app shell with a grayed sidebar, 2px solar progress line, and a welcome step (logo + tagline + Get Started) before the admin account form.
+- Library selection redesigned around a flat recommendation list with Add buttons, selected-folder chips, and a Browse/manual path option; the old preview panel was removed.
+- Statistics page uses recharts `AreaChart` for savings over time and `BarChart` for codec breakdown, replacing custom CSS bars.
+- Hardware settings merged into the Transcoding tab. Notifications and Automation merged into one tab.
+- Mobile layout: hamburger sidebar overlay, jobs table collapses date/priority columns below `md` breakpoint, stat cards use a 2×2 grid on small screens.
+- Font updated from Space Grotesk to DM Sans; sidebar active state uses a left accent bar; border radius scale tightened throughout.
+- Design system token compliance pass across all settings components: toggle switches, form labels, and text-on-color elements now use helios tokens exclusively.
+- Analyzing job rows show an indeterminate shimmer instead of a static 0.0% label.
+- Poll-based job state updates no longer overwrite terminal states that arrived via SSE.
+
+### Reliability & Stability
+- Exponential retry backoff for failed jobs: 5 / 15 / 60 / 360 minute delays by attempt count.
+- Orphaned temp file cleanup on startup: interrupted encodes and subtitle sidecar temp files no longer accumulate on disk.
+- Fixed infinite analysis loop: jobs with an existing decision row are excluded from analysis batches, preventing transcodable jobs from being re-analyzed on every pass.
+- Boot analysis processes jobs in batches of 100 from offset 0, fixing a pagination bug where transcodable jobs shifted out of later pages after earlier jobs were decided.
+- Engine no longer auto-pauses when the queue empties; it stays Running and picks up new files as the watcher delivers them.
+- Analysis semaphore serializes all analysis passes; watcher-triggered passes are dropped (not queued) when a pass is already running.
+- Job stall detection added to surface encodes that stop making progress.
+- Ctrl+C / SIGTERM exits cleanly after graceful shutdown. Background tasks no longer prevent process exit.
+- Log table pruning: configurable retention period (default 30 days) prevents unbounded log growth.
+- Auth session cleanup: expired sessions pruned on startup and every 24 hours.
+- Resource endpoint caching: `/api/system/resources` cached 500ms to prevent redundant OS probes from multiple open tabs.
+- `Drop` guard added to `in_flight_jobs` counter so it decrements correctly even on panic.
+- Completed job detail no longer re-runs ffprobe on the source file; `encode_stats` is the authoritative source for post-encode metadata.
+
+### Hardware & Encoding
+- **Apple VideoToolbox** — encode commands now include `-allow_sw 1` (software fallback) and `format=yuv420p` (required pixel format), fixing all VideoToolbox encodes on macOS. HEVC output tagged as `hvc1` for Apple device compatibility.
+- **Intel Arc** — VAAPI-first detection with `i915`/`xe` driver; QSV retained as last-resort fallback only.
+- **Audio planning** — lossless codecs (TrueHD, MLP, DTS-HD, FLAC, PCM) trigger transcoding; standard Atmos/EAC3 at any bitrate now copies through without re-encoding.
+- **libopus fallback** — audio transcoding for MKV now checks for `libopus` availability at runtime and falls back to AAC when it is absent (common on macOS FFmpeg builds).
+- FFmpeg encode failures write the full error (last 20 lines of stderr) to the job log; failure explanations in the UI include VideoToolbox-specific patterns (`vt_compression`, `mediaserverd`, `no capable devices`).
+
+### Backend Architecture
+- Upgraded from Rust 2021 to **Rust 2024 edition**, MSRV set to 1.85.
+- `sqlx` upgraded to 0.8 with `runtime-tokio-rustls`; `rand` upgraded to 0.9.
+- Removed `async-trait`; all traits use native `async fn`. `trait-variant` added for object-safe `Arc<dyn ExecutionObserver>`.
+- `server.rs` split into focused submodules: `auth`, `jobs`, `scan`, `settings`, `stats`, `system`, `sse`, `middleware`, `wizard`.
+- `ffprobe` execution moved to `tokio::process::Command` with a 120-second timeout.
+- Typed broadcast channels separate high-volume events (progress, logs) from low-volume system events (config, status).
+- Poisoned cancellation lock recovery added to the orchestrator; oversized FFmpeg stderr lines truncated before logging.
+- Invalid notification event JSON and invalid schedule day JSON now log a warning rather than silently disabling the target or treating it as empty.
+- Database connection pool capped; OOM protection added to analysis batch queries via `LIMIT`/`OFFSET` pagination.
+
+### Database
+- `decisions` table extended with `reason_code` and `reason_payload_json` for structured skip reason storage.
+- `job_failure_explanations` table added for structured failure explanations, with `legacy_summary` fallback for pre-0.3 rows.
+- Index on `decisions(reason_code)` and `job_failure_explanations(code)` for fast filtering.
+- All databases from v0.2.5 onwards upgrade automatically; no manual migration required.
+
+### CI/CD & Tooling
+- Nightly workflow: runs on every push to `master` after checks pass, builds all platforms, publishes `ghcr.io/bybrooklyn/alchemist:nightly` with `{VERSION}-nightly+{short-sha}` versioning.
+- Shared reusable `build.yml` workflow so nightly and release builds use identical pipelines.
+- `actionlint` added to `just release-check`.
+- E2E reliability suite (`just test-e2e`) runs in CI after the frontend check passes.
+- Windows contributor workflow documented and validated: `just install-w`, `just dev`, `just check`.
+- `just release-check` covers fmt, clippy (`-D warnings -D clippy::unwrap_used -D clippy::expect_used`), tests, actionlint, web verify, docs build, E2E, and backend build in sequence.
+- Release binaries ship as `.tar.gz` (Linux/macOS) and `.exe` (Windows), each with a SHA256 checksum. Multi-arch Docker images published for `linux/amd64` and `linux/arm64`.
+
+## [v0.2.9] - 2026-03-06
+- Runtime reliability pass: watcher/scanner hardening, resilient event consumers, config reload improvements, and live hardware refresh.
+- Admin UX refresh across dashboard, settings, setup, logs, jobs, charts, and system status with stronger error handling and feedback.
+- Frontend workflow standardized on Bun, Playwright reliability coverage added under `web-e2e`, and deploy/docs/container updates shipped together.
+
+## [v0.2.8] - 2026-01-12
+- Setup wizard auth fixes, scheduler time validation, and watcher reliability improvements.
+- DB stability pass (WAL, FK enforcement, indexes, session cleanup, legacy watch_dirs compatibility).
+- Build pipeline updates (rustls for reqwest, cross-platform build script, WiX workflow fix).
+- Documentation and design philosophy updates.
+- More themes!!
+
+## [v0.2.5] - 2026-01-11
+
+###  Fixes
+- **Dashboard Crash**: Fixed a critical bug where the dashboard would render as a blank screen if GPU utilization was `null`. Added strict null checks before `toFixed()` calls in `ResourceMonitor.tsx`.
+- **Animation Glitch**: Resolved an issue where the "Engine Status" button would fly in from the top-left corner on page navigation. Implemented unique `layoutId` generation using `useId()` to maintain the morph animation while preventing cross-page artifacts.
+- **Migration Checksum**: Fixed a startup error caused by a modified migration file. Reverted the original migration to restore checksum integrity and created a new migration for the version bump.
+
+###  Improvements
+- **Resource Monitor Layout**: Repositioned the GPU Usage section to appear between "Active Jobs" and "Uptime" for better logical flow.
+- **Animation Timing**: Adjusted staggered animation delays in the Resource Monitor to match the new layout order.
+
+###  Documentation
+- **Codebase Overview**: Added `codebase_overview.md` explaining the monolith architecture (Rust + API + Frontend) and directory structure.
+- **Migration Policy**: Updated `MIGRATIONS.md` to explicitly forbid modifying existing migration files to prevent checksum errors.
+- **Walkthrough**: Updated `walkthrough.md` with detailed debugging logs and verification steps for all recent changes.
+
+###  Infrastructure
+- **Version Bump**: Updated project version to `0.2.5` in `Cargo.toml`, `web/package.json`, and `VERSION`.
+- **Database**: Established `0.2.5` as the new minimum compatible version schema baseline.

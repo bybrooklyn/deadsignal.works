@@ -7,22 +7,38 @@ const entries = (await getCollection('updates')).sort(
 );
 ---
 
-<BaseLayout title="Devlog" description="Development notes from Dead Signal Works, Project Meridian, and the Meridian engine." currentPath="/updates/">
-  <section class="page-hero updates-hero shell">
-    <p class="kicker"><span>Devlog</span> / one entry so far</p>
-    <h1>Notes from the workbench.</h1>
-    <p class="page-lede">Game development, engine work, and studio updates—written when there is something worth writing down.</p>
-    <a class="updates-rss" href="/rss.xml">RSS feed <span aria-hidden="true">↗</span></a>
-  </section>
+<BaseLayout title="Devlog" description="Development notes from Dead Signal Works, Project Meridian, the Meridian engine, and Alchemist." currentPath="/updates/">
+  <div class="updates-page shell">
+    <header class="updates-masthead">
+      <div>
+        <p class="kicker"><span>Devlog</span> / Dead Signal Works</p>
+        <h1>Development log.</h1>
+      </div>
+      <div class="updates-intro">
+        <p>Notes on the game, the engine, and the work of building both.</p>
+        <a class="updates-rss" href="/rss.xml">Follow by RSS <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
 
-  <section class="updates-list shell" aria-label="Updates">
-    {entries.map((entry, index) => (
-      <a href={`/updates/${entry.id}/`}>
-        <span class="update-index">{String(index + 1).padStart(2, '0')}</span>
-        <time datetime={entry.data.pubDate.toISOString()}>{entry.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' })}</time>
-        <div><p>{entry.data.tag}</p><h2>{entry.data.title}</h2><span>{entry.data.description}</span></div>
-        <i aria-hidden="true">↗</i>
-      </a>
-    ))}
-  </section>
+    <section class="updates-list" aria-label="Updates">
+      <p class="updates-list-heading">
+        <span>{String(entries.length).padStart(2, '0')} {entries.length === 1 ? 'entry' : 'entries'}</span>
+        <span>Newest first</span>
+      </p>
+      {entries.map((entry, index) => (
+        <a href={`/updates/${entry.id}/`}>
+          <div class="update-meta">
+            <span class="update-index">Update {String(index + 1).padStart(2, '0')}</span>
+            <time datetime={entry.data.pubDate.toISOString()}>{entry.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' })}</time>
+            <span>{entry.data.tag}</span>
+          </div>
+          <div class="update-summary">
+            <h2>{entry.data.title}</h2>
+            <p>{entry.data.description}</p>
+          </div>
+          <span class="update-read">Read entry <i aria-hidden="true">↗</i></span>
+        </a>
+      ))}
+    </section>
+  </div>
 </BaseLayout>

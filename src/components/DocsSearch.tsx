@@ -32,7 +32,13 @@ function renderExcerpt(excerpt: string) {
   });
 }
 
-export default function DocsSearch() {
+interface DocsSearchProps {
+  docsRoot: string;
+  docsTitle: string;
+  placeholder: string;
+}
+
+export default function DocsSearch({ docsRoot, docsTitle, placeholder }: DocsSearchProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const focusFrameRef = useRef<number | null>(null);
@@ -93,7 +99,7 @@ export default function DocsSearch() {
         const loaded = await Promise.all(response.results.slice(0, 10).map((result) => result.data()));
         const safeResults = loaded.flatMap((result) => {
           const url = new URL(result.url, window.location.origin);
-          const isDocumentationPath = url.pathname.startsWith('/meridian/docs/');
+          const isDocumentationPath = url.pathname.startsWith(docsRoot);
           if (url.origin !== window.location.origin || !isDocumentationPath) return [];
           return [{ ...result, url: `${url.pathname}${url.search}${url.hash}` }];
         });
@@ -137,7 +143,7 @@ export default function DocsSearch() {
         <div className="docs-search-panel">
           <header>
             <div>
-              <span>Meridian documentation</span>
+              <span>{docsTitle}</span>
               <h2 id="docs-search-title">Find a page.</h2>
             </div>
             <button type="button" onClick={closeSearch} aria-label="Close documentation search">Close</button>
@@ -149,7 +155,7 @@ export default function DocsSearch() {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Render graph, build from source, Alluvium…"
+            placeholder={placeholder}
             autoComplete="off"
           />
           <p className="docs-search-status" role="status">{status}</p>

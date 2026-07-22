@@ -10,7 +10,7 @@ export const GET: APIRoute = async (context) => {
 
   return rss({
     title: `${site.name} devlog`,
-    description: 'Development notes from Dead Signal Works, Project Meridian, and the Meridian engine.',
+    description: 'Development notes from Dead Signal Works, Project Meridian, the Meridian engine, and Alchemist.',
     site: context.site ?? site.url,
     items: entries.map((entry) => ({
       title: entry.data.title,

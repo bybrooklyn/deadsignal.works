@@ -23,4 +23,16 @@ const docs = defineCollection({
   }),
 });
 
-export const collections = { updates, docs };
+const alchemistDocs = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/alchemist-docs' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    keywords: z.array(z.string()).optional(),
+    generated: z.literal(true),
+    sourcePath: z.string(),
+    sourceRevision: z.string(),
+  }),
+});
+
+export const collections = { updates, docs, alchemistDocs };

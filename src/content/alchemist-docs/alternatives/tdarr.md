@@ -1,0 +1,180 @@
+---
+generated: true
+sourcePath: "docs/content/alternatives/tdarr.md"
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
+title: Alchemist vs Tdarr
+description: How Alchemist compares to Tdarr for self-hosted video transcoding automation. Licensing, deployment model, hardware support, and when each tool is the better fit.
+keywords:
+  - tdarr alternative
+  - tdarr vs alchemist
+  - free tdarr alternative
+  - open source tdarr alternative
+---
+
+This is a direct comparison for people who already know what
+Tdarr is and are evaluating alternatives. It covers the
+questions that actually come up when switching: licensing,
+deployment shape, hardware coverage, operational overhead,
+and where each tool is a better fit.
+
+For current Tdarr behavior, refer to the
+[Tdarr docs](https://docs.tdarr.io/). This page only compares
+against what Tdarr documents publicly, including its
+[server/node/worker model](https://docs.tdarr.io/docs/welcome/why/)
+and [worker types](https://docs.tdarr.io/docs/nodes/workers/).
+
+## At a glance
+
+| Dimension | Alchemist | Tdarr |
+|---|---|---|
+| License | AGPLv3 (fully open source) | See Tdarr's own licensing page |
+| Deployment | Single binary (also a single Docker container) | Central server + node process(es) + workers |
+| Config model | Declarative — TOML file and UI settings | Plugin stack / flow editor |
+| AV1 target | First-class in the planner, uses AV1-capable GPUs when available | Supported via plugins/flows |
+| Hardware acceleration | NVENC, Intel Quick Sync, VAAPI, AMD AMF, Apple VideoToolbox, CPU fallback | NVENC, Quick Sync, VAAPI, VideoToolbox (see Tdarr docs) |
+| Platforms | Linux, macOS, Windows, Docker | Linux, macOS, Windows, Docker |
+| Non-destructive by default | Yes — `delete_source` is off by default, output written alongside or to a mirrored root | Configurable per workflow |
+| Scaling model | Scales with a single host's concurrency | Scales horizontally with additional nodes |
+
+## Choose Tdarr if
+
+- You want to distribute transcoding across multiple
+  physical machines (the node architecture is Tdarr's core
+  strength).
+- You rely on specific community Tdarr plugins or flows and
+  don't want to re-express them as Alchemist settings.
+- You already have a working Tdarr deployment and no concrete
+  reason to change.
+
+## Choose Alchemist if
+
+- **You want a single binary to deploy.** Alchemist is one
+  service. There's no node to register, no server/worker
+  topology to keep healthy, and no plugin stack to debug
+  before a file can be processed.
+- **Licensing matters to you.** Alchemist is AGPLv3
+  end-to-end — source, binary, and everything it does. No
+  paid tier, no license key, no phone-home.
+- **You prefer declarative config over flow editors.** The
+  planner decides per file whether to skip, remux, or
+  transcode, using thresholds you set in a TOML file or the
+  UI. See [Planner](/alchemist/docs/planner/) and
+  [Skip Decisions](/alchemist/docs/skip-decisions/).
+- **You care about reversibility.** Originals are not
+  deleted unless you turn that on explicitly. VMAF can
+  optionally gate the promote step.
+- **You're transcoding primarily for Jellyfin or Plex.** See
+  [Alchemist for Jellyfin](/alchemist/docs/jellyfin/).
+
+## Practical differences
+
+### Deployment shape
+
+Tdarr documents a central server, nodes, and workers. That
+maps well onto a homelab that already spans multiple
+machines, and poorly onto a single-box setup. If all your
+media work happens on one host, the server/node/worker split
+is overhead you carry for a scaling option you may never use.
+
+Alchemist is one process. Concurrency is bounded by the host
+it runs on. If you want to scale across machines you'd run
+Alchemist on each machine with its own library roots, or
+share the library over a network filesystem.
+
+### Skip decisions
+
+Alchemist skips files that are already efficient and
+surfaces the exact reason in the **Skipped** tab — BPP below
+threshold, already in target codec, below minimum file size,
+or predicted savings below the configured threshold. This is
+the single most common source of confusion when moving from
+a flow-based tool; most "why didn't this transcode?"
+questions resolve against
+[Skip Decisions](/alchemist/docs/skip-decisions/).
+
+### Hardware selection
+
+Tdarr's docs split CPU and GPU worker behavior and route work
+based on FFmpeg/HandBrake arguments. Alchemist keeps that
+decision inside one runtime: it runs a short test encode per
+backend, caches a valid detection result across repeat boots,
+and selects one active device using a deterministic scoring
+policy. The probe log is visible in **Settings → Hardware**
+and records exactly why a backend failed.
+
+### Open source line
+
+Alchemist's AGPLv3 position is intentionally simple: the
+public repository is the product. There is no private feature
+tree, no paid unlock, and no license key. If that matters to
+you, Alchemist is the cleaner bet. If horizontal worker
+distribution matters more, Tdarr's architecture is still the
+thing it does best.
+
+## Moving off Tdarr
+
+There isn't a one-click import — the two tools have
+different abstractions. The practical path:
+
+1. Install Alchemist alongside Tdarr
+   ([Docker](/alchemist/docs/docker/) works well).
+2. Point Alchemist at the same library roots.
+3. Run it in dry mode (`alchemist plan /path`) to see the
+   skip/remux/transcode decision for every file without
+   enqueueing anything. See [Installation](/alchemist/docs/installation/).
+4. Tune [Profiles](/alchemist/docs/profiles/) and
+   [Stream Rules](/alchemist/docs/stream-rules/) until the decisions match
+   what you want.
+5. Disable Tdarr on the same library once you're satisfied.
+
+## FAQ
+
+**Is Alchemist a drop-in replacement for Tdarr?**
+No. Tdarr's flow/plugin model doesn't have a one-to-one
+equivalent in Alchemist. Most real-world Tdarr setups are
+expressible as Alchemist profiles + stream rules + a target
+codec, but migration is a config exercise, not an import.
+See [Migrating from Tdarr](/alchemist/docs/migrate-from-tdarr/).
+
+**Does Alchemist support distributed nodes?**
+Not today. Alchemist runs as a single process that scales
+with the host it's on. If you need horizontal scaling across
+multiple physical machines, that remains a Tdarr strength.
+
+**Is Alchemist free?**
+Yes. AGPLv3, no paid tier, no license key, no phone-home
+check. The binary you install is built from the same code in
+the repository. See [Open Source](/alchemist/docs/open-source/).
+
+**Can I run both at the same time during migration?**
+Yes. Running Alchemist in dry-run mode
+(`alchemist plan /path`) against the same library roots
+doesn't touch files — it reports the decision per file. Once
+satisfied, point Alchemist at the library and disable Tdarr
+on the same scope. See [Installation](/alchemist/docs/installation/) for the
+`plan` subcommand.
+
+**Which tool handles AV1 better?**
+Both can target AV1. Alchemist treats AV1 as a first-class
+output codec in its [planner](/alchemist/docs/planner/) and will pick an
+AV1-capable hardware encoder when one is present — av1_nvenc
+(RTX 40 / Ada), av1_qsv (Intel Arc / Meteor Lake+), or
+av1_vaapi / av1_amf (AMD RDNA 3+). macOS has no AV1 hardware
+encoder, so AV1 on a Mac uses the CPU (libsvtav1). See
+[AV1](/alchemist/docs/av1/).
+
+**Does Alchemist have a flow editor?**
+No. Configuration is declarative — a TOML file plus
+per-library [profiles](/alchemist/docs/profiles/) and
+[stream rules](/alchemist/docs/stream-rules/). That's the intentional
+difference; if you specifically want a flow editor, Tdarr
+or FileFlows are a better fit.
+
+## See also
+
+- [Migrating from Tdarr](/alchemist/docs/migrate-from-tdarr/) — step-by-step
+  guide for moving a library across.
+- [Alchemist vs FileFlows](/alchemist/docs/alternatives/fileflows/)
+- [Open Source](/alchemist/docs/open-source/)
+- [Installation](/alchemist/docs/installation/)
+- [Alchemist for Jellyfin](/alchemist/docs/jellyfin/)

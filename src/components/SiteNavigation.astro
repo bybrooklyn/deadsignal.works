@@ -16,6 +16,13 @@ const meridianLinks = [
   { label: 'Alluvium', detail: 'Procedural worlds', href: '/meridian/alluvium/' },
 ] as const;
 
+const alchemistLinks = [
+  { label: 'Project overview', href: '/alchemist/' },
+  { label: 'Documentation', href: '/alchemist/docs/' },
+  { label: 'GitHub', href: 'https://github.com/bybrooklyn/alchemist' },
+  { label: 'Releases', href: 'https://github.com/bybrooklyn/alchemist/releases' },
+] as const;
+
 const connectLinks = [
   { label: 'Join Discord', href: site.discord, external: true },
   { label: 'Contact', href: '/contact/', external: false },
@@ -25,6 +32,7 @@ const connectLinks = [
 const directLinks = [
   { label: 'Project Meridian', href: '/project-meridian/' },
   { label: 'Meridian', href: '/meridian/' },
+  { label: 'Alchemist', href: '/alchemist/' },
   { label: 'Studio', href: '/studio/' },
   { label: 'Devlog', href: '/updates/' },
   { label: 'Contact', href: '/contact/' },
@@ -48,6 +56,14 @@ const isCurrent = (href: string) => currentPath === href || currentPath.startsWi
         <a href="/meridian/" aria-current={currentPath === '/meridian/' ? 'page' : undefined}>Meridian</a>
         <div>
           {meridianLinks.slice(1).map((item) => (
+            <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </div>
+      </section>
+      <section>
+        <a href="/alchemist/" aria-current={currentPath === '/alchemist/' ? 'page' : undefined}>Alchemist</a>
+        <div>
+          {alchemistLinks.slice(1).map((item) => (
             <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>
           ))}
         </div>

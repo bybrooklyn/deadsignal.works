@@ -5,8 +5,9 @@ import DocsSidebar from '../components/DocsSidebar.astro';
 import DocsSourceAvailability from '../components/DocsSourceAvailability.astro';
 import DocsTableOfContents from '../components/DocsTableOfContents.astro';
 import DocsToolbar from '../components/DocsToolbar.astro';
-import { docsGroups, docsItems } from '../data/docs';
+import { meridianDocumentation } from '../data/docs';
 import { docsSnapshot, docsSnapshotShortRevision } from '../data/docsSnapshot';
+import type { DocumentationProduct } from '../data/documentation';
 import { site } from '../data/site';
 import '../styles/docs.css';
 
@@ -19,12 +20,15 @@ interface Props {
   title: string;
   description: string;
   currentPath: string;
-  group?: 'learn' | 'build' | 'systems' | 'reference';
+  group?: string;
   headings?: MarkdownHeading[];
   updated?: Date;
   sourceRevision?: string;
+  sourcePath?: string;
   sources?: SourceLink[];
   home?: boolean;
+  product?: DocumentationProduct;
+  contentHasH1?: boolean;
 }
 
 const {
@@ -35,15 +39,31 @@ const {
   headings = [],
   updated,
   sourceRevision,
+  sourcePath,
   sources = [],
   home = false,
+  product = meridianDocumentation,
+  contentHasH1 = false,
 } = Astro.props;
 
-const currentIndex = docsItems.findIndex((item) => item.href === currentPath);
-const previous = currentIndex > 0 ? docsItems[currentIndex - 1] : undefined;
-const next = currentIndex >= 0 && currentIndex < docsItems.length - 1 ? docsItems[currentIndex + 1] : undefined;
-const groupLabel = docsGroups.find((entry) => entry.id === group)?.label;
-const isCurrentStatus = currentPath === '/meridian/docs/learn/current-status/';
+const renderedSlot = contentHasH1 ? await Astro.slots.render('default') : undefined;
+const contentH1Match = renderedSlot?.match(/<h1\b[^>]*>[\s\S]*?<\/h1>/u);
+if (contentHasH1 && !contentH1Match) throw new Error(`${currentPath}: content was expected to provide an h1`);
+const contentH1 = contentH1Match?.[0].replace('<h1', '<h1 data-pagefind-meta="title"');
+const renderedContentWithoutH1 = renderedSlot && contentH1Match
+  ? renderedSlot.replace(contentH1Match[0], '')
+  : renderedSlot;
+
+const currentIndex = product.items.findIndex((item) => item.href === currentPath);
+const previous = currentIndex > 0 ? product.items[currentIndex - 1] : undefined;
+const next = currentIndex >= 0 && currentIndex < product.items.length - 1 ? product.items[currentIndex + 1] : undefined;
+const groupLabel = product.groups.find((entry) => entry.id === group)?.label;
+const isMeridian = product.id === 'meridian';
+const isCurrentStatus = isMeridian && currentPath === '/meridian/docs/learn/current-status/';
+const licenseUrl = 'https://creativecommons.org/licenses/by-sa/4.0/';
+const sourceUrl = product.sourcePublic && product.sourceRepository && sourcePath && sourceRevision
+  ? `${product.sourceRepository}/blob/${sourceRevision}/${sourcePath}`
+  : undefined;
 const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleDateString('en-US', {
   timeZone: 'UTC',
   year: 'numeric',
@@ -52,31 +72,50 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
 });
 ---
 
-<BaseLayout title={`${title} — Meridian docs`} description={description} currentPath={currentPath}>
-  <DocsToolbar currentPath={currentPath} />
+<BaseLayout
+  title={`${title} — ${product.docsTitle}`}
+  description={description}
+  currentPath={currentPath}
+  licenseUrl={licenseUrl}
+  socialImagePath={product.id === 'alchemist' ? '/alchemist/social-card.png' : '/social-card.png'}
+  socialImageAlt={`${product.name} technical documentation — Dead Signal Works`}
+>
+  <div data-docs-product={product.id}>
+  <DocsToolbar currentPath={currentPath} product={product} />
   {home ? (
-    <article class="docs-home shell" data-pagefind-body>
-      <DocsSourceAvailability detail="These guides describe the engine while that release is prepared." />
+    <article class="docs-home shell" data-pagefind-body data-pagefind-filter={`product:${product.id}`}>
+      {isMeridian ? (
+        <DocsSourceAvailability detail="These guides describe the engine while that release is prepared." />
+      ) : (
+        <aside class="docs-source-availability docs-open-source-notice" role="note" data-pagefind-ignore>
+          <strong>Open source, with open documentation</strong>
+          <p>Alchemist software is AGPL-3.0-or-later. These technical guides are CC BY-SA 4.0 and maintained in the public Alchemist repository.</p>
+        </aside>
+      )}
       <slot />
+      <footer class="docs-license" data-pagefind-ignore>
+        <p>Documentation © {product.licenseHolder}. Licensed under <a href={licenseUrl} rel="license">CC BY-SA 4.0</a>.</p>
+        {product.id === 'alchemist' && <p>A Dead Signal Works project.</p>}
+      </footer>
     </article>
   ) : (
-    <div class="docs-frame shell">
-      <DocsSidebar currentPath={currentPath} />
+    <div class="docs-frame shell" data-pagefind-filter={`product:${product.id}`}>
+      <DocsSidebar currentPath={currentPath} product={product} />
       <article class="docs-article" data-pagefind-body>
         <nav class="docs-breadcrumbs" aria-label="Breadcrumb" data-pagefind-ignore>
           <ol>
-            <li><a href="/meridian/docs/">Docs</a></li>
+            <li><a href={product.docsRoot}>{product.name} docs</a></li>
             {groupLabel && <li><span aria-hidden="true">/</span><span aria-current="page">{groupLabel}</span></li>}
           </ol>
         </nav>
         <header class="docs-article-header">
           {groupLabel && <p data-pagefind-ignore>{groupLabel}</p>}
-          <h1 data-pagefind-meta="title">{title}</h1>
+          {contentH1 ? <Fragment set:html={contentH1} /> : <h1 data-pagefind-meta="title">{title}</h1>}
           <p>{description}</p>
           {!isCurrentStatus && (updated || sourceRevision) && (
             <div class="docs-source-meta" data-pagefind-ignore>
               {updated && <span>Updated {updated.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</span>}
-              {sourceRevision && <span>{site.engineSourcePublic ? 'Source revision' : 'Private source revision'} {sourceRevision.slice(0, 7)}</span>}
+              {sourceRevision && <span>{isMeridian && !site.engineSourcePublic ? 'Private source revision' : 'Source revision'} {sourceRevision.slice(0, 7)}</span>}
             </div>
           )}
         </header>
@@ -92,11 +131,16 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
               <div><dt>Site build</dt><dd><time data-site-build datetime={__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}>{__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}</time></dd></div>
             </dl>
           </aside>
-        ) : (
+        ) : isMeridian ? (
           <DocsSourceAvailability detail="The technical detail remains available here in the meantime." />
+        ) : (
+          <aside class="docs-source-availability docs-open-source-notice" role="note" data-pagefind-ignore>
+            <strong>Documentation and software have separate licenses</strong>
+            <p>This guide is CC BY-SA 4.0. Alchemist itself remains AGPL-3.0-or-later.</p>
+          </aside>
         )}
         <div class="docs-prose">
-          <slot />
+          {renderedContentWithoutH1 !== undefined ? <Fragment set:html={renderedContentWithoutH1} /> : <slot />}
         </div>
         {site.engineSourcePublic && sources.length > 0 && (
           <section class="docs-sources" data-pagefind-ignore>
@@ -105,12 +149,24 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
             <ul>{sources.map((source) => <li><a href={source.href} target="_blank" rel="noreferrer">{source.label} <span aria-hidden="true">↗</span></a></li>)}</ul>
           </section>
         )}
+        {sourceUrl && (
+          <section class="docs-sources" data-pagefind-ignore>
+            <h2>Authoritative source</h2>
+            <p>This page is generated from the editable Markdown in the Alchemist repository.</p>
+            <p><a href={sourceUrl} target="_blank" rel="noreferrer">View {sourcePath} at {sourceRevision?.slice(0, 7)} <span aria-hidden="true">↗</span></a></p>
+          </section>
+        )}
         <nav class="docs-pagination" aria-label="Documentation pagination" data-pagefind-ignore>
           {previous ? <a href={previous.href}><span>Previous</span><strong>{previous.label}</strong></a> : <span />}
           {next && <a href={next.href}><span>Next</span><strong>{next.label}</strong></a>}
         </nav>
+        <footer class="docs-license" data-pagefind-ignore>
+          <p>Documentation © {product.licenseHolder}. Licensed under <a href={licenseUrl} rel="license">CC BY-SA 4.0</a>.</p>
+          {product.id === 'alchemist' && <p>A Dead Signal Works project.</p>}
+        </footer>
       </article>
       <DocsTableOfContents headings={headings} />
     </div>
   )}
+  </div>
 </BaseLayout>

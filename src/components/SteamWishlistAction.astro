@@ -2,33 +2,13 @@
 import { site } from '../data/site';
 
 interface Props {
-  id: string;
   class?: string;
 }
 
-const { id, class: className } = Astro.props;
+const { class: className } = Astro.props;
 const classes = ['action', 'wishlist-action', className].filter(Boolean);
 ---
 
 {site.steamWishlistUrl
   ? <a class:list={classes} href={site.steamWishlistUrl} target="_blank" rel="noreferrer">Wishlist on Steam <span aria-hidden="true">↗</span></a>
-  : (
-    <div class:list={['wishlist-flip', className]} data-wishlist-flip>
-      <div class="wishlist-flip-inner">
-        <button
-          class="wishlist-flip-face wishlist-flip-front"
-          type="button"
-          aria-expanded="false"
-          aria-controls={`${id}-follow`}
-          data-wishlist-toggle
-          disabled
-        >
-          <span>Steam wishlist coming soon</span>
-          <small>Turn over</small>
-        </button>
-        <div class="wishlist-flip-face wishlist-flip-back" id={`${id}-follow`}>
-          <a href="/updates/">Follow development <span aria-hidden="true">↗</span></a>
-        </div>
-      </div>
-    </div>
-  )}
+  : <a class:list={classes} href="/updates/">Follow development <span aria-hidden="true">↗</span></a>}

@@ -7,7 +7,9 @@
       "url": [
         "http://127.0.0.1:4322/",
         "http://127.0.0.1:4322/project-meridian/",
-        "http://127.0.0.1:4322/meridian/docs/"
+        "http://127.0.0.1:4322/meridian/docs/",
+        "http://127.0.0.1:4322/alchemist/",
+        "http://127.0.0.1:4322/alchemist/docs/hardware/"
       ],
       "numberOfRuns": 1,
       "settings": {
