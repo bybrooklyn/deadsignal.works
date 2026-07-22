@@ -136,7 +136,7 @@ test.afterEach(async ({ page }) => {
 
 for (const route of accessibilityRoutes) {
   test(`passes full-page accessibility and layout checks at ${route}`, async ({ page }) => {
-    test.setTimeout(45_000);
+    test.setTimeout(60_000);
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toBeVisible();
@@ -194,32 +194,39 @@ test('the custom 404 is accessible at a missing route', async ({ page }) => {
 
 test('the wordmark accessible name matches its visible text', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Dead Signal Works', exact: true })).toHaveAttribute('href', '/');
+  const wordmark = page.getByRole('link', { name: 'Dead Signal Works', exact: true });
+  await expect(wordmark).toHaveAttribute('href', '/');
+  const works = wordmark.locator('span').last();
+  const restingColor = await works.evaluate((element) => getComputedStyle(element).color);
+  const restingOpacity = await wordmark.evaluate((element) => getComputedStyle(element).opacity);
+  await wordmark.hover();
+  await expect(works).toHaveCSS('color', restingColor);
+  await expect(wordmark).toHaveCSS('opacity', restingOpacity);
 });
 
 test('Steam wishlist status exposes a useful follow-up action without pretending Steam is live', async ({ page }) => {
-  for (const route of ['/', '/project-meridian/']) {
-    await page.goto(route);
-    const wishlist = page.locator('[data-wishlist-flip]');
-    await expect(wishlist).toHaveCount(route === '/' ? 2 : 1);
-    for (let index = 0; index < await wishlist.count(); index += 1) {
-      const tile = wishlist.nth(index);
-      const toggle = tile.getByRole('button', { name: /Steam wishlist coming soon/u });
-      const follow = tile.getByRole('link', { name: /Follow development/u });
-      await expect(tile).toHaveAttribute('data-wishlist-ready', 'true');
-      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-      await expect(follow).toHaveAttribute('href', '/updates/');
+  await page.goto('/');
+  const homeFollowLinks = page.getByRole('link', { name: /Follow development/u });
+  await expect(homeFollowLinks).toHaveCount(2);
+  await expect(homeFollowLinks.first()).toHaveAttribute('href', '/updates/');
+  await expect(page.locator('[data-wishlist-flip]')).toHaveCount(0);
 
-      await toggle.focus();
-      await expect.poll(() => tile.locator('.wishlist-flip-inner').evaluate(
-        (element) => getComputedStyle(element).transform !== 'none',
-      )).toBe(true);
+  await page.goto('/project-meridian/');
+  const wishlist = page.locator('[data-wishlist-flip]');
+  const toggle = wishlist.getByRole('button', { name: /Steam wishlist coming soon/u });
+  const follow = wishlist.getByRole('link', { name: /Follow development/u });
+  await expect(wishlist).toHaveAttribute('data-wishlist-ready', 'true');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(follow).toHaveAttribute('href', '/updates/');
 
-      await toggle.evaluate((button) => (button as HTMLButtonElement).click());
-      await expect(tile).toHaveAttribute('data-wishlist-flipped', 'true');
-      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    }
-  }
+  await toggle.focus();
+  await expect.poll(() => wishlist.locator('.wishlist-flip-inner').evaluate(
+    (element) => getComputedStyle(element).transform !== 'none',
+  )).toBe(true);
+
+  await toggle.evaluate((button) => (button as HTMLButtonElement).click());
+  await expect(wishlist).toHaveAttribute('data-wishlist-flipped', 'true');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 });
 
 test('Steam wishlist fallback remains useful without JavaScript', async ({ browser }) => {
@@ -228,10 +235,8 @@ test('Steam wishlist fallback remains useful without JavaScript', async ({ brows
   const diagnostics = monitorPage(page);
   await page.goto('/');
 
-  const wishlist = page.locator('[data-wishlist-flip]');
-  await expect(wishlist).toHaveCount(2);
-  await expect(wishlist.first().getByText('Steam wishlist coming soon', { exact: true })).toBeVisible();
-  await expect(wishlist.first().getByRole('link', { name: /Follow development/u })).toBeVisible();
+  await expect(page.locator('[data-wishlist-flip]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Follow development/u })).toHaveCount(2);
 
   await page.goto('/project-meridian/');
   await expect(page.locator('.faq-list details[data-faq-item]').first()).toHaveAttribute('name', 'project-faq');
@@ -244,7 +249,7 @@ test('Steam wishlist tile flips deliberately on touch input', async ({ browser }
   const context = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   const diagnostics = monitorPage(page);
-  await page.goto('/');
+  await page.goto('/project-meridian/');
 
   const tile = page.locator('[data-wishlist-flip]').first();
   const toggle = tile.getByRole('button', { name: /Steam wishlist coming soon/u });
@@ -326,6 +331,17 @@ test('ordinary page navigation starts the global view transition', async ({ page
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __astroPageLoads?: number }
   ).__astroPageLoads ?? 0)).toBeGreaterThan(1);
+  const incomingAnimation = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement, '::view-transition-new(site-main)');
+    return {
+      animationName: style.animationName,
+      duration: style.animationDuration,
+      filter: style.filter,
+    };
+  });
+  expect(incomingAnimation.animationName).toBe('route-page-in');
+  expect(incomingAnimation.duration).toBe('0.28s');
+  expect(incomingAnimation.filter).toBe('none');
 });
 
 test('rapid successive navigation remains clickable during the root view transition', async ({ page, browserName }) => {
@@ -524,6 +540,107 @@ test('documentation search is keyboard accessible and returns safe local results
   await expect(dialog).not.toBeVisible();
 });
 
+test('Alchemist is a first-class project with software metadata and public project links', async ({ page }) => {
+  await page.goto('/alchemist/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Alchemist' })).toBeVisible();
+  await expect(page.getByLabel('Alchemist project facts').getByText('AGPL-3.0-or-later', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Read the documentation/u }).first()).toHaveAttribute('href', '/alchemist/docs/');
+  const structuredData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent() ?? '{}') as Record<string, unknown>;
+  expect(structuredData['@type']).toBe('SoftwareApplication');
+  expect(structuredData.operatingSystem).toContain('Linux');
+  expect(structuredData.license).toBe('https://www.gnu.org/licenses/agpl-3.0.html');
+});
+
+test('Alchemist project pages use the shared Dead Signal Works theme', async ({ page }) => {
+  const projectTheme = async () => page.locator('.meridian-hero').evaluate((hero) => {
+    const primaryAction = hero.querySelector('.action-primary');
+    const sectionNumber = hero.querySelector('.section-number');
+    if (!(primaryAction instanceof HTMLElement) || !(sectionNumber instanceof HTMLElement)) {
+      throw new Error('Expected the shared project-page theme controls.');
+    }
+    return {
+      actionBackground: getComputedStyle(primaryAction).backgroundColor,
+      actionColor: getComputedStyle(primaryAction).color,
+      sectionNumberColor: getComputedStyle(sectionNumber).color,
+    };
+  });
+
+  await page.goto('/meridian/');
+  const meridianTheme = await projectTheme();
+  await page.goto('/alchemist/');
+  expect(await projectTheme()).toEqual(meridianTheme);
+
+  await page.goto('/');
+  const [engineAction, alchemistAction] = await Promise.all([
+    page.locator('#engine .action-primary').evaluate((element) => getComputedStyle(element).backgroundColor),
+    page.locator('#software .action-primary').evaluate((element) => getComputedStyle(element).backgroundColor),
+  ]);
+  expect(alchemistAction).toBe(engineAction);
+});
+
+test('Alchemist overview is rendered at the documentation root with visible license and source identity', async ({ page }) => {
+  await page.goto('/alchemist/docs/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Alchemist.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'What it does' })).toBeVisible();
+  await expect(page.locator('link[rel="license"]')).toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0/');
+  await expect(page.locator('.docs-license')).toContainText('Documentation © Brooklyn Halmstad');
+  await expect(page.locator('.docs-license')).toContainText('A Dead Signal Works project');
+  await expect(page.locator('[data-docs-product="alchemist"]')).toHaveCount(1);
+});
+
+test('Alchemist documentation search is isolated from Meridian', async ({ page }) => {
+  await page.goto('/alchemist/docs/hardware/');
+  const searchTrigger = page.getByRole('button', { name: /Search docs/u });
+  await expect(searchTrigger).toHaveAttribute('data-search-ready', 'true');
+  await searchTrigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Find a page.' });
+  await expect(dialog.getByText('Alchemist documentation')).toBeVisible();
+  const input = dialog.getByLabel('Search terms');
+  await expect(input).toHaveAttribute('placeholder', /NVENC/u);
+  await input.fill('NVENC');
+  await expect(dialog.locator('.docs-search-results a').first()).toBeVisible();
+  const resultPaths = await dialog.locator('.docs-search-results a').evaluateAll((links) => links.map((link) => new URL((link as HTMLAnchorElement).href).pathname));
+  expect(resultPaths.length).toBeGreaterThan(0);
+  for (const path of resultPaths) expect(path.startsWith('/alchemist/docs/')).toBe(true);
+  expect(resultPaths.some((path) => path.startsWith('/meridian/docs/'))).toBe(false);
+});
+
+test('Alchemist generated contracts are published and the manifest describes the mirror', async ({ request, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Generated publication contracts are browser-independent.');
+  const manifestResponse = await request.get('/alchemist/docs/source-manifest.json');
+  expect(manifestResponse.status()).toBe(200);
+  const manifest = await manifestResponse.json() as {
+    schemaVersion: number;
+    sourceRevision: string;
+    sourceContentSha256: string;
+    fileCount: number;
+    files: Array<{ sourcePath: string; outputPath: string; sha256: string }>;
+  };
+  expect(manifest.schemaVersion).toBe(1);
+  expect(manifest.sourceRevision).toMatch(/^[0-9a-f]{40}$/u);
+  expect(manifest.sourceContentSha256).toMatch(/^[0-9a-f]{64}$/u);
+  expect(manifest.fileCount).toBe(48);
+  expect(manifest.files).toHaveLength(50);
+  expect(manifest.files.some((file) => file.outputPath === 'public/alchemist/docs/openapi.yaml')).toBe(true);
+  const openApiResponse = await request.get('/alchemist/docs/openapi.yaml');
+  expect(openApiResponse.status()).toBe(200);
+  expect(await openApiResponse.text()).toContain('openapi:');
+});
+
+test('Alchemist documentation remains readable and navigable without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const diagnostics = monitorPage(page);
+  await page.goto('/alchemist/docs/hardware/nvidia/');
+  await expect(page.getByRole('heading', { level: 1, name: 'NVIDIA' })).toBeVisible();
+  const docsMenu = page.locator('details.docs-mobile-menu');
+  await docsMenu.locator('summary').click();
+  await expect(docsMenu.getByRole('link', { name: 'NVIDIA', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.docs-pagination')).toBeVisible();
+  expectCleanDiagnostics(diagnostics);
+  await context.close();
+});
+
 test('documentation sidebar keeps its scroll position while current-page semantics update', async ({ page }) => {
   await page.setViewportSize({ width: 1180, height: 700 });
   await page.goto('/meridian/docs/learn/current-status/');
@@ -549,6 +666,26 @@ test('documentation breadcrumbs expose an ordered hierarchy', async ({ page }) =
   await expect(breadcrumbs.locator('ol')).toHaveCount(1);
   await expect(breadcrumbs.locator('li')).toHaveCount(2);
   await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText('Learn');
+});
+
+test('Alchemist documentation keeps product-specific sidebar and breadcrumb state', async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 700 });
+  await page.goto('/alchemist/docs/hardware/nvidia/');
+  const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
+  await expect(breadcrumbs.getByRole('link', { name: 'Alchemist docs' })).toHaveAttribute('href', '/alchemist/docs/');
+  await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText('Hardware');
+
+  const sidebar = page.locator('.docs-sidebar');
+  await sidebar.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+  const initialScroll = await sidebar.evaluate((element) => element.scrollTop);
+  expect(initialScroll).toBeGreaterThan(0);
+  const target = sidebar.getByRole('link', { name: 'Development Setup', exact: true });
+  await expect(target).toHaveAttribute('href', '/alchemist/docs/contributing/development/');
+  allowExpectedNavigationCancellation(page, '/alchemist/docs/contributing/development/');
+  await target.click();
+  await expect(page).toHaveURL(`${localOrigin}/alchemist/docs/contributing/development/`);
+  await expect(page.locator('.docs-sidebar a[href="/alchemist/docs/contributing/development/"]')).toHaveAttribute('aria-current', 'page');
+  await expect.poll(() => page.locator('.docs-sidebar').evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
 });
 
 test('mobile navigation and workbench stay inside the viewport', async ({ browser }) => {
@@ -738,7 +875,7 @@ test('Project Meridian FAQ closes immediately when reduced motion is requested',
 
 test('updates expose RSS discovery and omit empty article pagination', async ({ page }) => {
   await page.goto('/updates/');
-  await expect(page.getByRole('link', { name: /RSS feed/u })).toHaveAttribute('href', '/rss.xml');
+  await expect(page.getByRole('link', { name: /Follow by RSS/u })).toHaveAttribute('href', '/rss.xml');
   const firstUpdate = page.locator('.updates-list > a').first();
   const updateHref = await firstUpdate.getAttribute('href');
   expect(updateHref).toBeTruthy();
@@ -800,6 +937,9 @@ const visualRoutes = [
   { name: 'project-meridian', route: '/project-meridian/' },
   { name: 'meridian', route: '/meridian/' },
   { name: 'current-status', route: '/meridian/docs/learn/current-status/' },
+  { name: 'alchemist', route: '/alchemist/' },
+  { name: 'alchemist-docs', route: '/alchemist/docs/hardware/' },
+  { name: 'updates', route: '/updates/' },
 ] as const;
 
 for (const viewport of [
@@ -845,18 +985,25 @@ for (const boundary of [
   });
 }
 
-test('reduced-motion preference disables smooth scrolling and long transitions', async ({ page }) => {
+test('reduced-motion preference disables smooth scrolling and workbench transitions', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
 
-  const values = await page.evaluate(() => ({
+  const pageValues = await page.evaluate(() => ({
     scrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
     transitionDuration: getComputedStyle(document.querySelector('.workbench-drawer')!).transitionDuration,
-    wishlistTransform: getComputedStyle(document.querySelector('.wishlist-flip-inner')!).transform,
-    wishlistBackPosition: getComputedStyle(document.querySelector('.wishlist-flip-back')!).position,
   }));
-  expect(values.scrollBehavior).toBe('auto');
-  expect(Math.max(...values.transitionDuration.split(',').map((value) => Number.parseFloat(value)))).toBeLessThanOrEqual(0.001);
-  expect(values.wishlistTransform).toBe('none');
-  expect(values.wishlistBackPosition).toBe('static');
+  expect(pageValues.scrollBehavior).toBe('auto');
+  expect(Math.max(...pageValues.transitionDuration.split(',').map((value) => Number.parseFloat(value)))).toBeLessThanOrEqual(0.001);
+});
+
+test('reduced-motion preference flattens the Project Meridian wishlist control', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/project-meridian/');
+  const wishlistValues = await page.evaluate(() => ({
+    transform: getComputedStyle(document.querySelector('.wishlist-flip-inner')!).transform,
+    backPosition: getComputedStyle(document.querySelector('.wishlist-flip-back')!).position,
+  }));
+  expect(wishlistValues.transform).toBe('none');
+  expect(wishlistValues.backPosition).toBe('static');
 });

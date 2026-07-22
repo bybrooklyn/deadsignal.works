@@ -1,0 +1,175 @@
+---
+generated: true
+sourcePath: "docs/content/jellyfin.md"
+sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+title: Jellyfin
+description: Use Alchemist to pre-transcode a Jellyfin media library to AV1, HEVC, or H.264. Reduces on-the-fly transcoding load, keeps originals safe, and runs entirely self-hosted.
+keywords:
+  - jellyfin transcoding
+  - jellyfin transcoding automation
+  - pre transcode jellyfin
+  - jellyfin av1
+  - jellyfin hevc
+---
+
+Alchemist is a self-hosted transcoding automation tool. It
+doesn't replace Jellyfin — it prepares files **before** they
+hit Jellyfin, so the Jellyfin server spends less time
+transcoding on the fly.
+
+## Why pre-transcode for Jellyfin
+
+Jellyfin transcodes live whenever a client requests a codec,
+container, or bitrate it can't direct-play. That's expensive
+on the server and often noticeable on the client. Two things
+make pre-transcoding worthwhile:
+
+- **Fewer live transcodes.** If the whole library already
+  sits in a codec your clients direct-play, Jellyfin's own
+  transcoder rarely runs.
+- **Predictable storage.** Re-encoding an older H.264 library
+  to HEVC or AV1 can recover substantial space — how much
+  depends on source bitrate and target quality settings.
+
+Alchemist automates the decision: per file, it checks whether
+transcoding would actually save meaningful space at the
+quality target you set, and skips files that are already
+efficiently compressed. Every skip records a plain-English
+reason.
+
+## What Alchemist does for a Jellyfin library
+
+- Points at the same directories Jellyfin scans.
+- Uses your GPU (NVENC, Intel Quick Sync, VAAPI, AMD AMF, or
+  Apple VideoToolbox) when one is available — CPU fallback
+  otherwise. See [Hardware Acceleration](/alchemist/docs/hardware/).
+- Writes output alongside the source by default (with a
+  configurable suffix), or mirrors into a separate output
+  root. Originals are **never** overwritten unless you
+  explicitly enable `delete_source`. See
+  [Configuration Reference](/alchemist/docs/configuration-reference/).
+- Optionally scores output with VMAF and reverts the encode
+  if quality falls below your threshold. See
+  [Quality settings](/alchemist/docs/configuration-reference/#quality).
+- Runs inside your off-peak schedule windows if you configure
+  them. See [Scheduling](/alchemist/docs/scheduling/).
+
+## Setting it up with Jellyfin
+
+1. Install Alchemist — [Docker](/alchemist/docs/docker/) is the usual path
+   for a Jellyfin-style homelab.
+2. In the setup wizard, add the same library roots you've
+   given Jellyfin. Use the container-side paths when running
+   in Docker. See [First Run](/alchemist/docs/first-run/).
+3. Pick a target codec. AV1 gives the biggest savings on
+   modern clients but requires AV1 decode support on the
+   device; HEVC is the safer default if you have older
+   clients in the mix. See [Codecs](/alchemist/docs/codecs/).
+4. Choose a hardware vendor if you want to pin one, or leave
+   on auto-detect. See
+   [Hardware Acceleration](/alchemist/docs/hardware/).
+5. Start the engine and watch the queue.
+
+Jellyfin picks up the new files automatically on its next
+scan. By default, Alchemist does not move or rename your
+originals — Jellyfin keeps seeing both until you decide what
+to do with the sources.
+
+## Jellyfin plugin
+
+Alchemist also ships a Jellyfin plugin integration for tighter automation. The
+plugin uses a dedicated `jellyfin` API token instead of a full-access token. It
+can forward Jellyfin add/update events into Alchemist, listen for completed-job
+events, fetch job details, and ask Jellyfin to refresh only the containing
+directory after Alchemist finishes a file.
+
+The plugin path is intentionally conservative:
+
+- Dry-run mode is enabled by default so you can inspect paths before enqueueing.
+- Forward path translations map Jellyfin-visible paths to Alchemist-visible
+  filesystem paths.
+- Reverse path translations map Alchemist output paths back to Jellyfin-visible
+  paths for narrow refreshes.
+- The supported plugin target is Jellyfin `10.11.10`.
+- Stable plugin releases are published through
+  `https://raw.githubusercontent.com/bybrooklyn/alchemist/jellyfin-plugin-repo/manifest.json`.
+- Release candidates attach a manually installable plugin zip without changing
+  the stable repository feed.
+
+Add the stable manifest URL under **Dashboard → Plugins → Repositories**, then
+install Alchemist from Jellyfin's catalog. Keep dry-run mode enabled for the
+first events so path translations can be checked before enabling enqueue.
+
+## Codec notes for Jellyfin clients
+
+Decoding support varies by client, OS, and browser. A short
+rule of thumb:
+
+- **H.264**: universal. Safe fallback if compatibility
+  matters more than space.
+- **HEVC (H.265)**: wide support on TVs and mobile; browser
+  support is mixed and depends on OS and hardware.
+- **AV1**: best compression, supported by recent Chromium
+  browsers, newer Apple devices, and many 2023+ TVs. Older
+  clients will force Jellyfin to transcode back.
+
+Check the Jellyfin docs for the latest compatibility matrix
+before committing a whole library to a codec.
+
+## FAQ
+
+**Does Alchemist replace Jellyfin's built-in transcoder?**
+No. Jellyfin still handles live playback. Alchemist's job
+is to reduce how often that live transcoder has to run by
+preparing files in a codec your clients can direct-play.
+
+**Does Alchemist need access to Jellyfin's API?**
+Not for the basic filesystem workflow. You can point Alchemist at the same
+directories Jellyfin scans and let Jellyfin pick up changes on its normal scan.
+
+The optional Jellyfin plugin does use API access. It should use an Alchemist
+token with `access_level: "jellyfin"` so it can enqueue files, listen for
+completed jobs, fetch job details, and trigger narrow Jellyfin refreshes without
+receiving full settings or engine-control access.
+
+**Will Alchemist break Jellyfin's existing media?**
+Not by default. Originals are kept until you explicitly
+enable `delete_source`. If you enable VMAF gating, encodes
+below your quality threshold are rolled back instead of
+promoted. See
+[Configuration Reference](/alchemist/docs/configuration-reference/).
+
+**What happens to metadata, subtitles, and chapter markers
+during transcoding?**
+They are preserved on the transcoded output by default.
+Alchemist re-encodes the video stream and passes other
+streams through unless your [stream rules](/alchemist/docs/stream-rules/)
+say otherwise.
+
+**Is there a way to try it without touching my library?**
+Yes. Run `alchemist plan /path/to/library` — it scans and
+analyses every file and reports the per-file decision
+without enqueueing jobs. See [Installation](/alchemist/docs/installation/).
+
+**Should I target AV1 for Jellyfin?**
+Only if your clients direct-play AV1. Otherwise Jellyfin
+live-transcodes AV1 back to a compatible codec on the
+server, which defeats the point of pre-transcoding. See
+[AV1](/alchemist/docs/av1/) and [Codecs](/alchemist/docs/codecs/).
+
+## See also
+
+- [Hardware Acceleration](/alchemist/docs/hardware/) — set up NVENC, Quick
+  Sync, VAAPI, AMF, or VideoToolbox.
+- [Codecs](/alchemist/docs/codecs/) — target codec tradeoffs.
+- [AV1](/alchemist/docs/av1/) — deeper dive into AV1 hardware / software
+  paths and when AV1 is the right target.
+- [Profiles](/alchemist/docs/profiles/) — different settings per library
+  (e.g. Movies vs TV).
+- [Skip Decisions](/alchemist/docs/skip-decisions/) — why Alchemist skips
+  files that are already efficient.
+- [Jellyfin direct-play failing](/alchemist/docs/troubleshooting/jellyfin-direct-play-failing/) —
+  why Jellyfin still transcodes after Alchemist processed
+  the file.
+- [Alchemist vs Tdarr](/alchemist/docs/alternatives/tdarr/) · [Alchemist vs
+  FileFlows](/alchemist/docs/alternatives/fileflows/).

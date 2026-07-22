@@ -1,16 +1,17 @@
 ---
-import { docsGroups } from '../data/docs';
+import type { DocumentationProduct } from '../data/documentation';
 
 interface Props {
   currentPath: string;
+  product: DocumentationProduct;
 }
 
-const { currentPath } = Astro.props;
+const { currentPath, product } = Astro.props;
 ---
 
 <aside class="docs-sidebar" aria-label="Documentation navigation" data-pagefind-ignore>
   <nav aria-label="Documentation sections">
-    {docsGroups.map((group) => (
+    {product.groups.map((group) => (
       <section>
         <p>{group.label}</p>
         {group.items.map((item) => (

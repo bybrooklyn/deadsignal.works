@@ -14,6 +14,9 @@ interface Props {
   noindex?: boolean;
   structuredData?: Record<string, unknown> | Record<string, unknown>[];
   enableSubsystemTransitions?: boolean;
+  socialImagePath?: string;
+  socialImageAlt?: string;
+  licenseUrl?: string;
 }
 
 const {
@@ -24,6 +27,9 @@ const {
   noindex = false,
   structuredData,
   enableSubsystemTransitions = false,
+  socialImagePath = '/social-card.png',
+  socialImageAlt = 'Dead Signal Works — Project Meridian and the Meridian engine',
+  licenseUrl,
 } = Astro.props;
 
 const canonicalPath = currentPath === '/' ? '/' : `${currentPath.replace(/\/+$/u, '')}/`;
@@ -42,7 +48,7 @@ const organization = {
 };
 const jsonLd = structuredData ?? organization;
 const serializedJsonLd = JSON.stringify(jsonLd).replaceAll('<', '\\u003c');
-const socialImage = new URL('/social-card.png', site.url).toString();
+const socialImage = new URL(socialImagePath, site.url).toString();
 ---
 
 <!doctype html>
@@ -60,6 +66,7 @@ const socialImage = new URL('/social-card.png', site.url).toString();
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="/site.webmanifest" />
+    {licenseUrl && <link rel="license" href={licenseUrl} />}
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={site.name} />
@@ -70,12 +77,12 @@ const socialImage = new URL('/social-card.png', site.url).toString();
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Dead Signal Works — Project Meridian and the Meridian engine" />
+    <meta property="og:image:alt" content={socialImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={socialImage} />
-    <meta name="twitter:image:alt" content="Dead Signal Works — Project Meridian and the Meridian engine" />
+    <meta name="twitter:image:alt" content={socialImageAlt} />
     <title>{fullTitle}</title>
     <script is:inline type="application/ld+json" set:html={serializedJsonLd}></script>
     <ClientRouter fallback="swap" />

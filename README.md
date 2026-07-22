@@ -1,7 +1,7 @@
 # Dead Signal Works website
 
 Independent Astro + React site for [Dead Signal Works](https://deadsignal.works),
-the solo studio behind the Meridian engine and Project Meridian.
+the solo studio behind Project Meridian, the Meridian engine, and Alchemist.
 
 ## Local development
 
@@ -37,6 +37,9 @@ with `bunx playwright install --with-deps chromium firefox webkit`.
 - Updates live in `src/content/updates/` as Markdown.
 - Meridian developer and curious-reader docs live under `src/content/docs/`
   and render through the custom Astro documentation layout.
+- Alchemist Markdown remains authoritative in the Alchemist repository under
+  `docs/content/`. The tracked `src/content/alchemist-docs/` mirror is generated
+  and must not be edited directly.
 - Public identity and navigation live in `src/data/site.ts`.
 - Truthful subsystem summaries live in `src/data/subsystems.ts`.
 
@@ -46,24 +49,43 @@ at the approved fact-sheet level until additional material is cleared.
 
 The animated Project Meridian composition is site artwork, not game footage.
 
+Synchronize an explicit, reviewed Alchemist checkout with:
+
+```sh
+bun run sync:alchemist-docs -- /absolute/path/to/alchemist
+bun run sync:alchemist-docs -- --check /absolute/path/to/alchemist
+```
+
+The sync validates the source repository, normalizes Docusaurus-era metadata,
+rewrites root-relative documentation links, copies the social card and OpenAPI
+contract, and writes `public/alchemist/docs/source-manifest.json`. The manifest
+records the source revision and digest plus every source/output path and output
+SHA-256. Site validation rejects stale or unrepresented generated files.
+
 ## License
 
-This website repository is **source-available and proprietary**, not open
-source. Its public source may be inspected and an unmodified copy may be run
-locally for limited non-commercial evaluation, education, or security research.
-Modification, redistribution, deployment, commercial use, and use of Dead
-Signal Works branding are not permitted without prior written permission. See
-[`LICENSE`](LICENSE) for the full terms.
+Licensing follows the material, not the repository boundary:
 
-The Meridian engine is a separate project governed by MPL-2.0 when its source
-is released under that license. Project Meridian’s game source and private
-production materials remain proprietary and are not included here.
+| Material | License | Copyright owner |
+| --- | --- | --- |
+| Website implementation, layouts, components, styles, design, project pages, devlogs, artwork, and marketing copy | Dead Signal Works proprietary source-available license | Dead Signal Works LLC |
+| Meridian technical documentation in `src/content/docs/**` | CC BY-SA 4.0 | Dead Signal Works LLC |
+| Alchemist technical documentation in `src/content/alchemist-docs/**` | CC BY-SA 4.0 | Brooklyn Halmstad |
+| Meridian engine | MPL-2.0 | See the Meridian repository |
+| Alchemist software and generated OpenAPI contract | AGPL-3.0-or-later | Brooklyn Halmstad |
+| Project Meridian game and production material | Proprietary | Dead Signal Works LLC |
+
+The website license is in [`LICENSE`](LICENSE). The unmodified CC BY-SA 4.0
+legal text used for both technical documentation trees is in
+[`LICENSE-DOCUMENTATION-CC-BY-SA-4.0`](LICENSE-DOCUMENTATION-CC-BY-SA-4.0).
+Neither software license applies to the proprietary website implementation.
 
 ## Stack
 
 - Astro static output for pages, content, metadata, and routing
 - React islands with Motion for purposeful interaction
-- Astro MDX and Pagefind for `/meridian/docs/`
+- Astro MDX and product-isolated Pagefind search for `/meridian/docs/` and
+  `/alchemist/docs/`
 - Authored CSS with self-hosted Mona Sans and Hubot Sans variable fonts
 - TypeScript 7 for project-wide checking, with the TypeScript 6 API retained
   only for Astro's embedded-language checker until its TypeScript 7 integration

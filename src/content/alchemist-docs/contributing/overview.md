@@ -1,0 +1,44 @@
+---
+generated: true
+sourcePath: "docs/content/contributing/overview.md"
+sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+title: Contributing Overview
+description: How to report bugs, suggest features, and contribute to Alchemist.
+---
+
+Alchemist software is AGPLv3 open source. Its human-authored documentation is
+CC BY-SA 4.0. Contributions are welcome.
+
+## Start here
+
+- [Development Setup](/alchemist/docs/contributing/development/) for local bootstrap and common tasks
+- [`CONTRIBUTING.md`](https://github.com/bybrooklyn/alchemist/blob/master/CONTRIBUTING.md) for licensing and contribution terms
+- [`RELEASING.md`](https://github.com/bybrooklyn/alchemist/blob/master/RELEASING.md) for release and RC checklists
+
+Windows contributors have a supported path for `just install-w`,
+`just dev`, and `just check`. Other `just` recipes are still Unix-first.
+
+## Reporting bugs
+
+1. Go to [GitHub Issues](https://github.com/bybrooklyn/alchemist/issues)
+2. Search for existing reports first
+3. Use the Bug Report template
+4. Include your logs, OS, GPU vendor, and Alchemist version
+
+## Suggesting features
+
+Use the Feature Request template on
+[GitHub Issues](https://github.com/bybrooklyn/alchemist/issues).
+Explain why the feature is useful, not just what you want.
+
+## License and CLA
+
+By submitting a pull request or patch, you agree that software contributions
+will be licensed under AGPL-3.0-or-later and documentation contributions under
+CC BY-SA 4.0. You also grant Brooklyn Halmstad (the project owner) a perpetual,
+irrevocable right to use, modify, and redistribute your contribution as part
+of Alchemist.
+
+You keep copyright to your individual contribution.
+
+Low-effort pull requests will be closed without discussion.

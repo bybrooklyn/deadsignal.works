@@ -10,7 +10,8 @@
     "check": "astro check && bun run typecheck",
     "typecheck": "bun node_modules/@typescript/native/bin/tsc --noEmit",
     "build": "bun run check && astro build && bun run index:docs",
-    "index:docs": "pagefind --site dist --glob 'meridian/docs/**/*.html' --force-language en",
+    "index:docs": "pagefind --site dist --glob '**/docs/**/*.html' --force-language en",
+    "sync:alchemist-docs": "bun scripts/sync-alchemist-docs.ts",
     "audit:lighthouse": "lhci autorun --config=./lighthouserc.json",
     "check:site": "bun run build && bun scripts/check-site.ts",
     "check:security": "bun audit --audit-level=high",
@@ -21,6 +22,7 @@
     "verify": "bun run check:site && bun run check:security && bun run test:e2e:built"
   },
   "dependencies": {
+    "@astrojs/markdown-remark": "^7.2.1",
     "@astrojs/mdx": "^7.0.3",
     "@astrojs/react": "^6.0.1",
     "@astrojs/rss": "4.0.19",
@@ -45,6 +47,8 @@
     "wrangler": "4.112.0"
   },
   "overrides": {
+    "fast-uri": "3.1.4",
+    "sharp": "0.35.3",
     "tmp": "0.2.7"
   }
 }

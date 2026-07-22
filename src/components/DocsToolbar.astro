@@ -1,25 +1,31 @@
 ---
 import DocsSearch from './DocsSearch';
-import { docsGroups } from '../data/docs';
+import type { DocumentationProduct } from '../data/documentation';
 
 interface Props {
   currentPath: string;
+  product: DocumentationProduct;
 }
 
-const { currentPath } = Astro.props;
+const { currentPath, product } = Astro.props;
 ---
 
 <div class="docs-toolbar" data-pagefind-ignore>
   <div class="shell docs-toolbar-inner">
-    <a class="docs-toolbar-title" href="/meridian/docs/">Meridian docs</a>
+    <a class="docs-toolbar-title" href={product.docsRoot}>{product.docsTitle}</a>
     <nav class="docs-category-nav" aria-label="Documentation categories">
-      {docsGroups.map((group) => <a href={group.items[0].href}>{group.label}</a>)}
+      {product.groups.slice(0, 5).map((group) => <a href={group.items[0].href}>{group.label}</a>)}
     </nav>
-    <DocsSearch client:load />
+    <DocsSearch
+      client:load
+      docsRoot={product.docsRoot}
+      docsTitle={`${product.name} documentation`}
+      placeholder={product.searchPlaceholder}
+    />
     <details class="docs-mobile-menu" name="mobile-navigation" data-nav-disclosure>
       <summary>Docs menu <span aria-hidden="true">+</span></summary>
       <nav aria-label="Mobile documentation navigation">
-        {docsGroups.map((group) => (
+        {product.groups.map((group) => (
           <section>
             <p>{group.label}</p>
             {group.items.map((item) => <a href={item.href} aria-current={currentPath === item.href ? 'page' : undefined}>{item.label}</a>)}

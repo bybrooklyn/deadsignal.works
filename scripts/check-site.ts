@@ -1,7 +1,9 @@
+import { createHash } from 'node:crypto';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { docsItems } from '../src/data/docs';
+import { alchemistDocumentation } from '../src/data/alchemistDocs';
 import { docsSnapshot } from '../src/data/docsSnapshot';
 import { site } from '../src/data/site';
 import { subsystems } from '../src/data/subsystems';
@@ -143,13 +145,17 @@ function publicPathFromOutputRoute(outputPath: string): string {
 }
 
 function scriptBudgetFor(outputPath: string, html: string): number {
-  if (outputPath.startsWith('meridian/docs/')) return performanceBudgets.docsInitialScriptBytes;
+  if (/^(?:meridian|alchemist)\/docs\//u.test(outputPath)) return performanceBudgets.docsInitialScriptBytes;
   if (outputPath === 'index.html' || outputPath === 'project-meridian/index.html') {
     return performanceBudgets.homeAndProjectInitialScriptBytes;
   }
   if (outputPath === 'meridian/index.html') return performanceBudgets.meridianInitialScriptBytes;
   if (html.includes('astro-view-transitions-enabled')) return performanceBudgets.transitionInitialScriptBytes;
   return performanceBudgets.simpleInitialScriptBytes;
+}
+
+function sha256(content: string | Uint8Array): string {
+  return createHash('sha256').update(content).digest('hex');
 }
 
 function nestedStrings(value: unknown): string[] {
@@ -172,6 +178,8 @@ const sourceFiles = (await walk(sourceRoot)).filter((file) => /\.(?:astro|css|md
 const sourcePageFiles = (await walk(join(sourceRoot, 'pages'))).filter((file) => /\.(?:astro|ts)$/u.test(file));
 const docsSourceRoot = join(sourceRoot, 'content', 'docs');
 const docsSourceFiles = (await walk(docsSourceRoot)).filter((file) => /\.(?:md|mdx)$/u.test(file));
+const alchemistDocsSourceRoot = join(sourceRoot, 'content', 'alchemist-docs');
+const alchemistDocsSourceFiles = (await walk(alchemistDocsSourceRoot)).filter((file) => file.endsWith('.md'));
 const updateSourceRoot = join(sourceRoot, 'content', 'updates');
 const updateSourceFiles = (await walk(updateSourceRoot)).filter((file) => /\.md$/u.test(file));
 const siteData = await readFile(join(sourceRoot, 'data', 'site.ts'), 'utf8');
@@ -225,6 +233,68 @@ const docsSourceIds = docsSourceFiles.map((file) => relative(docsSourceRoot, fil
   .replace(/\/index$/u, ''));
 for (const id of navIds) if (!docsSourceIds.includes(id)) failures.add(`documentation navigation has no content entry for ${id}`);
 for (const id of docsSourceIds) if (!navIds.includes(id)) failures.add(`documentation content is missing from navigation: ${id}`);
+
+const alchemistNavIds = alchemistDocumentation.items.map((item) => item.id);
+const alchemistNavHrefs = alchemistDocumentation.items.map((item) => item.href);
+if (new Set(alchemistNavIds).size !== alchemistNavIds.length) failures.add('Alchemist documentation navigation contains duplicate IDs');
+if (new Set(alchemistNavHrefs).size !== alchemistNavHrefs.length) failures.add('Alchemist documentation navigation contains duplicate routes');
+const alchemistDocsSourceIds = alchemistDocsSourceFiles.map((file) => relative(alchemistDocsSourceRoot, file)
+  .split(sep)
+  .join('/')
+  .replace(/\.md$/u, '')
+  .replace(/\/index$/u, ''));
+for (const id of alchemistNavIds) if (!alchemistDocsSourceIds.includes(id)) failures.add(`Alchemist documentation navigation has no content entry for ${id}`);
+for (const id of alchemistDocsSourceIds) if (!alchemistNavIds.includes(id)) failures.add(`Alchemist documentation content is missing from navigation: ${id}`);
+
+interface AlchemistSourceManifest {
+  schemaVersion: number;
+  sourceRepository: string;
+  sourceRevision: string;
+  sourceContentSha256: string;
+  version: string;
+  fileCount: number;
+  files: Array<{ sourcePath: string; outputPath: string; sha256: string }>;
+}
+
+const alchemistManifestPath = join(repositoryRoot, 'public', 'alchemist', 'docs', 'source-manifest.json');
+const alchemistManifest = JSON.parse(await readFile(alchemistManifestPath, 'utf8')) as AlchemistSourceManifest;
+if (alchemistManifest.schemaVersion !== 1) failures.add(`Alchemist source manifest schema ${alchemistManifest.schemaVersion} is unsupported`);
+if (alchemistManifest.sourceRepository !== alchemistDocumentation.sourceRepository) failures.add('Alchemist source manifest repository differs from the documentation product registry');
+if (!/^[0-9a-f]{40}$/u.test(alchemistManifest.sourceRevision)) failures.add('Alchemist source manifest revision is not a full Git revision');
+if (!/^[0-9a-f]{64}$/u.test(alchemistManifest.sourceContentSha256)) failures.add('Alchemist source manifest source digest is invalid');
+if (alchemistManifest.fileCount !== alchemistDocsSourceFiles.length) failures.add(`Alchemist source manifest declares ${alchemistManifest.fileCount} pages but the mirror has ${alchemistDocsSourceFiles.length}`);
+const alchemistManifestOutputs = new Map(alchemistManifest.files.map((record) => [record.outputPath, record]));
+if (alchemistManifestOutputs.size !== alchemistManifest.files.length) failures.add('Alchemist source manifest contains duplicate output paths');
+for (const file of alchemistDocsSourceFiles) {
+  const outputPath = relative(repositoryRoot, file).split(sep).join('/');
+  const source = await readFile(file, 'utf8');
+  const record = alchemistManifestOutputs.get(outputPath);
+  if (!record) {
+    failures.add(`${outputPath}: generated Alchemist page is absent from the source manifest`);
+    continue;
+  }
+  if (!/^generated:\s*true\s*$/mu.test(source)) failures.add(`${outputPath}: generated marker is missing`);
+  const sourcePath = source.match(/^sourcePath:\s*["']?([^"'\n]+)["']?\s*$/mu)?.[1];
+  const sourceRevision = source.match(/^sourceRevision:\s*([0-9a-f]+)\s*$/mu)?.[1];
+  if (sourcePath !== record.sourcePath) failures.add(`${outputPath}: source path differs from the manifest`);
+  if (sourceRevision !== alchemistManifest.sourceRevision) failures.add(`${outputPath}: source revision differs from the manifest`);
+  if (sha256(source) !== record.sha256) failures.add(`${outputPath}: output SHA-256 differs from the manifest`);
+}
+for (const record of alchemistManifest.files) {
+  const outputFile = join(repositoryRoot, record.outputPath);
+  if (!(await exists(outputFile))) {
+    failures.add(`Alchemist source manifest references missing ${record.outputPath}`);
+    continue;
+  }
+  if (sha256(await readFile(outputFile)) !== record.sha256) failures.add(`${record.outputPath}: output SHA-256 differs from the manifest`);
+}
+for (const outputPath of [
+  'public/alchemist/docs/openapi.yaml',
+  'public/alchemist/social-card.png',
+  ...alchemistDocsSourceFiles.map((file) => relative(repositoryRoot, file).split(sep).join('/')),
+]) {
+  if (!alchemistManifestOutputs.has(outputPath)) failures.add(`${outputPath}: generated Alchemist output is absent from the source manifest`);
+}
 const sourceBackedDocumentIds = new Set<string>(docsSnapshot.sourceBackedDocumentIds);
 if (sourceBackedDocumentIds.size !== docsSnapshot.sourceBackedDocumentIds.length) {
   failures.add('approved docs snapshot contains duplicate source-backed document IDs');
@@ -273,6 +343,7 @@ for (const file of sourcePageFiles) {
   if (route) requiredRoutes.add(route);
 }
 for (const item of docsItems) requiredRoutes.add(outputRouteFromUrl(item.href));
+for (const item of alchemistDocumentation.items) requiredRoutes.add(outputRouteFromUrl(item.href));
 for (const subsystem of subsystems) requiredRoutes.add(outputRouteFromUrl(`/meridian/${subsystem.slug}`));
 for (const file of updateSourceFiles) {
   const id = relative(updateSourceRoot, file).split(sep).join('/').replace(/\.md$/u, '');
@@ -308,7 +379,10 @@ for (const file of htmlFiles) {
   if (canonical !== expectedCanonical) failures.add(`${outputPath}: canonical URL ${canonical ?? '(missing)'} does not match ${expectedCanonical}`);
   if (metaContent(html, 'property', 'og:url') !== expectedCanonical) failures.add(`${outputPath}: Open Graph URL does not match its canonical URL`);
   if (!/<h1(?:\s|>)/iu.test(html)) failures.add(`${outputPath}: missing level-one heading`);
-  if (ogImage !== `${site.url}/social-card.png`) failures.add(`${outputPath}: missing PNG social image`);
+  const expectedSocialImage = outputPath.startsWith('alchemist/')
+    ? `${site.url}/alchemist/social-card.png`
+    : `${site.url}/social-card.png`;
+  if (ogImage !== expectedSocialImage) failures.add(`${outputPath}: missing expected PNG social image`);
   if (metaContent(html, 'property', 'og:image:type') !== 'image/png') failures.add(`${outputPath}: missing social image type`);
   if (metaContent(html, 'property', 'og:image:width') !== '1200') failures.add(`${outputPath}: missing social image width`);
   if (metaContent(html, 'property', 'og:image:height') !== '630') failures.add(`${outputPath}: missing social image height`);
@@ -317,6 +391,10 @@ for (const file of htmlFiles) {
   if (linkHref(html, 'alternate', 'application/rss+xml') !== '/rss.xml') failures.add(`${outputPath}: missing RSS discovery link`);
   if (linkHref(html, 'apple-touch-icon') !== '/apple-touch-icon.png') failures.add(`${outputPath}: missing Apple touch icon`);
   if (linkHref(html, 'manifest') !== '/site.webmanifest') failures.add(`${outputPath}: missing web manifest`);
+  if (/^(?:meridian|alchemist)\/docs\//u.test(outputPath)) {
+    if (linkHref(html, 'license') !== 'https://creativecommons.org/licenses/by-sa/4.0/') failures.add(`${outputPath}: missing CC BY-SA 4.0 license metadata`);
+    if (!html.includes('CC BY-SA 4.0')) failures.add(`${outputPath}: missing visible CC BY-SA 4.0 notice`);
+  }
   if (/\/journal(?:\/|&quot;|")/u.test(html)) failures.add(`${outputPath}: stale /journal link`);
   if (/\/meridian\/docs\/(?:subsystems|concepts|developers)(?:\/|&quot;|")/u.test(html)) failures.add(`${outputPath}: stale documentation route`);
   if (/href="#"/u.test(html)) failures.add(`${outputPath}: empty fragment link`);
@@ -424,7 +502,8 @@ for (const file of htmlFiles) {
       continue;
     }
     if (url.origin !== site.url) {
-      if (url.protocol !== 'https:') failures.add(`${outputPath}: external link is not HTTPS: ${href}`);
+      const isLocalDevelopmentUrl = url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+      if (url.protocol !== 'https:' && !isLocalDevelopmentUrl) failures.add(`${outputPath}: external link is not HTTPS: ${href}`);
       continue;
     }
     if (url.pathname !== '/' && !extname(url.pathname) && !url.pathname.endsWith('/')) {
@@ -527,12 +606,17 @@ for (const requiredAsset of [
   'site.webmanifest',
   'sitemap-index.xml',
   'social-card.png',
+  'alchemist/docs/openapi.yaml',
+  'alchemist/docs/source-manifest.json',
+  'alchemist/social-card.png',
 ]) {
   if (!(await exists(join(root, requiredAsset)))) failures.add(`missing generated asset ${requiredAsset}`);
 }
 
 const socialCard = pngSize(await readFile(join(repositoryRoot, 'public', 'social-card.png')));
 if (socialCard?.width !== 1200 || socialCard.height !== 630) failures.add('social-card.png must be 1200x630');
+const alchemistSocialCard = pngSize(await readFile(join(repositoryRoot, 'public', 'alchemist', 'social-card.png')));
+if (alchemistSocialCard?.width !== 1200 || alchemistSocialCard.height !== 630) failures.add('alchemist/social-card.png must be 1200x630');
 const appleIcon = pngSize(await readFile(join(repositoryRoot, 'public', 'apple-touch-icon.png')));
 if (appleIcon?.width !== 180 || appleIcon.height !== 180) failures.add('apple-touch-icon.png must be 180x180');
 
@@ -603,5 +687,5 @@ if (failures.size > 0) {
   console.error([...failures].sort().join('\n'));
   process.exitCode = 1;
 } else {
-  console.log(`Checked ${htmlFiles.length} HTML pages, ${docsSourceFiles.length} documentation entries, metadata, links, headers, assets, and bundle budgets.`);
+  console.log(`Checked ${htmlFiles.length} HTML pages, ${docsSourceFiles.length} Meridian docs, ${alchemistDocsSourceFiles.length} Alchemist docs, metadata, links, manifests, headers, assets, and bundle budgets.`);
 }

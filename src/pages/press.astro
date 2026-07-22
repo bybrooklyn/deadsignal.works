@@ -5,18 +5,19 @@ import { site } from '../data/site';
 
 const studioFacts = [
   ['Company', site.legalName],
-  ['Type', 'Independent solo game studio'],
-  ['Focus', 'Games and custom engine technology'],
+  ['Type', 'Independent solo game and software studio'],
+  ['Focus', 'Games, custom engine technology, and open-source software'],
   ['Current game', 'Project Meridian — working title'],
   ['Engine', 'Meridian — source private during early development; relicensed to MPL-2.0 for open-source release'],
+  ['Open-source software', 'Alchemist — self-hosted media transcoding automation under AGPL-3.0-or-later'],
 ];
 ---
 
-<BaseLayout title="Press information" description="Facts and contact information for Dead Signal Works, Project Meridian, and Meridian." currentPath="/press/">
+<BaseLayout title="Press information" description="Facts and contact information for Dead Signal Works, Project Meridian, Meridian, and Alchemist." currentPath="/press/">
   <section class="page-hero press-hero shell">
     <p class="kicker"><span>Press information</span></p>
     <h1>The useful facts, minus the boilerplate.</h1>
-    <p class="page-lede">Copy-ready information about Dead Signal Works, Project Meridian, and Meridian. There is no logo pack or screenshot folder hiding behind an impressive button yet.</p>
+    <p class="page-lede">Copy-ready information about Dead Signal Works, Project Meridian, Meridian, and Alchemist. There is no logo pack or screenshot folder hiding behind an impressive button yet.</p>
     <a class="action action-primary" href={`mailto:${site.pressEmail}`}>Email press <span aria-hidden="true">↗</span></a>
   </section>
 
@@ -26,7 +27,7 @@ const studioFacts = [
       <dl class="project-fact-sheet">
         {studioFacts.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
       </dl>
-      <div class="press-copy-row"><CopyText value="Dead Signal Works is an independent solo game studio building Project Meridian and the Meridian engine, relicensed to MPL-2.0 for an open-source release." label="Copy studio description" /></div>
+      <div class="press-copy-row"><CopyText value="Dead Signal Works is an independent solo studio building Project Meridian, the Meridian engine, and the open-source Alchemist media transcoding application." label="Copy studio description" /></div>
     </div>
   </section>
 
@@ -46,7 +47,14 @@ const studioFacts = [
       <a class="text-action" href="/meridian/">Engine page <span aria-hidden="true">↗</span></a>
     </article>
     <article>
-      <p class="section-number">04 / Assets</p>
+      <p class="section-number">04 / Alchemist</p>
+      <h2>Software summary</h2>
+      <p>Alchemist is a self-hosted media transcoding application written in Rust with a web interface. It analyzes a media library, encodes only when the result is worthwhile, and explains each skip decision. It supports Linux, Windows, macOS, and Docker under AGPL-3.0-or-later, with no paid tier or private feature tree.</p>
+      <CopyText value="Alchemist is a self-hosted media transcoding application that analyzes a media library, encodes only when the result is worthwhile, and explains each skip decision. It is available under AGPL-3.0-or-later with no paid tier or private feature tree." label="Copy Alchemist summary" />
+      <a class="text-action" href="/alchemist/">Software page <span aria-hidden="true">↗</span></a>
+    </article>
+    <article>
+      <p class="section-number">05 / Assets</p>
       <h2>Not available yet.</h2>
       <p>No public logo pack, screenshots, trailer, key art, or gameplay footage has been approved. The site artwork is site artwork—not an especially abstract gameplay reveal.</p>
     </article>

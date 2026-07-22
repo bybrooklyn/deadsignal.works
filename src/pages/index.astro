@@ -4,7 +4,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import InPageNav from '../components/InPageNav.astro';
 import StudioWorkbench from '../components/StudioWorkbench';
 import SteamWishlistAction from '../components/SteamWishlistAction.astro';
-import WishlistFlipBehavior from '../components/WishlistFlipBehavior.astro';
 
 const latest = (await getCollection('updates')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -12,7 +11,6 @@ const latest = (await getCollection('updates')).sort(
 ---
 
 <BaseLayout title="Dead Signal Works" currentPath="/">
-  <WishlistFlipBehavior />
   <section class="home-intro home-workshop shell">
     <div class="home-welcome">
       <p class="kicker"><span>Solo studio</span> / games and software</p>
@@ -20,7 +18,7 @@ const latest = (await getCollection('updates')).sort(
       <p class="page-lede">An eccentric game and software studio focused on realistic, highly performant games.</p>
       <p>Innovative games need innovative solutions. I build both here.</p>
       <div class="inline-actions">
-        <SteamWishlistAction id="home-hero-wishlist" class="action-primary" />
+        <SteamWishlistAction class="action-primary" />
         <a class="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
       </div>
     </div>
@@ -30,6 +28,7 @@ const latest = (await getCollection('updates')).sort(
   <InPageNav items={[
     { label: 'Project Meridian', href: '#game' },
     { label: 'Meridian', href: '#engine' },
+    { label: 'Alchemist', href: '#software' },
     { label: 'The studio', href: '#studio' },
     { label: 'Devlog', href: '#latest' },
   ]} />
@@ -42,7 +41,7 @@ const latest = (await getCollection('updates')).sort(
         <p>A single-player, first-person liminal horror game built around exploration across a large continuous world.</p>
       </div>
       <div class="home-project-actions">
-        <SteamWishlistAction id="home-project-wishlist" class="action-light" />
+        <SteamWishlistAction class="action-light" />
         <a class="action action-light" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>
         <a class="text-action" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
       </div>
@@ -68,10 +67,29 @@ const latest = (await getCollection('updates')).sort(
     </div>
   </section>
 
+  <section class="content-section" id="software">
+    <div class="shell feature-grid">
+      <div>
+        <p class="section-number">03 / The software</p>
+        <h2>Alchemist</h2>
+        <p class="page-lede">Self-hosted media transcoding automation that encodes only when the result is worthwhile.</p>
+      </div>
+      <div class="feature-facts">
+        <p><span>License</span> AGPL-3.0-or-later</p>
+        <p><span>Language</span> Rust with a web UI</p>
+        <p><span>Platforms</span> Linux, Windows, macOS, and Docker</p>
+        <div class="stacked-actions">
+          <a class="action action-primary" href="/alchemist/">Explore Alchemist <span aria-hidden="true">↗</span></a>
+          <a class="action" href="/alchemist/docs/">Read the documentation <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="studio-banner" id="studio">
     <div class="shell studio-banner-grid">
-      <p class="section-number">03 / The studio</p>
-      <p>Dead Signal Works is one person building the game, the engine, and the studio around them.</p>
+      <p class="section-number">04 / The studio</p>
+      <p>Dead Signal Works is one person building a game, an engine, open-source software, and the studio around them.</p>
       <a class="action action-light" href="/studio/">About the studio <span aria-hidden="true">↗</span></a>
     </div>
   </section>
@@ -79,7 +97,7 @@ const latest = (await getCollection('updates')).sort(
   {latest && (
     <section class="content-section shell update-feature" id="latest">
       <div>
-        <p class="section-number">04 / Devlog</p>
+        <p class="section-number">05 / Devlog</p>
         <time datetime={latest.data.pubDate.toISOString()}>{latest.data.pubDate.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' })}</time>
       </div>
       <div>

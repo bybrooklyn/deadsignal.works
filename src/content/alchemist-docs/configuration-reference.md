@@ -1,0 +1,225 @@
+---
+generated: true
+sourcePath: "docs/content/configuration-reference.md"
+sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+title: Configuration Reference
+description: Full configuration reference for Alchemist.
+---
+
+Default config file location:
+
+- Linux/macOS: `~/.config/alchemist/config.toml`
+- Linux/macOS with XDG: `$XDG_CONFIG_HOME/alchemist/config.toml`
+- Windows: `%APPDATA%\Alchemist\config.toml`
+- Override: `ALCHEMIST_CONFIG_PATH`
+
+Docker images set `ALCHEMIST_CONFIG_PATH=/app/config/config.toml`.
+That is the path inside the container. With a volume such as
+`/data/alchemist/config:/app/config`, the same file is stored on
+the Docker host at `/data/alchemist/config/config.toml`.
+
+## `[appearance]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `active_theme_id` | string | optional | Saved web UI color theme/profile identifier |
+
+## `[updates]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `channel` | string | `"stable"` | Release channel checked by the About dialog and background update task. Valid values: `stable`, `rc`, `nightly` |
+| `auto_check` | bool | `true` | Check the configured channel in the background while the server is running |
+| `check_interval_hours` | int | `24` | Update-check cache interval. Must be between 1 and 168 hours |
+
+Only direct Linux/macOS binary installs are eligible for in-app replacement.
+Docker, Homebrew, AUR, Windows, and source builds return package-manager or
+manual update guidance instead.
+
+## `[transcode]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `size_reduction_threshold` | float | `0.3` | Minimum predicted size reduction required before a transcode is worth doing |
+| `min_bpp_threshold` | float | `0.1` | Minimum bits-per-pixel threshold used by the planner to decide whether a file is already efficiently compressed |
+| `min_file_size_mb` | int | `50` | Skip files smaller than this size |
+| `concurrent_jobs` | int | `1` | Max jobs Alchemist may run at once before engine-mode overrides |
+| `threads` | int | `0` | CPU thread count per job; `0` means automatic |
+| `quality_profile` | string | `"balanced"` | Quality/speed tradeoff preset |
+| `output_codec` | string | `"av1"` | Target codec: `av1`, `hevc`, or `h264` |
+| `allow_fallback` | bool | `true` | Allow codec fallback when the requested codec is unavailable |
+| `hdr_mode` | string | `"preserve"` | Preserve HDR metadata or tonemap to SDR |
+| `tonemap_algorithm` | string | `"hable"` | HDR tonemapping algorithm |
+| `tonemap_peak` | float | `1000.0` | Tonemap peak luminance target |
+| `tonemap_desat` | float | `0.2` | Tonemap desaturation factor |
+| `subtitle_mode` | string | `"copy"` | Subtitle handling: `copy`, `burn`, `extract`, or `none` |
+
+## `[transcode.stream_rules]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `strip_audio_by_title` | list | `[]` | Remove audio tracks whose title contains any configured case-insensitive substring |
+| `keep_audio_languages` | list | `[]` | Keep only audio tracks with matching ISO 639-2 language tags; untagged tracks are kept |
+| `keep_only_default_audio` | bool | `false` | Keep only the default audio track after other filters run |
+
+## `[hardware]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `preferred_vendor` | string | `auto` | Pin hardware selection to `nvidia`, `intel`, `amd`, `apple`, or `cpu` |
+| `device_path` | string | optional | Explicit render node such as `/dev/dri/renderD128` on Linux |
+| `allow_cpu_fallback` | bool | `true` | Allow fallback to CPU when no supported GPU path succeeds |
+| `cpu_preset` | string | `"medium"` | CPU encoder speed/quality preset |
+| `allow_cpu_encoding` | bool | `true` | Allow software encoding at all |
+
+## `[scanner]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `directories` | list | `[]` | Library directories to scan |
+| `watch_enabled` | bool | `false` | Enable realtime watch behavior for configured directories |
+| `extra_watch_dirs` | list | `[]` | Extra watch objects with `path` and `is_recursive` |
+
+## `[notifications]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `enabled` | bool | `false` | Master switch for notifications |
+| `allow_local_notifications` | bool | `false` | Allow notification targets to point at local/private network addresses. Off by default for SSRF safety |
+| `daily_summary_time_local` | string | `"09:00"` | Global local-time send window for daily summary notifications |
+| `quiet_hours_enabled` | bool | `false` | Suppress non-critical notifications inside the configured local-time quiet-hours window |
+| `quiet_hours_start_local` | string | `"22:00"` | Quiet-hours start time in `HH:MM` local time |
+| `quiet_hours_end_local` | string | `"08:00"` | Quiet-hours end time in `HH:MM` local time |
+| `targets` | list | `[]` | Notification target objects with `name`, `target_type`, `config_json`, `events`, and `enabled` |
+
+Supported `target_type` values and required `config_json`
+keys:
+
+| Target | Required `config_json` |
+|--------|------------------------|
+| `discord_webhook` | `webhook_url` |
+| `discord_bot` | `bot_token`, `channel_id` |
+| `gotify` | `server_url`, `app_token` |
+| `ntfy` | `server_url`, `topic`; optional `access_token` |
+| `webhook` | `url`; optional `auth_token` |
+| `telegram` | `bot_token`, `chat_id` |
+| `email` | `smtp_host`, `from_address`, `to_addresses` |
+
+Supported target events: `encode.queued`,
+`encode.started`, `encode.completed`, `encode.failed`,
+`scan.completed`, `engine.idle`, `disk.space_low`, and
+`daily.summary`. `disk.space_low` fires when the disk-space
+guardrail holds jobs (see `min_free_space_gb`).
+
+## `[files]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `delete_source` | bool | `false` | Delete the original file after a verified successful transcode |
+| `output_extension` | string | `"mkv"` | Output file extension |
+| `output_suffix` | string | `"-alchemist"` | Suffix added to the output filename |
+| `replace_strategy` | string | `"keep"` | Replace behavior for output collisions |
+| `output_root` | string | optional | If set, Alchemist mirrors the source library directory structure under this root path instead of writing outputs alongside the source files |
+
+## `[schedule]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `windows` | list | `[]` | Time window objects; each window has `start_time`, `end_time`, and `days_of_week` |
+
+`days_of_week` uses integers `0-6`. The config validator
+requires at least one day in every window.
+
+## `[quality]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `enable_vmaf` | bool | `false` | Run VMAF scoring after encode |
+| `min_vmaf_score` | float | `90.0` | Minimum acceptable VMAF score |
+| `revert_on_low_quality` | bool | `true` | Revert the transcode if quality falls below the threshold |
+
+## `[system]`
+
+| Field | Type | Default | Description |
+|------|------|---------|-------------|
+| `monitoring_poll_interval` | float | `2.0` | Poll interval for system monitoring and dashboard resource refresh |
+| `conversion_upload_limit_gb` | int | `8` | Maximum allowed upload size for the Convert workflow, in GiB. Must be >= 1. Uploads above this size are rejected before the file is written to disk |
+| `conversion_download_retention_hours` | int | `1` | Hours to retain a completed Convert output after the user downloads it, before the cleanup pass removes the upload and output. Must be between 1 and 24 |
+| `min_free_space_gb` | int | `10` | Disk-space guardrail. Before starting a job, the engine checks free space on that job's output filesystem; if it is below this many GiB, the engine holds queued jobs (they stay queued and retry) instead of starting an encode that could fill the disk mid-run. The hold and reason are shown in System Status. Set to `0` to disable. Fails open: if free space cannot be determined for a path, the job proceeds |
+| `enable_telemetry` | bool | `false` | Opt-in anonymous telemetry switch |
+| `log_retention_days` | int | `30` | Log retention period in days |
+| `metrics_enabled` | bool | `false` | Enable the Prometheus `/metrics` endpoint |
+| `engine_mode` | string | `"balanced"` | Runtime engine mode: `background`, `balanced`, or `throughput` |
+| `https_only` | bool | `false` | Add HSTS when Alchemist is served behind HTTPS. Do not enable for plain HTTP |
+| `trusted_proxies` | list | `[]` | Explicit reverse proxy IPs whose forwarded headers are trusted. Empty preserves private-range proxy compatibility |
+| `arr_path_translations` | list | `[]` | Optional path prefix mappings for ARR webhook ingestion, each entry `{ from, to }`; longest matching `from` prefix wins |
+
+## Example
+
+```toml
+[transcode]
+size_reduction_threshold = 0.3
+min_bpp_threshold = 0.1
+min_file_size_mb = 50
+concurrent_jobs = 1
+threads = 0
+quality_profile = "balanced"
+output_codec = "av1"
+allow_fallback = true
+hdr_mode = "preserve"
+tonemap_algorithm = "hable"
+tonemap_peak = 1000.0
+tonemap_desat = 0.2
+subtitle_mode = "copy"
+
+[transcode.stream_rules]
+strip_audio_by_title = ["commentary", "description"]
+keep_audio_languages = ["eng"]
+keep_only_default_audio = false
+
+[hardware]
+preferred_vendor = "intel"
+allow_cpu_fallback = true
+cpu_preset = "medium"
+allow_cpu_encoding = true
+
+[scanner]
+directories = ["/media/movies", "/media/tv"]
+watch_enabled = true
+
+[files]
+delete_source = false
+output_extension = "mkv"
+output_suffix = "-alchemist"
+replace_strategy = "keep"
+
+[quality]
+enable_vmaf = false
+min_vmaf_score = 90.0
+revert_on_low_quality = true
+
+[notifications]
+enabled = false
+daily_summary_time_local = "09:00"
+quiet_hours_enabled = false
+quiet_hours_start_local = "22:00"
+quiet_hours_end_local = "08:00"
+
+[updates]
+channel = "stable"
+auto_check = true
+check_interval_hours = 24
+
+[system]
+monitoring_poll_interval = 2.0
+conversion_upload_limit_gb = 8
+min_free_space_gb = 10
+conversion_download_retention_hours = 1
+enable_telemetry = false
+log_retention_days = 30
+metrics_enabled = false
+engine_mode = "balanced"
+arr_path_translations = [
+  { from = "/container/media", to = "/mnt/media" }
+]
+```
