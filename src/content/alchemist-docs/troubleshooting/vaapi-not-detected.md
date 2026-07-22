@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/troubleshooting/vaapi-not-detected.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: VAAPI Not Detected
 description: Fix "VAAPI not detected" in Alchemist on Linux. Verify /dev/dri passthrough, vainfo output, the render group, LIBVA_DRIVER_NAME, and the startup probe log.
 keywords:

@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/skip-decisions.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Skip Decisions
 description: Every skipped file in Alchemist records a structured explanation — BPP below threshold, already target codec, below minimum file size, insufficient predicted savings, incomplete metadata, or no suitable encoder.
 keywords:

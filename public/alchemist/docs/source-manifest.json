@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "sourceRepository": "https://github.com/bybrooklyn/alchemist",
-  "sourceRevision": "fe503de87e4b7e959b523ffda15b097f66ae33a8",
-  "sourceContentSha256": "b6efc307d4a318c5eb46c6a16c9425dd675ecf501f58a5f529e113129d9e20b0",
+  "sourceRevision": "aeebc489bfe29061cd3b1a0038b7d88a7e710c4f",
+  "sourceContentSha256": "84fb298a6f10aa28ec51ce08ca53b9ee68235e8523f281482a2592ead1a1081d",
   "version": "0.3.5-rc.3",
   "fileCount": 48,
   "files": [
@@ -19,242 +19,242 @@
     {
       "sourcePath": "docs/content/alternatives/fileflows.md",
       "outputPath": "src/content/alchemist-docs/alternatives/fileflows.md",
-      "sha256": "a64dc2852cf65dfbec1f428e9bac071e0e5c25a7317e44e7ec3be6cffaa57e60"
+      "sha256": "5ebbfe26b2bceba8654d94941d9e8020b33e6789a56c20c51af93ad76302d41e"
     },
     {
       "sourcePath": "docs/content/alternatives/index.md",
       "outputPath": "src/content/alchemist-docs/alternatives/index.md",
-      "sha256": "c4245423186b3f50162804f23ac33bb4c9212de03c09bf9d60baf18e8798fc3c"
+      "sha256": "161b89da606ca6afb70f6149431752612c167ab6b4ea6a0a76c3c40a993a0b9b"
     },
     {
       "sourcePath": "docs/content/alternatives/tdarr.md",
       "outputPath": "src/content/alchemist-docs/alternatives/tdarr.md",
-      "sha256": "e7584d8a4f5c3ac7c90ac5ce95b62de78fea435c4c02aa95eb723825f9553822"
+      "sha256": "52bb18af0db9f1ab60fe37d3f349e8256306e98ee6773be4293c12bd9f2e80ad"
     },
     {
       "sourcePath": "docs/content/analyzer.md",
       "outputPath": "src/content/alchemist-docs/analyzer.md",
-      "sha256": "be98edbaff1bb1f149ccd9e3926f081537741369f192a26ad39ce961baff01ff"
+      "sha256": "66d0357720d6b9977c1b4a2562cde1b56775ed7d1957d164ea25d64ec8d858d3"
     },
     {
       "sourcePath": "docs/content/api.md",
       "outputPath": "src/content/alchemist-docs/api.md",
-      "sha256": "8225efca15894b631f48d3f9593c90248523547abbb681dc655c934bf88f6681"
+      "sha256": "1d42a9833f7bb746817c6c6bb534203630e36bc584c5c4f9a300983cb8afa292"
     },
     {
       "sourcePath": "docs/content/architecture.md",
       "outputPath": "src/content/alchemist-docs/architecture.md",
-      "sha256": "20efc2e9ba439c3d0399c1809760eedf43ff186ad1572c4ad1a1c9dad6a1bc0e"
+      "sha256": "6b90d39e3b386f344eeb3bf78a6cc7f24dd10816edd2e5bcaed9cc5bdd3fbb2a"
     },
     {
       "sourcePath": "docs/content/av1.md",
       "outputPath": "src/content/alchemist-docs/av1.md",
-      "sha256": "f8fafdb5961383dcfc0c0a3e238ef47b9c3f3351ed5dbcd5a0cf392bde1efe49"
+      "sha256": "971cebe195ff9cd79898c83373ab845f1eba67b3fd6c32a934ecee75149268e1"
     },
     {
       "sourcePath": "docs/content/changelog.md",
       "outputPath": "src/content/alchemist-docs/changelog.md",
-      "sha256": "d2ec31d33fa5cd971b8923bcfa5ee88f8e38f1795522879deb4fbd20fd212e04"
+      "sha256": "1ffb97bfc3adc6583252fa0ac8302621d860155dd53d03b5624dce699db97f88"
     },
     {
       "sourcePath": "docs/content/codecs.md",
       "outputPath": "src/content/alchemist-docs/codecs.md",
-      "sha256": "8f40b0bb7b5fc296761c59b4950be59b014384878b89d139f784ae0527da0eca"
+      "sha256": "ffb07fa09973fc995666ca91574aeceb93735688ec4e51c8110db867a9692dae"
     },
     {
       "sourcePath": "docs/content/configuration-reference.md",
       "outputPath": "src/content/alchemist-docs/configuration-reference.md",
-      "sha256": "14ee7c5fc2510619fa846bc60784002a60e07dc7815e7a55b6f3280a24e47921"
+      "sha256": "3ddb36bd8173037f58f3312e218bb713b9db7cfebc34b467a556d9e2bac8a048"
     },
     {
       "sourcePath": "docs/content/contributing/development.md",
       "outputPath": "src/content/alchemist-docs/contributing/development.md",
-      "sha256": "65e97d363eec83dbe40367e9a3ca3adafd5bc8fb2a54a61da7b176925e49e461"
+      "sha256": "bc9485c78bc0f07d322325221eb0860c5a86e49ce6efe2e4024040cd0d869fa7"
     },
     {
       "sourcePath": "docs/content/contributing/overview.md",
       "outputPath": "src/content/alchemist-docs/contributing/overview.md",
-      "sha256": "028d76eec78e4185e5f0c1810c746d4642c4553595eacd87786348a5bc963f79"
+      "sha256": "3b9af1a5d98bafbfaa15d063a19d8d3b945c263fd91c8ab4d2428a5e382492cb"
     },
     {
       "sourcePath": "docs/content/database-schema.md",
       "outputPath": "src/content/alchemist-docs/database-schema.md",
-      "sha256": "da158e18f5c88fe71335e111cfd82004f06702798cf5e7170357f0d01f695a81"
+      "sha256": "3ea3b8944a4a0e987b5784abd5ce4eab1c0d907081705a81eff975fd2b8633e7"
     },
     {
       "sourcePath": "docs/content/docker.md",
       "outputPath": "src/content/alchemist-docs/docker.md",
-      "sha256": "31a14d20ad363e505df3e0eb0f67fbff13b4bfb5014cf6c1990196f484a9b0d6"
+      "sha256": "605a5ea8cd0712460550a5029e8e79dbf9c91b4bc9f8548c7213c4ecb31f2658"
     },
     {
       "sourcePath": "docs/content/engine-lifecycle.md",
       "outputPath": "src/content/alchemist-docs/engine-lifecycle.md",
-      "sha256": "c84abfb50a84526cb8795e71c1f58bc553d161556c78a2e895f461332b7496f7"
+      "sha256": "55c19a42f1ae16644ea7dcff1f19f2fde3f1f38746502ef62815ba1296b07bb8"
     },
     {
       "sourcePath": "docs/content/engine-modes.md",
       "outputPath": "src/content/alchemist-docs/engine-modes.md",
-      "sha256": "0e764965769dd0735843805bd706b48ab2679d0a76a6d24d03cd0c0e84209c75"
+      "sha256": "b112bf186df973ce70210149776b91d93af4fd1bc8d36d645cce0bb97b9c9c77"
     },
     {
       "sourcePath": "docs/content/environment-variables.md",
       "outputPath": "src/content/alchemist-docs/environment-variables.md",
-      "sha256": "e1904a4b674ffed54693f77d53eed7bf894ade51059f7fe9d9ed5ff2d8321ad9"
+      "sha256": "773c7adbe058c0686d291f7a19579fde4bc4bd4f42f40d3d6d1b8214dc09edb6"
     },
     {
       "sourcePath": "docs/content/errors.md",
       "outputPath": "src/content/alchemist-docs/errors.md",
-      "sha256": "817d475c7a83b237b3da8f533bf4084814204e815b903a0f2966e1afa79bbf1b"
+      "sha256": "a5de3b1eeaf57af013c6cbed73d35c0bcfb4f288e83f256f6d1d62fc0c75dfe9"
     },
     {
       "sourcePath": "docs/content/faq.md",
       "outputPath": "src/content/alchemist-docs/faq.md",
-      "sha256": "0415ced950d3cd228a661c6090e8cedd9c4094e166da98f532e770a76c025698"
+      "sha256": "247343123c8cc42c5a6e54d7e8d0b84925482009bab29ac8bcadcfecd4dbe964"
     },
     {
       "sourcePath": "docs/content/first-run.md",
       "outputPath": "src/content/alchemist-docs/first-run.md",
-      "sha256": "3a5775979fc8cb659a62377d3b11778bedebabf36a30a01d1e0847f299c78532"
+      "sha256": "95dc123169b0d467d5c4444a02842cd4eb591d9cd08eb23f8b8d5a333e1ff2c7"
     },
     {
       "sourcePath": "docs/content/gpu-passthrough.md",
       "outputPath": "src/content/alchemist-docs/gpu-passthrough.md",
-      "sha256": "11746bdf7c2f819f8edb8ad22d206f096c879326c0213dfef6ee0f4766154c88"
+      "sha256": "5bc1ac53180583c1bddb7636ed7f7d5bb99e3e0419d69daf39ef95b5e774da1a"
     },
     {
       "sourcePath": "docs/content/hardware.md",
       "outputPath": "src/content/alchemist-docs/hardware.md",
-      "sha256": "dcacc6552e822b0b4fb3ce1a135edbec648ce304159750f72d59483cae2295c0"
+      "sha256": "34f813bed75b00546787da23d30ea88f4568a3da0051e0cf17e2fdc31667454b"
     },
     {
       "sourcePath": "docs/content/hardware/amd.md",
       "outputPath": "src/content/alchemist-docs/hardware/amd.md",
-      "sha256": "e7586c40ccf4bbe953a8e071132083c260355c96aa23418f42227ce33ce85335"
+      "sha256": "82457d16cbc8c27866109b765885cd364133676b62cf6141d405c7a491a2e059"
     },
     {
       "sourcePath": "docs/content/hardware/apple.md",
       "outputPath": "src/content/alchemist-docs/hardware/apple.md",
-      "sha256": "4904c5efa1e72dc14271cd3aa93887086e443a05213e668e8bcdb63e2d9be17b"
+      "sha256": "181793e3c757e962714f4e2876cd0794704eae5ae134173e27f5a0f13437ebe9"
     },
     {
       "sourcePath": "docs/content/hardware/cpu.md",
       "outputPath": "src/content/alchemist-docs/hardware/cpu.md",
-      "sha256": "c93778c94e09582f0cbc2e6ce3cba1518ba202cf9c821b92afc83f2cf68a6d5f"
+      "sha256": "5377bbded98ba7b4e8a2b64e21780440abb418df81716967772c1f5446e5cd9c"
     },
     {
       "sourcePath": "docs/content/hardware/intel.md",
       "outputPath": "src/content/alchemist-docs/hardware/intel.md",
-      "sha256": "ecaac58cb9b66592941f23457d14f60df50d605e1c10805add213195d9507143"
+      "sha256": "313c19f13c4a85374b2ef4bf2cc52dc6f54f28ff0b12909649b7c3d1a1d92ac2"
     },
     {
       "sourcePath": "docs/content/hardware/nvidia.md",
       "outputPath": "src/content/alchemist-docs/hardware/nvidia.md",
-      "sha256": "21fc6c34fdea71ba19ab1d5f26c1b95eedea84e70d1a80d1dd0bb7ba76270c84"
+      "sha256": "9e65f75ed500dfc518b3bc09d09db3b68e5d2bef07ceca7a7bc856468843f3a6"
     },
     {
       "sourcePath": "docs/content/installation.md",
       "outputPath": "src/content/alchemist-docs/installation.md",
-      "sha256": "6438fa26662324a0ead3aa9d7c26e3694146b47f0703ef345cc029e388fe9240"
+      "sha256": "603296a962ad5759fff9b7829a71d94dfa1186ede6127ea8bacd57a47fce97c9"
     },
     {
       "sourcePath": "docs/content/jellyfin.md",
       "outputPath": "src/content/alchemist-docs/jellyfin.md",
-      "sha256": "fc4f4dd555103fce7bd3fec5a3d9d070a763250bfd3cb6edbad881dd1466c321"
+      "sha256": "c72a2779c2accba8e5402e2269d4d60300f834db1121976d877b4a04cb488a7d"
     },
     {
       "sourcePath": "docs/content/library-doctor.md",
       "outputPath": "src/content/alchemist-docs/library-doctor.md",
-      "sha256": "4d34547000d18832fa7727ed9329671e363ebf858b9bd967b0c9126a29e6dead"
+      "sha256": "5f72e3a5f26efb343b2d8f17a1207e372fdad1c8623e86b4f70818c4cfb5e4df"
     },
     {
       "sourcePath": "docs/content/library-setup.md",
       "outputPath": "src/content/alchemist-docs/library-setup.md",
-      "sha256": "10e29ef9a05987ff5969ab47da95867bd3ec3e84293b871dac0f3be60c7bad07"
+      "sha256": "26d0570ad732e8c353346222f20cd35d9981082ede7e47cf27c3529f1e778d17"
     },
     {
       "sourcePath": "docs/content/mcp.md",
       "outputPath": "src/content/alchemist-docs/mcp.md",
-      "sha256": "5fb7fb73f2a14301ef19ec7aa77643e1b0bbb08d6c962003fa7bd91d6a050863"
+      "sha256": "6f6b3a71f0599a48e9594f12562812c077e13ec44753c63e10f4e3bbd2dc57e8"
     },
     {
       "sourcePath": "docs/content/migrate-from-tdarr.md",
       "outputPath": "src/content/alchemist-docs/migrate-from-tdarr.md",
-      "sha256": "ee00c44c869a79ccbe10ac7715974d1ef465f665bbde938be3fbf07fe206404d"
+      "sha256": "eb6353b6bb34379adf9dbb1541312e46ea66a446529fa93b06b6ae597a2e990e"
     },
     {
       "sourcePath": "docs/content/notifications.md",
       "outputPath": "src/content/alchemist-docs/notifications.md",
-      "sha256": "2979ad795e322cc840bf35172b3b13eafe7991d2ff03e159beb0d40188c95518"
+      "sha256": "387ebcb4ec03d184a4a7591229db860040ac2246aa36ca8255fe12e1683c7575"
     },
     {
       "sourcePath": "docs/content/observability.md",
       "outputPath": "src/content/alchemist-docs/observability.md",
-      "sha256": "492bed6ea585a710913d3298b6335348f1e3d310e52a54990cd453c44e4d98cc"
+      "sha256": "f0fb12a5e9ba5053bb3374c6437d0f199c72aa95c661316cc31751a3fb01b5bc"
     },
     {
       "sourcePath": "docs/content/open-source.md",
       "outputPath": "src/content/alchemist-docs/open-source.md",
-      "sha256": "1280ae84d9182e902f301eaf4b364bbb21987ea61bb54eaf0369c89973b7733c"
+      "sha256": "e4eb29400987a284ec5c9e0008321378a6efda85d8c5608e3add4cd79a121fd7"
     },
     {
       "sourcePath": "docs/content/overview.md",
       "outputPath": "src/content/alchemist-docs/overview.md",
-      "sha256": "60ee7075d810a7f1adfa0279583ac1b6ca2ac97beb3fc85c3fe44d232a1976e8"
+      "sha256": "abc07afddd8830ba65f2ba1572f9249a1eb7e650f0358303020c5a089299cd71"
     },
     {
       "sourcePath": "docs/content/planner.md",
       "outputPath": "src/content/alchemist-docs/planner.md",
-      "sha256": "6437791b2ead3567f95faba672c172959afad7a7bfddad87feab4454965d9243"
+      "sha256": "70b1c2d78f9c40748de0e995561e782c34b9ef5aa15eab121a8e27d562e0ef9f"
     },
     {
       "sourcePath": "docs/content/profiles.md",
       "outputPath": "src/content/alchemist-docs/profiles.md",
-      "sha256": "97f82a0b7a72e186c9c31474e8b8d052236deb0dd83e55c2e9a9dc11fcdf2b41"
+      "sha256": "7b447df4c02f42fed478df133038d3c34d4e47790afd85b98fe4f0ca9e61fdc6"
     },
     {
       "sourcePath": "docs/content/quick-start.md",
       "outputPath": "src/content/alchemist-docs/quick-start.md",
-      "sha256": "c58fe516d92f74673b42a405cc2b031ce2b9552c0fc53c465ac58c3aca20cabf"
+      "sha256": "a2b6a4fca6dd4a504fb1f1c4e308e4ba6f296eb5346a383c126b47d29af4b5d0"
     },
     {
       "sourcePath": "docs/content/scheduling.md",
       "outputPath": "src/content/alchemist-docs/scheduling.md",
-      "sha256": "46df8ef5e4758a38639d58e027b88dd16c9273182530ce8940dcfbf0976d359a"
+      "sha256": "00be7faf38f679ba8b8829791ceec8d3c3a461087a97fab33259098580fa78c2"
     },
     {
       "sourcePath": "docs/content/skip-decisions.md",
       "outputPath": "src/content/alchemist-docs/skip-decisions.md",
-      "sha256": "372f6889d7a069c6a48da3a0d3194c9c2bb239c511c0a034527d08b74df1b1a2"
+      "sha256": "abbcd0a2efe299107ff231c138e0daa2aa6ce04447ba384490a250591670794d"
     },
     {
       "sourcePath": "docs/content/stream-rules.md",
       "outputPath": "src/content/alchemist-docs/stream-rules.md",
-      "sha256": "b91cea60e30a3f64d94c6aa12cc32ef95854ea10dfb32c45ceccfcdd0a4f2f49"
+      "sha256": "49453b62f44dd7f39ea8030f9a97296ecbfd2bfc36ca117a6b66a9dba2f9c052"
     },
     {
       "sourcePath": "docs/content/troubleshooting.md",
       "outputPath": "src/content/alchemist-docs/troubleshooting.md",
-      "sha256": "0bc8e61de698c77a449fcffa22c01114d5755e09a507385f1d4459d1883515b6"
+      "sha256": "e8193faa1849f460f34162b715be6072d001f37415015ec35575541b261a5a72"
     },
     {
       "sourcePath": "docs/content/troubleshooting/jellyfin-direct-play-failing.md",
       "outputPath": "src/content/alchemist-docs/troubleshooting/jellyfin-direct-play-failing.md",
-      "sha256": "af12941c061f6eace2a5ece850c85d294fe59a05411d1a6dba4f4b7e33f5a430"
+      "sha256": "e9b18e977073c774fc5123c14755388df5912e7a53c0e743a08eeb2035b62e3a"
     },
     {
       "sourcePath": "docs/content/troubleshooting/nvenc-not-detected.md",
       "outputPath": "src/content/alchemist-docs/troubleshooting/nvenc-not-detected.md",
-      "sha256": "bc86f766b881e4fea94f70433d967c8583890dfa74efc53d348b86da4c18703f"
+      "sha256": "5a8eb068aa88339df748d04ceeed5269fb74a7a0a6d82dac68b81faea89140fc"
     },
     {
       "sourcePath": "docs/content/troubleshooting/vaapi-not-detected.md",
       "outputPath": "src/content/alchemist-docs/troubleshooting/vaapi-not-detected.md",
-      "sha256": "59588e9066b202dbac11985e241569f6e5eb08712e44669f4f30e0104fc19ccb"
+      "sha256": "7e8807d32bb90c92a8ee9c4d79024ecfe5bdada0ac5536b8ca66369a3ef2d542"
     },
     {
       "sourcePath": "docs/content/web-interface.md",
       "outputPath": "src/content/alchemist-docs/web-interface.md",
-      "sha256": "5d96898226a25a95f76cfc53297d781d74966cca9c1d29288aea70916785a98d"
+      "sha256": "aac6b21fdcbc464a9630f2cc819e4b1a290ee1f9361033d71a0041e66b6aba50"
     }
   ]
 }

@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/troubleshooting/jellyfin-direct-play-failing.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Jellyfin Direct Play Fails
 description: Jellyfin still transcodes on the fly after Alchemist processed the file. How to diagnose direct-play failures — codec, container, audio, subtitles, bitrate, and client profile.
 keywords:

@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/hardware/cpu.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: CPU Encoding
 description: Software encoding with SVT-AV1, x265, and x264.
 ---

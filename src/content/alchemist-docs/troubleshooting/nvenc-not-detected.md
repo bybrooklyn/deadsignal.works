@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/troubleshooting/nvenc-not-detected.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: NVENC Not Detected
 description: Fix "NVENC not detected" in Alchemist. Verify the NVIDIA driver, nvidia-container-toolkit, FFmpeg NVENC support, and the startup probe log that records why a backend failed.
 keywords:

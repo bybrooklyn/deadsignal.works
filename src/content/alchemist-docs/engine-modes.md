@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/engine-modes.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Engine Modes & States
 description: Background, Balanced, and Throughput — understanding concurrency and execution flow.
 ---
@@ -18,9 +18,9 @@ Modes define the maximum number of concurrent jobs the engine will attempt to ru
 | **Balanced** | `floor(cpu_count / 2)` (min 1, max 4) | Default. Shared server usage. |
 | **Throughput** | `floor(cpu_count / 2)` (min 1, no cap) | Dedicated server; clearing a large backlog. |
 
-:::tip Manual Override
-You can override the computed limit in **Settings → Runtime**. A "Manual" badge will appear in the engine status. Switching modes clears manual overrides.
-:::
+> **Manual override**
+>
+> You can override the computed limit in **Settings → Runtime**. A "Manual" badge will appear in the engine status. Switching modes clears manual overrides.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/hardware/apple.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Apple
 description: Configure Apple VideoToolbox for Alchemist on macOS. Native binary installs recommended — Docker on macOS has limited VideoToolbox access.
 keywords:

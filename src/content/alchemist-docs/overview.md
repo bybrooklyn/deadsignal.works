@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/overview.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Alchemist
 description: Alchemist is a self-hosted, AGPLv3 transcoding pipeline that scans your media library and encodes only what's worth encoding, using NVENC, Intel Quick Sync, VAAPI, AMF, or Apple VideoToolbox.
 keywords:

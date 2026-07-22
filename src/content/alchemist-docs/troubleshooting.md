@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/troubleshooting.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Troubleshooting
 description: Fix common Alchemist issues — NVENC or VAAPI not detected, CPU fallback despite a GPU, jobs stuck in Queued, unexpected skips, and missing VMAF scores.
 keywords:

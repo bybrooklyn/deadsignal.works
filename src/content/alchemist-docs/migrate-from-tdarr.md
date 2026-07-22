@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/migrate-from-tdarr.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Migrate from Tdarr
 description: Practical steps for moving a working Tdarr setup to Alchemist. Install side-by-side, dry-run against the same library, re-express flows as profiles and stream rules, then cut over.
 keywords:

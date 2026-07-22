@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/hardware/nvidia.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: NVIDIA
 description: Configure NVIDIA NVENC for Alchemist. Supported NVENC generations (Pascal through Ada), nvidia-container-toolkit setup, and AV1 NVENC on RTX 40 (Ada).
 keywords:

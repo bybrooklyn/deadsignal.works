@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/planner.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Planner
 description: The planner evaluates every file deterministically — BPP thresholds, resolution and confidence multipliers, codec and target multipliers — and produces a transcode, remux, or skip decision.
 keywords:

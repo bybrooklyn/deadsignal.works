@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/av1.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: AV1
 description: How Alchemist encodes AV1. Hardware paths (av1_nvenc, av1_qsv, av1_vaapi, av1_amf), CPU fallback (SVT-AV1, libaom), and when AV1 is the right target codec. No AV1 hardware encoder exists on macOS.
 keywords:

@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/hardware/intel.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Intel
 description: Configure Intel Quick Sync (QSV) and VAAPI for Alchemist. Driver install, /dev/dri passthrough, and Intel Arc notes. AV1 encode on Intel Arc and Meteor Lake / Core Ultra and newer.
 keywords:

@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/hardware/amd.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: AMD
 description: Configure AMD GPUs for Alchemist — VAAPI on Linux (radeonsi driver), AMF on Windows. HEVC and H.264 are the validated paths; AV1 remains driver-dependent.
 keywords:

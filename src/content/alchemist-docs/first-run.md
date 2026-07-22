@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/first-run.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: First Run
 description: Walk through the Alchemist setup wizard — create the admin account, pick library directories, choose a target codec, and start your first scan.
 keywords:

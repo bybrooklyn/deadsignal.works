@@ -1,7 +1,7 @@
 ---
 generated: true
 sourcePath: "docs/content/profiles.md"
-sourceRevision: fe503de87e4b7e959b523ffda15b097f66ae33a8
+sourceRevision: aeebc489bfe29061cd3b1a0038b7d88a7e710c4f
 title: Profiles
 description: Per-library transcoding profiles and what each controls.
 ---
