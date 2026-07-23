@@ -179,6 +179,89 @@ test('canonical sitemap routes return 200 without redirects and match page metad
   }
 });
 
+test('static agent discovery artifacts are present and preserve HTML as the default', async ({ request, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Static HTTP behavior is browser-independent.');
+
+  const homepage = await request.get('/');
+  expect(homepage.status()).toBe(200);
+  expect(homepage.headers()['content-type']).toMatch(/^text\/html/u);
+  expect(homepage.headers().link).toContain('</alchemist/docs/openapi.yaml>; rel="service-desc"; type="application/vnd.oai.openapi"');
+  expect(homepage.headers()['content-signal']).toBe('ai-train=no, search=yes, ai-input=yes');
+
+  const robots = await request.get('/robots.txt');
+  expect(robots.status()).toBe(200);
+  expect(await robots.text()).toContain('Content-Signal: ai-train=no, search=yes, ai-input=yes');
+
+  const auth = await request.get('/auth.md');
+  expect(auth.status()).toBe(200);
+  expect(await auth.text()).toContain('# Dead Signal Works auth.md');
+
+  const skillsIndex = await request.get('/.well-known/agent-skills/index.json');
+  expect(skillsIndex.status()).toBe(200);
+  expect(skillsIndex.headers()['content-type']).toMatch(/^application\/json/u);
+  const index = await skillsIndex.json() as { skills?: Array<{ url?: string }> };
+  expect(index.skills).toHaveLength(1);
+  const skill = await request.get(new URL(index.skills?.[0]?.url ?? '', productionOrigin).pathname);
+  expect(skill.status()).toBe(200);
+  expect(await skill.text()).toContain('# Dead Signal Works site');
+
+});
+
+test('WebMCP tools are read-only, allowlisted, executable, and not duplicated after navigation', async ({ page }) => {
+  await page.addInitScript(() => {
+    const tools = new Map<string, { name: string; execute: (input: unknown) => Promise<unknown> }>();
+    const state = globalThis as typeof globalThis & { __webMcp?: { tools: typeof tools; registerCalls: number } };
+    state.__webMcp = { tools, registerCalls: 0 };
+    const context = {
+      registerTool: async (tool: { name: string; execute: (input: unknown) => Promise<unknown> }, options: { signal: AbortSignal }) => {
+        state.__webMcp!.registerCalls += 1;
+        tools.set(tool.name, tool);
+        options.signal.addEventListener('abort', () => tools.delete(tool.name), { once: true });
+      },
+    };
+    Object.defineProperty(Document.prototype, 'modelContext', {
+      configurable: true,
+      get: () => context,
+    });
+  });
+
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => (
+    globalThis as typeof globalThis & { __webMcp?: { tools: Map<string, unknown>; registerCalls: number } }
+  ).__webMcp?.tools.size ?? 0)).toBe(3);
+
+  const listed = await page.evaluate(async () => {
+    const state = (globalThis as typeof globalThis & { __webMcp?: { tools: Map<string, { execute: (input: unknown) => Promise<unknown> }> } }).__webMcp!;
+    return state.tools.get('list_public_resources')!.execute({});
+  });
+  expect(listed).toMatchObject({ content: [{ type: 'text' }] });
+  expect(JSON.parse((listed as { content: Array<{ text: string }> }).content[0]!.text).resources).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: 'meridian' }),
+    expect.objectContaining({ id: 'alchemist' }),
+  ]));
+
+  const invalidPathError = await page.evaluate(async () => {
+    const state = (globalThis as typeof globalThis & { __webMcp?: { tools: Map<string, { execute: (input: unknown) => Promise<unknown> }> } }).__webMcp!;
+    try {
+      await state.tools.get('open_public_page')!.execute({ path: 'https://example.com/' });
+      return '';
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  });
+  expect(invalidPathError).toContain('allowlisted canonical public page');
+
+  allowExpectedNavigationCancellation(page, '/meridian/');
+  await page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link', { name: 'Meridian', exact: true }).click();
+  await expect(page).toHaveURL(`${localOrigin}/meridian/`);
+  await expect.poll(() => page.evaluate(() => (
+    globalThis as typeof globalThis & { __webMcp?: { tools: Map<string, unknown> } }
+  ).__webMcp?.tools.size ?? 0)).toBe(3);
+  expect(await page.evaluate(() => (
+    globalThis as typeof globalThis & { __webMcp?: { registerCalls: number } }
+  ).__webMcp?.registerCalls ?? 0)).toBe(6);
+});
+
 test('the custom 404 is accessible at a missing route', async ({ page }) => {
   const response = await page.goto('/audit-route-that-does-not-exist/');
   expect(response?.status()).toBe(404);

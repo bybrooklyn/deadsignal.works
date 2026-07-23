@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "dead-signal-works-site",
+      "type": "skill-md",
+      "description": "Navigate and interpret the public Dead Signal Works website and its Meridian and Alchemist documentation.",
+      "url": "https://deadsignal.works/agent-skills/dead-signal-works-site/SKILL.md",
+      "digest": "sha256:cea469b125acff9e2a45bd476ebc905bd0d3454e2c60da0f79dba85ba9a79c27"
+    }
+  ]
+}

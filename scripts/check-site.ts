@@ -17,11 +17,13 @@ const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 const performanceBudgets = {
   simpleInitialScriptBytes: 32 * 1024,
   transitionInitialScriptBytes: 40 * 1024,
-  docsInitialScriptBytes: 216 * 1024,
+  // The shared read-only WebMCP registration adds one bundled capability to
+  // every page; keep the allowance narrow and explicit.
+  docsInitialScriptBytes: 226 * 1024,
   // The native-share recovery route adds one bounded interactive state to the
   // Project Meridian island; leave room for that explicit accessibility path.
-  homeAndProjectInitialScriptBytes: 289 * 1024,
-  meridianInitialScriptBytes: 300 * 1024,
+  homeAndProjectInitialScriptBytes: 306 * 1024,
+  meridianInitialScriptBytes: 306 * 1024,
   initialStylesheetBytes: 96 * 1024,
   emittedApplicationScriptBytes: 200 * 1024,
 } as const;
@@ -597,6 +599,10 @@ for (const file of files.filter((path) => path.includes(`${sep}_astro${sep}`) &&
 
 for (const requiredAsset of [
   '_headers',
+  'robots.txt',
+  'auth.md',
+  '.well-known/agent-skills/index.json',
+  'agent-skills/dead-signal-works-site/SKILL.md',
   '.well-known/security.txt',
   'apple-touch-icon.png',
   'favicon-192.png',
@@ -611,6 +617,55 @@ for (const requiredAsset of [
   'alchemist/social-card.png',
 ]) {
   if (!(await exists(join(root, requiredAsset)))) failures.add(`missing generated asset ${requiredAsset}`);
+}
+
+const robotsText = await readFile(join(repositoryRoot, 'public', 'robots.txt'), 'utf8');
+const expectedContentSignal = 'ai-train=no, search=yes, ai-input=yes';
+if (robotsText.match(/^Content-Signal:\s*(.+)$/mu)?.[1] !== expectedContentSignal) {
+  failures.add(`robots.txt must declare Content-Signal: ${expectedContentSignal}`);
+}
+
+const authMarkdown = await readFile(join(repositoryRoot, 'public', 'auth.md'), 'utf8');
+if (!/^# .*auth\.md/mu.test(authMarkdown)) failures.add('auth.md is missing an auth.md heading');
+for (const phrase of ['public static website', 'agent-registration flow']) {
+  if (!authMarkdown.toLowerCase().includes(phrase.toLowerCase())) failures.add(`auth.md is missing the no-auth declaration: ${phrase}`);
+}
+if (!/does not expose a\s+protected API/iu.test(authMarkdown)) failures.add('auth.md is missing the no-auth declaration: protected API');
+
+const agentSkillsIndexPath = join(repositoryRoot, 'public', '.well-known', 'agent-skills', 'index.json');
+const agentSkillsIndex = JSON.parse(await readFile(agentSkillsIndexPath, 'utf8')) as {
+  $schema?: string;
+  skills?: Array<{ name?: string; type?: string; description?: string; url?: string; digest?: string }>;
+};
+if (agentSkillsIndex.$schema !== 'https://schemas.agentskills.io/discovery/0.2.0/schema.json') {
+  failures.add('Agent Skills index has the wrong $schema');
+}
+if (!Array.isArray(agentSkillsIndex.skills) || agentSkillsIndex.skills.length === 0) {
+  failures.add('Agent Skills index must contain at least one skill');
+} else {
+  for (const skill of agentSkillsIndex.skills) {
+    if (!skill.name || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(skill.name)) failures.add('Agent Skills index contains an invalid skill name');
+    if (skill.type !== 'skill-md') failures.add(`Agent Skills index skill ${skill.name ?? '(unnamed)'} must use type skill-md`);
+    if (!skill.description) failures.add(`Agent Skills index skill ${skill.name ?? '(unnamed)'} is missing a description`);
+    if (!skill.url || !skill.digest?.startsWith('sha256:')) {
+      failures.add(`Agent Skills index skill ${skill.name ?? '(unnamed)'} is missing a SHA-256 URL/digest`);
+      continue;
+    }
+    const skillUrl = new URL(skill.url);
+    const publicRoot = join(repositoryRoot, 'public');
+    const skillPath = join(publicRoot, skillUrl.pathname.replace(/^\//u, ''));
+    if (skillUrl.origin !== site.url || relative(publicRoot, skillPath).startsWith('..')) {
+      failures.add(`Agent Skills index skill ${skill.name} must point to a same-site public artifact`);
+      continue;
+    }
+    if (!(await exists(skillPath))) {
+      failures.add(`Agent Skills index skill ${skill.name} points to a missing artifact`);
+      continue;
+    }
+    const digest = skill.digest.slice('sha256:'.length);
+    if (!/^[a-f0-9]{64}$/u.test(digest)) failures.add(`Agent Skills index skill ${skill.name} has an invalid SHA-256 digest`);
+    else if (sha256(await readFile(skillPath)) !== digest) failures.add(`Agent Skills index skill ${skill.name} digest does not match its artifact`);
+  }
 }
 
 const socialCard = pngSize(await readFile(join(repositoryRoot, 'public', 'social-card.png')));
@@ -628,6 +683,15 @@ for (const size of ['192x192', '512x512']) {
 }
 
 const headers = await readFile(join(repositoryRoot, 'public', '_headers'), 'utf8');
+const homepageHeaderBlock = headers.match(/^\/\n((?: {2}.*\n)*)/mu)?.[1] ?? '';
+for (const linkHeader of [
+  'Link: </alchemist/docs/openapi.yaml>; rel="service-desc"; type="application/vnd.oai.openapi"',
+  'Link: </alchemist/docs/>; rel="service-doc"; title="Alchemist API documentation"',
+  'Link: </meridian/docs/>; rel="service-doc"; title="Meridian engine documentation"',
+]) {
+  if (!homepageHeaderBlock.includes(linkHeader)) failures.add(`homepage _headers is missing ${linkHeader}`);
+}
+if (!headers.includes(`Content-Signal: ${expectedContentSignal}`)) failures.add(`_headers is missing Content-Signal: ${expectedContentSignal}`);
 for (const header of [
   'Content-Security-Policy:',
   'Cross-Origin-Opener-Policy: same-origin',

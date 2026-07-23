@@ -4,6 +4,7 @@ import '../styles/global.css';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SubsystemTransitions from '../components/SubsystemTransitions.astro';
+import AgentTools from '../components/AgentTools.astro';
 import { site } from '../data/site';
 
 interface Props {
@@ -86,6 +87,7 @@ const socialImage = new URL(socialImagePath, site.url).toString();
     <title>{fullTitle}</title>
     <script is:inline type="application/ld+json" set:html={serializedJsonLd}></script>
     <ClientRouter fallback="swap" />
+    <AgentTools />
     {enableSubsystemTransitions && <SubsystemTransitions />}
     <slot name="head" />
   </head>
