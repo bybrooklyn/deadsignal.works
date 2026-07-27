@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { site } from '../../data/site';
 
 export async function getStaticPaths() {
   const entries = (await getCollection('updates')).sort(
@@ -24,8 +25,8 @@ const articleSchema = {
   headline: entry.data.title,
   description: entry.data.description,
   datePublished: entry.data.pubDate.toISOString(),
-  url: `https://deadsignal.works/updates/${entry.id}/`,
-  author: { '@type': 'Organization', name: 'Dead Signal Works LLC', url: 'https://deadsignal.works/' },
+  url: `${site.url}/updates/${entry.id}/`,
+  author: { '@type': 'Organization', name: site.legalName, url: `${site.url}/` },
 };
 ---
 

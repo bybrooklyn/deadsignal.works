@@ -70,6 +70,14 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
   month: 'long',
   day: 'numeric',
 });
+// The datetime attribute stays ISO-8601 for machines; readers get the same
+// long-form date used by every other date on the site.
+const siteBuildDate = new Date(__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__).toLocaleDateString('en-US', {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
 ---
 
 <BaseLayout
@@ -128,7 +136,7 @@ const snapshotDate = new Date(`${docsSnapshot.updated}T00:00:00.000Z`).toLocaleD
             <dl>
               <div><dt>Snapshot</dt><dd><time datetime={`${docsSnapshot.updated}T00:00:00.000Z`}>{snapshotDate}</time></dd></div>
               <div><dt>Private source</dt><dd><code>{docsSnapshotShortRevision}</code></dd></div>
-              <div><dt>Site build</dt><dd><time data-site-build datetime={__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}>{__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}</time></dd></div>
+              <div><dt>Site build</dt><dd><time data-site-build datetime={__DEAD_SIGNAL_SITE_BUILD_TIMESTAMP__}>{siteBuildDate}</time></dd></div>
             </dl>
           </aside>
         ) : isMeridian ? (

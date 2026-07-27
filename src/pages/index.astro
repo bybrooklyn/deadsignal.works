@@ -4,10 +4,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import InPageNav from '../components/InPageNav.astro';
 import StudioWorkbench from '../components/StudioWorkbench';
 import SteamWishlistAction from '../components/SteamWishlistAction.astro';
+import { site } from '../data/site';
 
 const latest = (await getCollection('updates')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 )[0];
+
+const sections = [
+  { label: 'Project Meridian', href: '#game' },
+  { label: 'Meridian', href: '#engine' },
+  { label: 'Alchemist', href: '#software' },
+  { label: 'The studio', href: '#studio' },
+  ...(latest ? [{ label: 'Devlog', href: '#latest' }] : []),
+];
 ---
 
 <BaseLayout title="Dead Signal Works" currentPath="/">
@@ -19,19 +28,13 @@ const latest = (await getCollection('updates')).sort(
       <p>Innovative games need innovative solutions. I build both here.</p>
       <div class="inline-actions">
         <SteamWishlistAction class="action-primary" />
-        <a class="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
+        <a class="action action-primary" href={site.discord} target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
       </div>
     </div>
     <StudioWorkbench client:load />
   </section>
 
-  <InPageNav items={[
-    { label: 'Project Meridian', href: '#game' },
-    { label: 'Meridian', href: '#engine' },
-    { label: 'Alchemist', href: '#software' },
-    { label: 'The studio', href: '#studio' },
-    { label: 'Devlog', href: '#latest' },
-  ]} />
+  <InPageNav items={sections} />
 
   <section class="home-project-field" id="game">
     <div class="shell home-project-grid">
@@ -43,7 +46,7 @@ const latest = (await getCollection('updates')).sort(
       <div class="home-project-actions">
         <SteamWishlistAction class="action-light" />
         <a class="action action-light" href="/project-meridian/">Open the project page <span aria-hidden="true">↗</span></a>
-        <a class="text-action" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
+        <a class="text-action" href={site.discord} target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
       </div>
     </div>
   </section>

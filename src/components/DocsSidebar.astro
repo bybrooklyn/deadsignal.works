@@ -38,7 +38,10 @@ const { currentPath, product } = Astro.props;
       hasSavedPosition = true;
     });
 
-    document.addEventListener('astro:page-load', () => {
+    // `astro:after-swap` runs inside the view transition's update callback, before
+    // the incoming snapshot is taken. Restoring on `astro:page-load` instead would
+    // capture the sidebar at scrollTop 0 and the chrome would visibly jump.
+    document.addEventListener('astro:after-swap', () => {
       if (!hasSavedPosition) return;
       const sidebar = document.querySelector('.docs-sidebar');
       if (sidebar instanceof HTMLElement) sidebar.scrollTop = savedScrollTop;

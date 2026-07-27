@@ -4,6 +4,7 @@ import * as m from 'motion/react-m';
 
 interface Props {
   steamWishlistUrl?: string | null;
+  discordUrl: string;
 }
 
 const facts = [
@@ -16,20 +17,15 @@ const facts = [
 
 const timing = { type: 'spring' as const, stiffness: 185, damping: 20, mass: 0.82 };
 
-export default function KineticProjectHero({ steamWishlistUrl = null }: Props) {
+export default function KineticProjectHero({ steamWishlistUrl = null, discordUrl }: Props) {
   const [active, setActive] = useState(false);
   const [shareLabel, setShareLabel] = useState('Share project');
   const [shareMessage, setShareMessage] = useState('');
   const [shareFallbackUrl, setShareFallbackUrl] = useState('');
-  const [wishlistReady, setWishlistReady] = useState(false);
-  const [wishlistFlipped, setWishlistFlipped] = useState(false);
   const shareTimeoutRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    setWishlistReady(true);
-    return () => {
-      if (shareTimeoutRef.current !== null) window.clearTimeout(shareTimeoutRef.current);
-    };
+  useEffect(() => () => {
+    if (shareTimeoutRef.current !== null) window.clearTimeout(shareTimeoutRef.current);
   }, []);
 
   async function shareProject() {
@@ -114,40 +110,9 @@ export default function KineticProjectHero({ steamWishlistUrl = null }: Props) {
 
               <div className="project-actions">
                 {steamWishlistUrl
-                  ? <a className="action action-primary wishlist-action" href={steamWishlistUrl} target="_blank" rel="noreferrer">Wishlist on Steam <span aria-hidden="true">↗</span></a>
-                  : (
-                    <div
-                      className="wishlist-flip action-primary"
-                      data-wishlist-flip
-                      data-wishlist-ready={wishlistReady ? 'true' : undefined}
-                      data-wishlist-flipped={wishlistFlipped ? 'true' : undefined}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Escape' && wishlistFlipped) {
-                          setWishlistFlipped(false);
-                          event.currentTarget.querySelector<HTMLButtonElement>('[data-wishlist-toggle]')?.focus();
-                        }
-                      }}
-                    >
-                      <div className="wishlist-flip-inner">
-                        <button
-                          className="wishlist-flip-face wishlist-flip-front"
-                          type="button"
-                          aria-expanded={wishlistFlipped}
-                          aria-controls="project-hero-wishlist-follow"
-                          data-wishlist-toggle
-                          disabled={!wishlistReady}
-                          onClick={() => setWishlistFlipped((flipped) => !flipped)}
-                        >
-                          <span>Steam wishlist coming soon</span>
-                          <small>Turn over</small>
-                        </button>
-                        <div className="wishlist-flip-face wishlist-flip-back" id="project-hero-wishlist-follow">
-                          <a href="/updates/">Follow development <span aria-hidden="true">↗</span></a>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                <a className="action action-primary" href="https://discord.gg/3NckH4Xtrn" target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
+                  ? <a className="action action-primary" href={steamWishlistUrl} target="_blank" rel="noreferrer">Wishlist on Steam <span aria-hidden="true">↗</span></a>
+                  : <a className="action action-primary" href="/updates/">Follow development <span aria-hidden="true">↗</span></a>}
+                <a className="action action-primary" href={discordUrl} target="_blank" rel="noreferrer">Join Discord <span aria-hidden="true">↗</span></a>
                 <button className="action action-button" type="button" onClick={shareProject}>{shareLabel} <span aria-hidden="true">↗</span></button>
                 {shareFallbackUrl && (
                   <label className="share-fallback">

@@ -7,6 +7,63 @@ interface Props {
 const { value, label = 'Copy text' } = Astro.props;
 ---
 
-<button class="copy-button" type="button" data-copy-value={value}>{label}</button>
+<span class="copy-control">
+  <button class="copy-button" type="button" data-copy-value={value}>{label}</button>
+  <span class="copy-status" role="status" data-copy-status></span>
+</span>
 
-<script is:inline>(()=>{let e=globalThis;if(e.__dsCopy)return;e.__dsCopy=!0;let t=new Map,n=e=>{let n=t.get(e);n&&(window.clearTimeout(n.timeout),t.delete(e))};document.addEventListener(`click`,async e=>{let r=e.target.closest?.(`button[data-copy-value]`);if(!(r instanceof HTMLButtonElement))return;let i=r.dataset.copyValue;if(!i)return;let a=t.get(r)?.label??r.textContent??`Copy text`;try{await navigator.clipboard.writeText(i),r.textContent=`Copied`}catch{r.textContent=`Copy failed`}n(r);let o=window.setTimeout(()=>{r.textContent=a,t.delete(r)},1600);t.set(r,{label:a,timeout:o})}),document.addEventListener(`astro:before-swap`,()=>{t.forEach(({timeout:e})=>window.clearTimeout(e)),t.clear()})})();</script>
+<script is:inline>
+  (() => {
+    const initializationKey = '__deadSignalCopyInitialized';
+    if (Reflect.get(globalThis, initializationKey)) return;
+    Reflect.set(globalThis, initializationKey, true);
+
+    const pending = new Map();
+
+    const clearPending = (button) => {
+      const entry = pending.get(button);
+      if (!entry) return;
+      window.clearTimeout(entry.timeout);
+      pending.delete(button);
+    };
+
+    const announce = (button, message) => {
+      const status = button.parentElement?.querySelector('[data-copy-status]');
+      if (status) status.textContent = message;
+    };
+
+    document.addEventListener('click', async (event) => {
+      const button = event.target.closest?.('button[data-copy-value]');
+      if (!(button instanceof HTMLButtonElement)) return;
+      const value = button.dataset.copyValue;
+      if (!value) return;
+
+      // The resting label is wider than every result state, so pinning its
+      // width keeps the surrounding row from reflowing on each copy.
+      if (!button.style.minWidth) button.style.minWidth = `${button.getBoundingClientRect().width}px`;
+
+      const label = pending.get(button)?.label ?? button.textContent ?? 'Copy text';
+      let copied = true;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        copied = false;
+      }
+      button.textContent = copied ? 'Copied' : 'Copy failed';
+      announce(button, copied ? 'Copied to clipboard.' : 'Copying is unavailable here.');
+
+      clearPending(button);
+      const timeout = window.setTimeout(() => {
+        button.textContent = label;
+        announce(button, '');
+        pending.delete(button);
+      }, 1600);
+      pending.set(button, { label, timeout });
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      pending.forEach(({ timeout }) => window.clearTimeout(timeout));
+      pending.clear();
+    });
+  })();
+</script>

@@ -119,7 +119,7 @@ export default function DocsSearch({ docsRoot, docsTitle, placeholder }: DocsSea
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, docsRoot]);
 
   return (
     <>

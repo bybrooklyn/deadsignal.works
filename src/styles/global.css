@@ -18,10 +18,10 @@
   --display: 'Hubot Sans Variable', 'Hubot Sans', var(--body);
   --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --ease-mechanical: cubic-bezier(0.22, 1, 0.36, 1);
-  --route-transition-duration: 280ms;
+  --route-transition-duration: 760ms;
+  --docs-chrome-duration: 200ms;
   --subsystem-transition-duration: 680ms;
   --subsystem-text-duration: 620ms;
-  --subsystem-transition-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --subsystem-transition-spring: cubic-bezier(0.2, 0.9, 0.25, 1.08);
   --anchor-offset: 50px;
   view-transition-name: none;
@@ -358,116 +358,6 @@ h2 em {
   cursor: pointer;
 }
 
-.wishlist-flip {
-  min-width: min(100%, 230px);
-  min-height: 52px;
-  perspective: 900px;
-}
-
-.wishlist-flip-inner {
-  display: grid;
-  gap: 6px;
-  min-height: 52px;
-}
-
-.wishlist-flip-face {
-  display: flex;
-  min-height: 52px;
-  padding: 10px 14px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--secondary);
-  border: 1px dashed var(--border);
-  background: var(--surface);
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 670;
-  text-align: left;
-}
-
-.wishlist-flip-front {
-  width: 100%;
-}
-
-.wishlist-flip-front:disabled {
-  cursor: default;
-}
-
-.wishlist-flip-front small {
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  font-weight: 560;
-  letter-spacing: 0.03em;
-}
-
-.wishlist-flip:not([data-wishlist-ready]) .wishlist-flip-front small {
-  display: none;
-}
-
-.wishlist-flip-back {
-  padding: 0;
-  border-style: solid;
-  border-color: var(--red);
-  background: var(--red);
-}
-
-.wishlist-flip-back a {
-  display: flex;
-  width: 100%;
-  min-height: 50px;
-  padding: 10px 14px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--text);
-}
-
-.wishlist-flip[data-wishlist-ready] .wishlist-flip-inner {
-  position: relative;
-  display: block;
-  transform-style: preserve-3d;
-  transition: transform 320ms var(--ease-mechanical);
-}
-
-.wishlist-flip[data-wishlist-ready] .wishlist-flip-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-}
-
-.wishlist-flip[data-wishlist-ready] .wishlist-flip-back {
-  transform: rotateX(180deg);
-}
-
-.wishlist-flip[data-wishlist-flipped='true'] .wishlist-flip-inner {
-  transform: rotateX(180deg);
-}
-
-.wishlist-flip.action-primary .wishlist-flip-front {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--red) 65%, var(--border));
-  background: color-mix(in srgb, var(--red) 20%, var(--surface));
-}
-
-.wishlist-flip.action-light .wishlist-flip-front {
-  color: var(--background);
-  border-color: color-mix(in srgb, var(--background) 45%, transparent);
-  background: var(--text);
-}
-
-.wishlist-flip.action-light .wishlist-flip-front small {
-  color: color-mix(in srgb, var(--background) 65%, transparent);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .wishlist-flip[data-wishlist-ready]:hover .wishlist-flip-inner,
-  .wishlist-flip[data-wishlist-ready]:focus-within .wishlist-flip-inner {
-    transform: rotateX(180deg);
-  }
-}
-
 .inline-actions {
   display: flex;
   flex-wrap: wrap;
@@ -496,6 +386,14 @@ h2 em {
   color: var(--amber);
 }
 
+/* Amber reads at 7.25:1 on the dark shell but collapses to 2.08:1 once a button
+   inverts to the cream surface, so the arrow follows the button's own ink there. */
+.action-light span,
+.action:hover span,
+.action-light:hover span {
+  color: currentcolor;
+}
+
 .text-action:hover {
   border-color: var(--text);
 }
@@ -509,11 +407,6 @@ h2 em {
   font-family: var(--mono);
   font-size: 0.67rem;
   line-height: 1.45;
-}
-
-.availability-note-light {
-  color: var(--text);
-  border-left-color: var(--background);
 }
 
 /* Home and campaign hero */
@@ -699,6 +592,11 @@ h2 em {
 .home-project-grid .section-number,
 .home-project-grid .text-action {
   color: var(--text);
+}
+
+/* Amber sits at 2.38:1 on the red field; the arrow follows the link's own ink. */
+.home-project-grid .text-action span {
+  color: currentcolor;
 }
 
 .home-project-actions {
@@ -1053,6 +951,17 @@ article[id] {
   align-items: end;
   gap: 30px;
   margin-bottom: 44px;
+}
+
+/* A number-and-heading pair has nothing to put in the third column, so the wide
+   template would otherwise strand an empty gutter beside the heading. The
+   narrower breakpoints already collapse this grid, so only widen there. */
+@media (min-width: 981px) {
+  /* 0.26fr holds the number column at the same width the three-column template
+     gives it, so only the stranded gutter is reclaimed by the heading. */
+  .section-heading:not(.meridian-section-heading):has(> :last-child:nth-child(2)) {
+    grid-template-columns: minmax(160px, 0.26fr) minmax(0, 1fr);
+  }
 }
 
 .section-heading.meridian-section-heading {
@@ -1867,21 +1776,6 @@ article[id] {
   font-style: normal;
 }
 
-.principle-list-new li {
-  grid-template-columns: 66px minmax(0, 1fr);
-}
-
-.principle-list-new h3 {
-  margin-bottom: 7px;
-  font-size: 1.45rem;
-}
-
-.principle-list-new p {
-  color: var(--secondary);
-  font-family: var(--body);
-  font-size: 1rem;
-}
-
 .press-hero,
 .contact-hero {
   max-width: var(--shell);
@@ -1917,14 +1811,32 @@ article[id] {
   justify-content: flex-end;
 }
 
+.copy-control {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+/* The button text is the visible feedback; this carries the same result to
+   assistive technology without occupying layout. */
+.copy-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .copy-button {
   cursor: pointer;
+  min-height: 34px;
   padding: 8px 10px;
   color: var(--text);
   border: 1px solid var(--border);
   background: transparent;
   font-family: var(--mono);
   font-size: 0.68rem;
+  text-align: center;
 }
 
 .copy-button:hover {
@@ -2189,7 +2101,9 @@ article[id] {
   background: var(--surface);
 }
 
-.updates-pagination a:last-child {
+/* Only the trailing card of a pair is right-aligned; a lone card stays in the
+   left column and must stay left-aligned with it. */
+.updates-pagination a:last-child:not(:first-child) {
   text-align: right;
 }
 
@@ -2286,10 +2200,18 @@ input[type='search']::-webkit-search-results-decoration {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: 7px 24px;
+  gap: 4px 24px;
+  margin-block: -2px;
 }
 
+/* Stacked navigation links, so they carry their own 24px target rather than
+   relying on the 20px line box they would otherwise get. */
 .footer-links a {
+  display: flex;
+  min-height: 24px;
+  width: max-content;
+  max-width: 100%;
+  align-items: center;
   color: var(--secondary);
   font-size: 0.8rem;
 }
@@ -2319,23 +2241,46 @@ input[type='search']::-webkit-search-results-decoration {
   isolation: isolate;
 }
 
+/* The diagonal wipe reveals the incoming page from the top-left corner while the
+   outgoing page recedes ahead of it. The two clips never overlap, so the group's
+   red fill shows through the gap between them as a blade riding the edge.
+
+   The original 2026-07 version put `filter: drop-shadow()` and `clip-path` on the
+   same pseudo-element. Filters resolve before clipping, so the shadow of the
+   diagonal was clipped away and the blade never rendered. Drawing it as an
+   uncovered band is the only way to keep it locked to the edge. */
 ::view-transition-group(site-main) {
   animation-duration: var(--route-transition-duration);
-  animation-timing-function: var(--ease-mechanical);
+  animation-timing-function: linear;
+  background: var(--red-hover);
+}
+
+/* `main` paints no background of its own, so its snapshot is transparent wherever
+   a section does not cover it. Without this the blade shows through the page. */
+::view-transition-old(site-main),
+::view-transition-new(site-main) {
+  background: var(--background);
 }
 
 ::view-transition-old(site-main) {
   z-index: 1;
-  animation: route-page-out 140ms ease-out both;
+  animation: diagonal-recede var(--route-transition-duration) linear both;
 }
 
 ::view-transition-new(site-main) {
   z-index: 2;
-  animation: route-page-in var(--route-transition-duration) var(--ease-mechanical) both;
+  animation: diagonal-reveal var(--route-transition-duration) linear both;
+}
+
+/* The subsystem morph owns its own choreography and must not inherit the wipe. */
+html[data-subsystem-transition]::view-transition-group(site-main) {
+  background: none;
 }
 
 html[data-subsystem-transition]::view-transition-old(site-main) {
-  animation: subsystem-page-out var(--subsystem-transition-duration) var(--subsystem-transition-ease) both;
+  animation: subsystem-page-out var(--subsystem-transition-duration) linear both;
+  clip-path: none;
+  background: none;
 }
 
 html[data-subsystem-transition] {
@@ -2343,9 +2288,31 @@ html[data-subsystem-transition] {
 }
 
 html[data-subsystem-transition]::view-transition-new(site-main) {
-  animation: subsystem-page-in var(--subsystem-transition-duration) var(--subsystem-transition-ease) both;
-  clip-path: inset(0);
+  animation: subsystem-page-in var(--subsystem-transition-duration) linear both;
+  clip-path: none;
+  background: none;
   filter: none;
+}
+
+/* Naming a descendant removes it from its ancestor's snapshot, so `site-main` is
+   captured with holes where the docs chrome was. Its opaque backfill would paint
+   over those holes, so the chrome has to stack above it. */
+::view-transition-group(docs-toolbar),
+::view-transition-group(docs-sidebar),
+::view-transition-group(docs-toc) {
+  z-index: 20;
+  animation-duration: var(--docs-chrome-duration);
+  animation-timing-function: linear;
+}
+
+::view-transition-old(docs-toolbar),
+::view-transition-new(docs-toolbar),
+::view-transition-old(docs-sidebar),
+::view-transition-new(docs-sidebar),
+::view-transition-old(docs-toc),
+::view-transition-new(docs-toc) {
+  animation-duration: var(--docs-chrome-duration);
+  mix-blend-mode: normal;
 }
 
 ::view-transition-group(subsystem-frame) {
@@ -2354,12 +2321,15 @@ html[data-subsystem-transition]::view-transition-new(site-main) {
   animation-timing-function: var(--subsystem-transition-spring);
 }
 
+/* The groups carry position and size, and every group must land on the same frame
+   or the composition arrives in pieces. The text images run shorter and are offset
+   by up to 60ms, so 620 + 60 lands them exactly with the 680ms groups. */
 ::view-transition-group(subsystem-role),
 ::view-transition-group(subsystem-title),
 ::view-transition-group(subsystem-pronunciation),
 ::view-transition-group(subsystem-summary) {
   z-index: 5;
-  animation-duration: var(--subsystem-text-duration);
+  animation-duration: var(--subsystem-transition-duration);
   animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1.04);
 }
 
@@ -2372,12 +2342,12 @@ html[data-subsystem-transition]::view-transition-new(site-main) {
 }
 
 ::view-transition-old(subsystem-frame) {
-  animation: subsystem-frame-out var(--subsystem-transition-duration) var(--subsystem-transition-ease) both;
+  animation: subsystem-frame-out var(--subsystem-transition-duration) linear both;
   mix-blend-mode: normal;
 }
 
 ::view-transition-new(subsystem-frame) {
-  animation: subsystem-frame-in var(--subsystem-transition-duration) var(--subsystem-transition-ease) both;
+  animation: subsystem-frame-in var(--subsystem-transition-duration) linear both;
   mix-blend-mode: normal;
 }
 
@@ -2385,24 +2355,24 @@ html[data-subsystem-transition]::view-transition-new(site-main) {
 ::view-transition-old(subsystem-title),
 ::view-transition-old(subsystem-pronunciation),
 ::view-transition-old(subsystem-summary) {
-  animation: subsystem-text-out var(--subsystem-text-duration) var(--subsystem-transition-ease) both;
+  animation: subsystem-text-out var(--subsystem-text-duration) linear both;
   mix-blend-mode: normal;
 }
 
 ::view-transition-new(subsystem-title) {
-  animation: subsystem-text-in var(--subsystem-text-duration) var(--subsystem-transition-ease) both;
+  animation: subsystem-text-in var(--subsystem-text-duration) linear both;
 }
 
 ::view-transition-new(subsystem-role) {
-  animation: subsystem-text-in var(--subsystem-text-duration) var(--subsystem-transition-ease) 20ms both;
+  animation: subsystem-text-in var(--subsystem-text-duration) linear 20ms both;
 }
 
 ::view-transition-new(subsystem-pronunciation) {
-  animation: subsystem-text-in var(--subsystem-text-duration) var(--subsystem-transition-ease) 40ms both;
+  animation: subsystem-text-in var(--subsystem-text-duration) linear 40ms both;
 }
 
 ::view-transition-new(subsystem-summary) {
-  animation: subsystem-text-in var(--subsystem-text-duration) var(--subsystem-transition-ease) 60ms both;
+  animation: subsystem-text-in var(--subsystem-text-duration) linear 60ms both;
 }
 
 html[data-subsystem-direction='back']::view-transition-new(subsystem-summary) {
@@ -2421,50 +2391,77 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
   animation-delay: 60ms;
 }
 
+/* Every pair below is an exact complement, so the two snapshots always sum to one
+   opaque image. The previous stops left gaps: the text reached zero at 47% but its
+   replacement was not opaque until 55%, so the label vanished in flight and the
+   group was faithfully carrying an empty rectangle across the screen. The frame
+   had the opposite fault, holding two solid fills between 26% and 42% and banding
+   where they stacked. */
 @keyframes subsystem-page-out {
-  from { opacity: 1; }
-  to { opacity: 0.22; }
+  0% { opacity: 1; }
+  60%, 100% { opacity: 0; }
 }
 
 @keyframes subsystem-page-in {
-  0%, 18% { opacity: 0; }
-  62%, 100% { opacity: 1; }
+  0%, 20% { opacity: 0; }
+  80%, 100% { opacity: 1; }
 }
 
 @keyframes subsystem-frame-out {
-  0%, 42% { opacity: 1; }
-  100% { opacity: 0; }
+  0% { opacity: 1; }
+  55%, 100% { opacity: 0; }
 }
 
 @keyframes subsystem-frame-in {
-  0%, 26% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes subsystem-text-out {
-  0%, 35% { opacity: 1; }
-  47%, 100% { opacity: 0; }
-}
-
-@keyframes subsystem-text-in {
-  0%, 40% { opacity: 0; }
+  0% { opacity: 0; }
   55%, 100% { opacity: 1; }
 }
 
-@keyframes route-page-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+@keyframes subsystem-text-out {
+  0%, 12% { opacity: 1; }
+  58%, 100% { opacity: 0; }
 }
 
-@keyframes route-page-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes subsystem-text-in {
+  0%, 12% { opacity: 0; }
+  58%, 100% { opacity: 1; }
+}
+
+/* The cut is the line x + y = D, so the edge is a true 45 degrees and D is a plain
+   length. The viewport corner sits at 100vw + 100vh, which is where the sweep has
+   covered everything the reader can see.
+
+   Percentages would resolve against `main`'s full scroll height instead, which is
+   several times the viewport: the original curve reached full visible coverage at
+   roughly 17% of its runtime and spent the remaining ~630ms moving off-screen.
+   Viewport units keep the edge on screen for the whole animation, and linear
+   timing makes each stop below mean exactly what it says.
+
+   The edge runs fast to 45%, catches and very nearly stalls through 72%, then
+   releases and drives home by 88%. That hesitation is the mechanical character
+   the original was reaching for with its overshoot, without ever reversing and
+   handing a slice of the outgoing page back to the reader. */
+@keyframes diagonal-reveal {
+  0% { clip-path: polygon(0 0, 0 0, 0 0); }
+  45% { clip-path: polygon(0 0, calc(55vw + 55vh) 0, 0 calc(55vw + 55vh)); }
+  60% { clip-path: polygon(0 0, calc(68vw + 68vh) 0, 0 calc(68vw + 68vh)); }
+  72% { clip-path: polygon(0 0, calc(72vw + 72vh) 0, 0 calc(72vw + 72vh)); }
+  88% { clip-path: polygon(0 0, calc(100vw + 100vh) 0, 0 calc(100vw + 100vh)); }
+  100% { clip-path: polygon(0 0, calc(103vw + 103vh) 0, 0 calc(103vw + 103vh)); }
+}
+
+/* The complement of that triangle, held a fixed distance ahead of it. The band
+   left uncovered between the two is the blade; at 45 degrees a 10px gap along the
+   axes reads as roughly 7px of visible thickness. Five vertices at every stop so
+   the shape stays interpolable. The lead thickens through the final drive, the way
+   a fast edge smears, then closes to nothing as the wipe lands. */
+@keyframes diagonal-recede {
+  0% { clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
+  45% { clip-path: polygon(calc(55vw + 55vh + 10px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(55vw + 55vh + 10px)); }
+  60% { clip-path: polygon(calc(68vw + 68vh + 8px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(68vw + 68vh + 8px)); }
+  72% { clip-path: polygon(calc(72vw + 72vh + 8px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(72vw + 72vh + 8px)); }
+  88% { clip-path: polygon(calc(100vw + 100vh + 16px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(100vw + 100vh + 16px)); }
+  100% { clip-path: polygon(calc(103vw + 103vh) 0, 100% 0, 100% 100%, 0 100%, 0 calc(103vw + 103vh)); }
 }
 
 @media (max-width: 980px) {
@@ -2594,7 +2591,7 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
 
 @media (max-width: 720px) {
   :root {
-    --route-transition-duration: 240ms;
+    --route-transition-duration: 560ms;
     --subsystem-transition-duration: 520ms;
     --subsystem-text-duration: 480ms;
   }
@@ -2859,8 +2856,7 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
     grid-template-columns: 1fr;
   }
 
-  .numbered-list li,
-  .principle-list-new li {
+  .numbered-list li {
     grid-template-columns: 42px minmax(0, 1fr);
   }
 
@@ -2942,8 +2938,19 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
     transition-duration: 0.01ms !important;
   }
 
+  /* The universal selector above does not match view-transition pseudo-elements,
+     so every named group has to be listed here by hand. */
   ::view-transition-old(site-main),
-  ::view-transition-new(site-main) {
+  ::view-transition-new(site-main),
+  ::view-transition-group(docs-toolbar),
+  ::view-transition-group(docs-sidebar),
+  ::view-transition-group(docs-toc),
+  ::view-transition-old(docs-toolbar),
+  ::view-transition-new(docs-toolbar),
+  ::view-transition-old(docs-sidebar),
+  ::view-transition-new(docs-sidebar),
+  ::view-transition-old(docs-toc),
+  ::view-transition-new(docs-toc) {
     animation: none !important;
   }
 
@@ -2963,17 +2970,5 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
   ::view-transition-new(subsystem-pronunciation),
   ::view-transition-new(subsystem-summary) {
     animation: none !important;
-  }
-
-  .wishlist-flip[data-wishlist-ready] .wishlist-flip-inner {
-    display: grid;
-    gap: 6px;
-    transform: none !important;
-  }
-
-  .wishlist-flip[data-wishlist-ready] .wishlist-flip-face {
-    position: static;
-    transform: none;
-    backface-visibility: visible;
   }
 }

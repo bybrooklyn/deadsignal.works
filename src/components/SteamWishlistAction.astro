@@ -6,7 +6,7 @@ interface Props {
 }
 
 const { class: className } = Astro.props;
-const classes = ['action', 'wishlist-action', className].filter(Boolean);
+const classes = ['action', className].filter(Boolean);
 ---
 
 {site.steamWishlistUrl

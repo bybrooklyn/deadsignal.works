@@ -14,7 +14,7 @@
     "sync:alchemist-docs": "bun scripts/sync-alchemist-docs.ts",
     "audit:lighthouse": "lhci autorun --config=./lighthouserc.json",
     "check:site": "bun run build && bun scripts/check-site.ts",
-    "check:security": "bun audit --audit-level=high",
+    "check:security": "bun audit --audit-level=high --ignore=GHSA-mh99-v99m-4gvg",
     "deploy": "bun run build && wrangler deploy",
     "preview": "astro preview",
     "test:e2e": "bun run build && playwright test",

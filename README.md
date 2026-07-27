@@ -29,6 +29,18 @@ git diff --check
 budgets, checks dependencies, and runs the Chromium, Firefox, and WebKit
 Playwright suites through local Wrangler routing and response headers.
 
+`check:security` ignores `GHSA-mh99-v99m-4gvg` (brace-expansion). It is reached
+only through `@lhci/cli › chrome-launcher › rimraf › glob › minimatch`, is a
+devDependency that never ships, and its sole patched release (5.0.8) exports an
+object instead of a callable from its CommonJS entry, which minimatch 3 cannot
+consume. Drop the ignore once `@lhci/cli` updates that chain.
+
+`audit:lighthouse` asserts SEO at 0.92 rather than 1.00. The only audit below
+that ceiling is `robots-txt`, which reports the deliberate `Content-Signal`
+directive in `public/robots.txt` as an unknown directive; Lighthouse's parser
+predates the Content Signals Policy. Raise the threshold back to 1.00 once that
+directive is recognized, and treat any other SEO drop as a real regression.
+
 On a fresh Linux runner, install the browser system packages at the same time
 with `bunx playwright install --with-deps chromium firefox webkit`.
 

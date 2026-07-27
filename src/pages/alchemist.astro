@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InPageNav from '../components/InPageNav.astro';
+import { site } from '../data/site';
 
-const repository = 'https://github.com/bybrooklyn/alchemist';
+const repository = site.alchemistRepository;
 const description = 'Alchemist is self-hosted media transcoding automation that analyzes a library, encodes only when the result is worthwhile, and explains every decision.';
 const facts = [
   ['Purpose', 'Self-hosted media transcoding automation'],
@@ -23,7 +24,7 @@ const structuredData = {
   description,
   applicationCategory: 'MultimediaApplication',
   operatingSystem: 'Linux, Windows, macOS, Docker',
-  softwareHelp: 'https://deadsignal.works/alchemist/docs/',
+  softwareHelp: `${site.url}/alchemist/docs/`,
   codeRepository: repository,
   license: 'https://www.gnu.org/licenses/agpl-3.0.html',
   author: {
@@ -32,8 +33,8 @@ const structuredData = {
   },
   publisher: {
     '@type': 'Organization',
-    name: 'Dead Signal Works LLC',
-    url: 'https://deadsignal.works/',
+    name: site.legalName,
+    url: `${site.url}/`,
   },
 };
 ---
@@ -55,7 +56,7 @@ const structuredData = {
         <p class="meridian-license-note">Copyright Brooklyn Halmstad. AGPL-3.0-or-later, with no paid tier or private feature tree.</p>
         <div class="inline-actions">
           <a class="action action-primary" href="/alchemist/docs/">Read the docs <span aria-hidden="true">↗</span></a>
-          <a class="action" href={repository}>View source <span aria-hidden="true">↗</span></a>
+          <a class="action" href={repository} target="_blank" rel="noreferrer">View source <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <aside class="meridian-status-panel" aria-label="Alchemist project facts">
@@ -109,9 +110,9 @@ const structuredData = {
       <div><p class="section-number">04 / Project links</p><h2>Source, releases, issues, and the full manual.</h2><p>Alchemist’s source and working history are public. The documentation is mirrored here from the same repository.</p></div>
       <div class="stacked-actions">
         <a class="action action-primary" href="/alchemist/docs/">Read the documentation <span aria-hidden="true">↗</span></a>
-        <a class="action" href={repository}>GitHub <span aria-hidden="true">↗</span></a>
-        <a class="action" href={`${repository}/releases`}>Releases <span aria-hidden="true">↗</span></a>
-        <a class="action" href={`${repository}/issues`}>Issues <span aria-hidden="true">↗</span></a>
+        <a class="action" href={repository} target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        <a class="action" href={`${repository}/releases`} target="_blank" rel="noreferrer">Releases <span aria-hidden="true">↗</span></a>
+        <a class="action" href={`${repository}/issues`} target="_blank" rel="noreferrer">Issues <span aria-hidden="true">↗</span></a>
       </div>
     </div>
   </section>

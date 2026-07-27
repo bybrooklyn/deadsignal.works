@@ -287,29 +287,21 @@ test('the wordmark accessible name matches its visible text', async ({ page }) =
   await expect(wordmark).toHaveCSS('opacity', restingOpacity);
 });
 
-test('Steam wishlist status exposes a useful follow-up action without pretending Steam is live', async ({ page }) => {
+test('Steam wishlist status is one plain follow action on every surface', async ({ page }) => {
   await page.goto('/');
   const homeFollowLinks = page.getByRole('link', { name: /Follow development/u });
   await expect(homeFollowLinks).toHaveCount(2);
   await expect(homeFollowLinks.first()).toHaveAttribute('href', '/updates/');
-  await expect(page.locator('[data-wishlist-flip]')).toHaveCount(0);
 
   await page.goto('/project-meridian/');
-  const wishlist = page.locator('[data-wishlist-flip]');
-  const toggle = wishlist.getByRole('button', { name: /Steam wishlist coming soon/u });
-  const follow = wishlist.getByRole('link', { name: /Follow development/u });
-  await expect(wishlist).toHaveAttribute('data-wishlist-ready', 'true');
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(follow).toHaveAttribute('href', '/updates/');
+  const projectFollow = page.getByRole('link', { name: /Follow development/u });
+  await expect(projectFollow).toHaveCount(1);
+  await expect(projectFollow).toHaveAttribute('href', '/updates/');
 
-  await toggle.focus();
-  await expect.poll(() => wishlist.locator('.wishlist-flip-inner').evaluate(
-    (element) => getComputedStyle(element).transform !== 'none',
-  )).toBe(true);
-
-  await toggle.evaluate((button) => (button as HTMLButtonElement).click());
-  await expect(wishlist).toHaveAttribute('data-wishlist-flipped', 'true');
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  // The two-sided "Turn over" tile is gone site-wide; both renderers now agree.
+  await expect(page.locator('[data-wishlist-flip]')).toHaveCount(0);
+  await expect(page.getByText('Turn over')).toHaveCount(0);
+  await expect(page.getByText('Steam wishlist coming soon')).toHaveCount(0);
 });
 
 test('Steam wishlist fallback remains useful without JavaScript', async ({ browser }) => {
@@ -328,18 +320,17 @@ test('Steam wishlist fallback remains useful without JavaScript', async ({ brows
   await context.close();
 });
 
-test('Steam wishlist tile flips deliberately on touch input', async ({ browser }) => {
+test('Steam wishlist follow action is reachable in one tap on touch input', async ({ browser }) => {
   const context = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   const diagnostics = monitorPage(page);
   await page.goto('/project-meridian/');
 
-  const tile = page.locator('[data-wishlist-flip]').first();
-  const toggle = tile.getByRole('button', { name: /Steam wishlist coming soon/u });
-  await toggle.tap();
-  await expect(tile).toHaveAttribute('data-wishlist-flipped', 'true');
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(tile.getByRole('link', { name: /Follow development/u })).toHaveAttribute('href', '/updates/');
+  // Previously this needed a deliberate flip before the link was reachable.
+  const follow = page.getByRole('link', { name: /Follow development/u });
+  await expect(follow).toHaveAttribute('href', '/updates/');
+  await follow.tap();
+  await expect(page).toHaveURL(/\/updates\/$/u);
 
   expectCleanDiagnostics(diagnostics);
   await context.close();
@@ -414,17 +405,26 @@ test('ordinary page navigation starts the global view transition', async ({ page
   await expect.poll(() => page.evaluate(() => (
     globalThis as typeof globalThis & { __astroPageLoads?: number }
   ).__astroPageLoads ?? 0)).toBeGreaterThan(1);
-  const incomingAnimation = await page.evaluate(() => {
-    const style = getComputedStyle(document.documentElement, '::view-transition-new(site-main)');
+  const wipe = await page.evaluate(() => {
+    const incoming = getComputedStyle(document.documentElement, '::view-transition-new(site-main)');
+    const outgoing = getComputedStyle(document.documentElement, '::view-transition-old(site-main)');
+    const group = getComputedStyle(document.documentElement, '::view-transition-group(site-main)');
     return {
-      animationName: style.animationName,
-      duration: style.animationDuration,
-      filter: style.filter,
+      incomingName: incoming.animationName,
+      incomingDuration: incoming.animationDuration,
+      outgoingName: outgoing.animationName,
+      outgoingDuration: outgoing.animationDuration,
+      blade: group.backgroundColor,
     };
   });
-  expect(incomingAnimation.animationName).toBe('route-page-in');
-  expect(incomingAnimation.duration).toBe('0.28s');
-  expect(incomingAnimation.filter).toBe('none');
+  // The incoming page is revealed by the diagonal wipe while the outgoing page
+  // recedes just ahead of it; the gap between the two clips exposes the group's
+  // red fill as the blade riding the edge.
+  expect(wipe.incomingName).toBe('diagonal-reveal');
+  expect(wipe.outgoingName).toBe('diagonal-recede');
+  expect(wipe.incomingDuration).toBe('0.76s');
+  expect(wipe.outgoingDuration).toBe('0.76s');
+  expect(wipe.blade).toBe('rgb(209, 95, 87)');
 });
 
 test('rapid successive navigation remains clickable during the root view transition', async ({ page, browserName }) => {
@@ -1080,13 +1080,26 @@ test('reduced-motion preference disables smooth scrolling and workbench transiti
   expect(Math.max(...pageValues.transitionDuration.split(',').map((value) => Number.parseFloat(value)))).toBeLessThanOrEqual(0.001);
 });
 
-test('reduced-motion preference flattens the Project Meridian wishlist control', async ({ page }) => {
+test('reduced-motion preference cancels the route wipe and the docs chrome', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/project-meridian/');
-  const wishlistValues = await page.evaluate(() => ({
-    transform: getComputedStyle(document.querySelector('.wishlist-flip-inner')!).transform,
-    backPosition: getComputedStyle(document.querySelector('.wishlist-flip-back')!).position,
-  }));
-  expect(wishlistValues.transform).toBe('none');
-  expect(wishlistValues.backPosition).toBe('static');
+  await page.goto('/meridian/docs/learn/what-is-meridian/');
+
+  // The universal selector does not reach view-transition pseudo-elements, so
+  // each named group has to be cancelled explicitly.
+  const cancelled = await page.evaluate(() => {
+    const names = [
+      '::view-transition-new(site-main)',
+      '::view-transition-old(site-main)',
+      '::view-transition-group(docs-toolbar)',
+      '::view-transition-group(docs-sidebar)',
+      '::view-transition-group(docs-toc)',
+    ];
+    return names.map((selector) => [
+      selector,
+      getComputedStyle(document.documentElement, selector).animationName,
+    ]);
+  });
+  for (const [selector, animationName] of cancelled) {
+    expect(animationName, `${selector} should not animate under reduced motion`).toBe('none');
+  }
 });

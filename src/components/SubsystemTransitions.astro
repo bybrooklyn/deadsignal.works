@@ -26,6 +26,11 @@
       container.dataset.transitionActive = 'true';
       container.dataset.transitionSource = 'true';
 
+      // The grid lifts a card 6px while it is hovered, and the pointer is still on
+      // it at click time. Capturing that offset would start the morph 6px above
+      // where the card actually sits, so drop the transform before the snapshot.
+      if (container.style.transform) container.style.transform = 'none';
+
       const frame = container.querySelector('[data-subsystem-frame]');
       if (frame) {
         frame.dataset.transitionActive = 'true';

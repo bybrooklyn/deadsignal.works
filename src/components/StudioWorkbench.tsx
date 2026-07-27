@@ -66,7 +66,7 @@ export default function StudioWorkbench() {
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
-        <div className="studio-workbench" aria-label="Work currently on the Dead Signal Works workbench">
+        <nav className="studio-workbench" aria-label="Work currently on the Dead Signal Works workbench">
           <div className="workbench-drawers" ref={drawersRef}>
             {drawers.map((drawer, index) => {
               const selected = active === index;
@@ -108,7 +108,7 @@ export default function StudioWorkbench() {
               );
             })}
           </div>
-        </div>
+        </nav>
       </MotionConfig>
     </LazyMotion>
   );
