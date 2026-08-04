@@ -417,14 +417,37 @@ test('ordinary page navigation starts the global view transition', async ({ page
       blade: group.backgroundColor,
     };
   });
-  // The incoming page is revealed by the diagonal wipe while the outgoing page
-  // recedes just ahead of it; the gap between the two clips exposes the group's
-  // red fill as the blade riding the edge.
+  // Chromium opts into the diagonal wipe: the incoming page is revealed by it while
+  // the outgoing page recedes just ahead, and the gap between the two clips exposes
+  // the group's red fill as the blade riding the edge. Firefox drops clips on
+  // view-transition snapshots and WebKit will not paint a clipped incoming snapshot,
+  // so both keep the cross-fade instead.
+  const gated = await page.evaluate(() => document.documentElement.hasAttribute('data-route-wipe'));
+  expect(gated, 'Chromium should opt into the wipe').toBe(true);
   expect(wipe.incomingName).toBe('diagonal-reveal');
   expect(wipe.outgoingName).toBe('diagonal-recede');
   expect(wipe.incomingDuration).toBe('0.76s');
   expect(wipe.outgoingDuration).toBe('0.76s');
   expect(wipe.blade).toBe('rgb(209, 95, 87)');
+});
+
+test('browsers without clipped-snapshot support keep a working cross-fade', async ({ page, browserName }) => {
+  test.skip(browserName === 'chromium', 'Chromium runs the wipe; this covers the fallback path.');
+  await page.goto('/');
+  expect(await page.evaluate(() => document.documentElement.hasAttribute('data-route-wipe'))).toBe(false);
+
+  const fade = await page.evaluate(() => {
+    const incoming = getComputedStyle(document.documentElement, '::view-transition-new(site-main)');
+    return { name: incoming.animationName, duration: incoming.animationDuration };
+  });
+  expect(fade.name).toBe('route-page-in');
+  expect(fade.duration).toBe('0.28s');
+
+  // The fallback must still complete the navigation rather than stranding the
+  // outgoing page on screen, which is what an ungated clip would have done.
+  await page.locator('.home-project-actions a[href="/project-meridian/"]').click();
+  await expect(page).toHaveURL(/\/project-meridian\/$/u);
+  await expect(page.locator('h1')).toHaveText(/Project Meridian/u);
 });
 
 test('rapid successive navigation remains clickable during the root view transition', async ({ page, browserName }) => {

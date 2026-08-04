@@ -19,6 +19,7 @@
   --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --ease-mechanical: cubic-bezier(0.22, 1, 0.36, 1);
   --route-transition-duration: 760ms;
+  --route-fade-duration: 280ms;
   --docs-chrome-duration: 200ms;
   --subsystem-transition-duration: 680ms;
   --subsystem-text-duration: 620ms;
@@ -53,6 +54,10 @@ body {
 main {
   overflow: clip;
   view-transition-name: site-main;
+  /* Opaque so the wipe's red blade cannot show through gaps between sections.
+     Setting this on the snapshot pseudo-elements instead does not work: WebKit
+     paints their background over the snapshot image rather than behind it. */
+  background: var(--background);
 }
 
 a {
@@ -2241,6 +2246,26 @@ input[type='search']::-webkit-search-results-decoration {
   isolation: isolate;
 }
 
+/* Baseline route transition. Clipping a view-transition snapshot is only honoured
+   by Chromium today: Firefox ignores the clip entirely and WebKit refuses to paint
+   a clipped incoming snapshot, which would hold the outgoing page on screen for the
+   whole duration. Everything therefore falls back to this cross-fade, and the wipe
+   below is layered on only where it actually renders. */
+::view-transition-group(site-main) {
+  animation-duration: var(--route-fade-duration);
+  animation-timing-function: var(--ease-mechanical);
+}
+
+::view-transition-old(site-main) {
+  z-index: 1;
+  animation: route-page-out 140ms ease-out both;
+}
+
+::view-transition-new(site-main) {
+  z-index: 2;
+  animation: route-page-in var(--route-fade-duration) var(--ease-mechanical) both;
+}
+
 /* The diagonal wipe reveals the incoming page from the top-left corner while the
    outgoing page recedes ahead of it. The two clips never overlap, so the group's
    red fill shows through the gap between them as a blade riding the edge.
@@ -2249,38 +2274,29 @@ input[type='search']::-webkit-search-results-decoration {
    same pseudo-element. Filters resolve before clipping, so the shadow of the
    diagonal was clipped away and the blade never rendered. Drawing it as an
    uncovered band is the only way to keep it locked to the edge. */
-::view-transition-group(site-main) {
+html[data-route-wipe]::view-transition-group(site-main) {
   animation-duration: var(--route-transition-duration);
   animation-timing-function: linear;
   background: var(--red-hover);
 }
 
-/* `main` paints no background of its own, so its snapshot is transparent wherever
-   a section does not cover it. Without this the blade shows through the page. */
-::view-transition-old(site-main),
-::view-transition-new(site-main) {
-  background: var(--background);
-}
-
-::view-transition-old(site-main) {
-  z-index: 1;
+html[data-route-wipe]::view-transition-old(site-main) {
   animation: diagonal-recede var(--route-transition-duration) linear both;
 }
 
-::view-transition-new(site-main) {
-  z-index: 2;
+html[data-route-wipe]::view-transition-new(site-main) {
   animation: diagonal-reveal var(--route-transition-duration) linear both;
 }
 
 /* The subsystem morph owns its own choreography and must not inherit the wipe. */
 html[data-subsystem-transition]::view-transition-group(site-main) {
   background: none;
+  animation-duration: var(--subsystem-transition-duration);
 }
 
 html[data-subsystem-transition]::view-transition-old(site-main) {
   animation: subsystem-page-out var(--subsystem-transition-duration) linear both;
   clip-path: none;
-  background: none;
 }
 
 html[data-subsystem-transition] {
@@ -2290,7 +2306,6 @@ html[data-subsystem-transition] {
 html[data-subsystem-transition]::view-transition-new(site-main) {
   animation: subsystem-page-in var(--subsystem-transition-duration) linear both;
   clip-path: none;
-  background: none;
   filter: none;
 }
 
@@ -2425,6 +2440,22 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
 @keyframes subsystem-text-in {
   0%, 12% { opacity: 0; }
   58%, 100% { opacity: 1; }
+}
+
+@keyframes route-page-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes route-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* The cut is the line x + y = D, so the edge is a true 45 degrees and D is a plain
@@ -2592,6 +2623,7 @@ html[data-subsystem-direction='back']::view-transition-new(subsystem-title) {
 @media (max-width: 720px) {
   :root {
     --route-transition-duration: 560ms;
+    --route-fade-duration: 240ms;
     --subsystem-transition-duration: 520ms;
     --subsystem-text-duration: 480ms;
   }

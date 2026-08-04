@@ -87,6 +87,25 @@ const socialImage = new URL(socialImagePath, site.url).toString();
     <title>{fullTitle}</title>
     <script is:inline type="application/ld+json" set:html={serializedJsonLd}></script>
     <ClientRouter fallback="swap" />
+    {/* Opts this document into the diagonal route wipe. Animating `clip-path` on a
+        view-transition snapshot is Chromium-only today: Firefox drops the clip and
+        WebKit will not paint a clipped incoming snapshot, leaving the outgoing page
+        frozen on screen. Everything else keeps the cross-fade in global.css. */}
+    <script is:inline>
+      (() => {
+        const key = '__deadSignalRouteWipeInitialized';
+        if (Reflect.get(globalThis, key)) return;
+        Reflect.set(globalThis, key, true);
+        if (!navigator.userAgentData?.brands?.some((brand) => brand.brand === 'Chromium')) return;
+        document.documentElement.dataset.routeWipe = '';
+        // The router copies the incoming document's html attributes over the live
+        // ones, so the flag has to be planted on the new document before the swap
+        // or the wipe would only ever run on a cold load.
+        document.addEventListener('astro:before-swap', (event) => {
+          event.newDocument.documentElement.dataset.routeWipe = '';
+        });
+      })();
+    </script>
     <AgentTools />
     {enableSubsystemTransitions && <SubsystemTransitions />}
     <slot name="head" />
